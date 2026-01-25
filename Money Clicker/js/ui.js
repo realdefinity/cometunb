@@ -1,5 +1,12 @@
 const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
 
+// --- NUCLEAR RIGHT-CLICK DISABLE ---
+// This is placed at the top level to ensure it catches events immediately.
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    return false;
+}, { capture: true });
+
 // --- 0. STYLE & UI INJECTION (Toasts, Tooltips, Analytics, & Interaction) ---
 (function injectUIStyles() {
     const style = document.createElement('style');
@@ -93,11 +100,6 @@ const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "N
         `;
         document.body.appendChild(modal);
     }
-
-    // --- DISABLE RIGHT CLICK ---
-    window.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-    }, false);
 })();
 
 // --- 1. STATE & UTILS ---
