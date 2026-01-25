@@ -789,3 +789,93 @@ input[type=number] {
     color: var(--accent);
     pointer-events: none;
 }
+
+/* --- CUSTOM DROPDOWN --- */
+.random-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    position: relative; /* Context for absolute menu */
+    z-index: 100;
+}
+
+.custom-dropdown {
+    flex: 1;
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    user-select: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-sub);
+}
+
+.custom-dropdown:hover {
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+}
+
+.diff-arrow {
+    font-size: 0.6rem;
+    color: var(--accent);
+    transition: 0.3s;
+}
+
+/* Rotate arrow when open */
+.custom-dropdown.open .diff-arrow {
+    transform: rotate(180deg);
+}
+
+/* THE POPUP MENU */
+.dd-menu {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    background: #0a0a0a; /* Dark background for contrast */
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    
+    /* Animation */
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    z-index: 500;
+}
+
+.custom-dropdown.open .dd-menu {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.dd-opt {
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: rgba(255,255,255,0.6);
+    transition: 0.2s;
+}
+
+.dd-opt:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.dd-opt.active {
+    background: var(--accent);
+    color: white;
+}

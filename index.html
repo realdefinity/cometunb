@@ -84,14 +84,19 @@
             </div>
             
             <div class="random-bar">
-                <div class="diff-select-wrapper">
-                    <select id="diff-select" class="diff-select">
-                        <option value="easy">Easy</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
+                <div class="custom-dropdown" id="diff-dd" onclick="toggleDiffMenu()">
+                    <span id="diff-label">Medium</span>
                     <div class="diff-arrow">▼</div>
+                    
+                    <input type="hidden" id="diff-value" value="medium">
+
+                    <div class="dd-menu" id="diff-options">
+                        <div class="dd-opt" onclick="selectDiff('easy', 'Easy')">Easy</div>
+                        <div class="dd-opt active" onclick="selectDiff('medium', 'Medium')">Medium</div>
+                        <div class="dd-opt" onclick="selectDiff('hard', 'Hard')">Hard</div>
+                    </div>
                 </div>
+
                 <button class="btn-primary rand-btn" onclick="randomize()">
                     🎲 Randomize
                 </button>

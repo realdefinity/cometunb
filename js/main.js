@@ -69,3 +69,40 @@ function adjustTime(amount) {
     
     input.value = val;
 }
+
+// --- CUSTOM DROPDOWN LOGIC ---
+
+function toggleDiffMenu() {
+    const dd = document.getElementById('diff-dd');
+    dd.classList.toggle('open');
+}
+
+function selectDiff(value, text) {
+    // 1. Update Hidden Value (for Game Logic)
+    document.getElementById('diff-value').value = value;
+    
+    // 2. Update Visual Label
+    document.getElementById('diff-label').textContent = text;
+    
+    // 3. Update Visual Selection State
+    document.querySelectorAll('.dd-opt').forEach(opt => opt.classList.remove('active'));
+    // Find the one we clicked (using event bubbling is tricky here, so we just match text)
+    const opts = document.querySelectorAll('.dd-opt');
+    opts.forEach(o => {
+        if(o.textContent === text) o.classList.add('active');
+    });
+
+    // 4. Close Menu (Bubbling handles the toggle, so we stop propagation if needed, 
+    // but the simplest way is to let the parent toggle handle the close, 
+    // OR explicitly remove 'open' if we want to be safe)
+    // Since the click on the option propagates to the parent onclick="toggleDiffMenu()", 
+    // it will naturally toggle closed. We don't need extra code here.
+}
+
+// Close dropdown if clicking outside
+window.addEventListener('click', (e) => {
+    const dd = document.getElementById('diff-dd');
+    if (dd && !dd.contains(e.target)) {
+        dd.classList.remove('open');
+    }
+});

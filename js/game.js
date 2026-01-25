@@ -261,8 +261,8 @@ async function randomize() {
     const btn = document.querySelector('.rand-btn');
     const startIn = document.getElementById('start-in');
     const endIn = document.getElementById('end-in');
-    const diff = document.getElementById('diff-select').value;
-    
+    const diff = document.getElementById('diff-value').value;
+
     // Visual Feedback
     btn.disabled = true;
     btn.innerHTML = `<div class="spin" style="width:14px; height:14px; border-width:2px; display:inline-block;"></div> Thinking...`;
