@@ -34,35 +34,45 @@ window.onload = () => {
 function setMode(m) {
     state.mode = m;
     localStorage.setItem('wiki_mode', m);
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    
+    // Update Toggle UI
+    document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('active'));
     if(m === 'standard') document.getElementById('m-std').classList.add('active');
     if(m === 'sudden_death') document.getElementById('m-sd').classList.add('active');
     if(m === 'gauntlet') document.getElementById('m-gnt').classList.add('active');
 
-    const grp = document.getElementById('end-input-group');
+    // Toggle Inputs
+    const endGrp = document.getElementById('end-input-group');
     const sdConfig = document.getElementById('sd-config');
-    const diffDD = document.getElementById('diff-dd');
+    const diffSelector = document.getElementById('diff-selector');
     const label = document.getElementById('setting-label');
 
     if(m === 'gauntlet') {
-        grp.style.opacity = '0.5'; grp.style.pointerEvents = 'none';
+        endGrp.style.opacity = '0.5'; endGrp.style.pointerEvents = 'none';
         document.getElementById('end-in').value = "Randomly Generated...";
         sdConfig.style.display = 'none';
-        diffDD.style.display = 'flex';
+        diffSelector.style.display = 'flex';
         label.textContent = "Difficulty";
     } else if (m === 'sudden_death') {
-        grp.style.opacity = '1'; grp.style.pointerEvents = 'all';
+        endGrp.style.opacity = '1'; endGrp.style.pointerEvents = 'all';
         document.getElementById('end-in').value = "";
         sdConfig.style.display = 'block';
-        diffDD.style.display = 'none';
+        diffSelector.style.display = 'none';
         label.textContent = "Time Limit";
     } else {
-        grp.style.opacity = '1'; grp.style.pointerEvents = 'all';
+        endGrp.style.opacity = '1'; endGrp.style.pointerEvents = 'all';
         document.getElementById('end-in').value = "";
         sdConfig.style.display = 'none';
-        diffDD.style.display = 'flex';
+        diffSelector.style.display = 'flex';
         label.textContent = "Difficulty";
     }
+}
+
+// NEW: Difficulty Segmented Control Logic
+function setDiff(val, el) {
+    document.getElementById('diff-value').value = val;
+    document.querySelectorAll('.diff-seg').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
 }
 
 function adjustTime(amount) {
