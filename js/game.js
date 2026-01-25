@@ -3,8 +3,6 @@
 async function initGame() {
     let s = document.getElementById('start-in').value;
     let t = document.getElementById('end-in').value;
-    let s = document.getElementById('start-in').value;
-    let t = document.getElementById('end-in').value;
     
     // VALIDATION: Blackout works like Standard (needs Start + End)
     const needsTwo = (state.mode === 'standard' || state.mode === 'sudden_death' || state.mode === 'blackout');
