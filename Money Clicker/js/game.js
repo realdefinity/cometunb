@@ -21,27 +21,25 @@ class Particle {
         this.life = 1.0;
         
         if(type === 'text') {
-            this.vx = (Math.random() - 0.5) * 3;
-            this.vy = -4 - Math.random() * 4;
-            this.gravity = 0.15;
-            this.drag = 0.96;
+            this.vx = (Math.random() - 0.5) * 4;
+            this.vy = -5 - Math.random() * 5;
+            this.gravity = 0.2;
             this.scale = 1;
-            this.color = maniaMode ? '#bf00ff' : '#00ffaa';
+            // NEW: Gold for Mania, Emerald for Normal
+            this.color = maniaMode ? '#fcd34d' : '#34d399';
         } else if (type === 'spark') {
             const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 12 + 2;
+            const speed = Math.random() * 15 + 5;
             this.vx = Math.cos(angle) * speed;
             this.vy = Math.sin(angle) * speed;
-            this.gravity = 0.5;
-            this.drag = 0.88;
+            this.gravity = 0.4;
             this.scale = Math.random() * 3 + 1;
-            this.decay = 0.03;
-            this.color = Math.random() > 0.5 ? '#fff' : (maniaMode ? '#d400ff' : '#00ffaa');
-        } else if (type === 'ripple') {
-            this.scale = 0.1;
-            this.maxScale = 3.0;
-            this.decay = 0.02;
-            this.color = '#fff';
+            // NEW: White and Gold sparks
+            this.color = Math.random() > 0.5 ? '#fff' : (maniaMode ? '#f59e0b' : '#10b981');
+        } else if (type === 'shockwave') {
+            this.scale = 0.5;
+            // NEW: Subtle ring color
+            this.color = maniaMode ? 'rgba(252, 211, 77,' : 'rgba(16, 185, 129,';
             this.vx = 0; this.vy = 0;
         } else if (type === 'confetti') {
             this.x = Math.random() * width;
@@ -49,12 +47,11 @@ class Particle {
             this.vx = (Math.random() - 0.5) * 5;
             this.vy = Math.random() * 8 + 5;
             this.gravity = 0.05;
-            this.drag = 0.98;
             this.scale = Math.random() * 5 + 5;
             this.rotation = Math.random() * 360;
-            this.rotSpeed = (Math.random() - 0.5) * 10;
-            this.color = `hsl(${Math.random()*360}, 100%, 50%)`;
-            this.decay = 0.005;
+            // NEW: Money colors (Greens and Golds)
+            const hue = Math.random() > 0.5 ? 45 : 150; // 45=Gold, 150=Green
+            this.color = `hsl(${hue}, 80%, 60%)`;
         }
     }
 
@@ -169,7 +166,7 @@ function startMania() {
     document.body.classList.add('mania-mode');
     document.getElementById('mania-text').innerText = "MARKET MANIA (3x CASH)";
     document.getElementById('mania-text').style.opacity = "1";
-    document.getElementById('mania-text').style.color = "var(--purple)";
+    document.getElementById('mania-text').style.color = "var(--gold)";
     playSound('crit');
     for(let i=0; i<30; i++) createParticle(0,0,'','confetti');
 }
