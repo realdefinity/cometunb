@@ -18,7 +18,6 @@
     </div>
 
     <div id="toast">Message</div>
-    
     <div id="link-preview">
         <img id="lp-img" src="" alt="">
         <h4 id="lp-title">Title</h4>
@@ -48,13 +47,11 @@
                 <div class="logo-minimal">
                     <div class="logo-icon-small"></div>
                     <span>WikiFlow</span>
-                    <div class="rank-badge-small" id="lobby-rank">Lvl 1</div>
                 </div>
-                <button class="icon-btn-ghost" onclick="showStats()" title="View Profile">📊</button>
+                <button class="icon-btn-ghost" onclick="showStats()" title="View Stats">📊</button>
             </div>
 
             <div class="lobby-body">
-                
                 <div class="segment-label">Game Mode</div>
                 <div class="ios-segment">
                     <div class="seg-opt active" id="m-std" onclick="setMode('standard')">Standard</div>
@@ -95,7 +92,6 @@
                         <div class="suggestions" id="sugg-end" style="top: 100%;"></div>
                     </div>
                 </div>
-
             </div>
 
             <div class="lobby-footer-minimal">
@@ -106,7 +102,6 @@
                     Start Race
                 </button>
             </div>
-
         </div>
     </div>
 
@@ -141,54 +136,15 @@
         <div class="card" style="max-width: 600px;">
             <h2 class="title" style="font-size: 2.5rem; margin-bottom: 20px;">Flow Profile</h2>
             
-            <div class="rank-card-large">
-                <div class="rc-header">
-                    <span id="rank-title">NOVICE</span>
-                    <span id="rank-lvl">Lvl 1</span>
-                </div>
-                <div class="xp-track">
-                    <div class="xp-fill" id="xp-bar" style="width: 0%"></div>
-                </div>
-                <div class="xp-text">
-                    <span id="xp-current">0 XP</span> / <span id="xp-next">500 XP</span>
-                </div>
-            </div>
-
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="s-label">Games Won</div>
-                    <div class="s-val" id="s-wins">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="s-label">Win Rate</div>
-                    <div class="s-val" id="s-rate">0%</div>
-                </div>
-                <div class="stat-card">
-                    <div class="s-label">Current Streak</div>
-                    <div class="s-val" id="s-streak">0</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="s-label">Fastest Run</div>
-                    <div class="s-val highlight" id="s-fast">--:--</div>
-                </div>
-                <div class="stat-card">
-                    <div class="s-label">Avg. Clicks</div>
-                    <div class="s-val" id="s-avg-clicks">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="s-label">Total Time</div>
-                    <div class="s-val" id="s-total-time">0h</div>
-                </div>
-
-                <div class="stat-card wide">
-                    <div class="s-label">Total Links Surfed</div>
-                    <div class="s-val" id="s-total-links" style="font-size: 2rem; color: var(--accent);">0</div>
-                </div>
-                <div class="stat-card wide">
-                    <div class="s-label">Favorite Theme</div>
-                    <div class="s-val" id="s-fav-theme" style="font-size: 1.2rem; text-transform: uppercase;">Classic</div>
-                </div>
+                <div class="stat-card"><div class="s-label">Games Won</div><div class="s-val" id="s-wins">0</div></div>
+                <div class="stat-card"><div class="s-label">Win Rate</div><div class="s-val" id="s-rate">0%</div></div>
+                <div class="stat-card"><div class="s-label">Current Streak</div><div class="s-val" id="s-streak">0</div></div>
+                <div class="stat-card"><div class="s-label">Fastest Run</div><div class="s-val highlight" id="s-fast">--:--</div></div>
+                <div class="stat-card"><div class="s-label">Avg. Clicks</div><div class="s-val" id="s-avg-clicks">0</div></div>
+                <div class="stat-card"><div class="s-label">Total Time</div><div class="s-val" id="s-total-time">0h</div></div>
+                <div class="stat-card wide"><div class="s-label">Total Links Surfed</div><div class="s-val" id="s-total-links" style="font-size: 2rem; color: var(--accent);">0</div></div>
+                <div class="stat-card wide"><div class="s-label">Favorite Theme</div><div class="s-val" id="s-fav-theme" style="font-size: 1.2rem; text-transform: uppercase;">Classic</div></div>
             </div>
 
             <button class="btn-primary" onclick="closeStats()" style="margin-top: 30px;">Close</button>
@@ -196,7 +152,6 @@
     </div>
 
     <div id="app">
-        
         <header id="game-header" class="liquid-glass" style="border-radius:0 0 24px 24px; margin:0 20px;">
             <div class="logo" onclick="returnToLobby()">
                 <div class="logo-icon"></div>
@@ -219,8 +174,6 @@
                 <button class="tool-btn" onclick="askLoadCheckpoint()" id="btn-load-cp" disabled>⚡ Load CP</button>
             </div>
 
-            <div id="mini-map"></div>
-
             <div id="gauntlet-bar">
                 <span>Rounds:</span>
                 <div id="g-dots-container" style="display:flex; gap:8px;"></div>
@@ -232,13 +185,11 @@
             </div>
 
             <div id="breadcrumbs"></div>
-
             <div class="loader" id="loader"><div class="spin"></div></div>
         </div>
 
         <div class="theme-fab" onclick="toggleThemes()">🎨</div>
         <div class="theme-panel" id="theme-panel"></div>
-
     </div>
 
     <script src="js/state.js"></script>

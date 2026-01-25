@@ -1,5 +1,3 @@
-// --- GAME LOOP & API ---
-
 async function initGame() {
     let s = document.getElementById('start-in').value;
     let t = document.getElementById('end-in').value;
@@ -15,49 +13,29 @@ async function initGame() {
             state.target = d.query.random.map(x => x.title);
             state.gauntletIndex = 0;
             t = state.target[0];
-        } catch(e) {
-            return showToast("Error generating targets");
-        }
-        setupGauntletUI();
-    } else {
-        state.target = t;
-    }
+            setupGauntletUI();
+        } catch(e) { return showToast("Error generating targets"); }
+    } else { state.target = t; }
+    
     state.start = s;
-
     fetchTargetDesc(t);
 
     if(state.timer) clearInterval(state.timer);
-    state.clicks = 0;
-    state.penalties = 0;
-    state.history = [];
-    state.checkpoint = null;
-    state.startTime = Date.now();
-    state.isPlaying = true;
-    
+    state.clicks = 0; state.penalties = 0; state.history = []; state.checkpoint = null;
+    state.startTime = Date.now(); state.isPlaying = true;
+
     if(state.mode === 'sudden_death') {
         const customTime = parseInt(document.getElementById('sd-time-in').value) || 30;
         state.sdTime = customTime;
-        state.sdMaxTime = customTime;
-    } else {
-        state.sdTime = 30;
-    }
+    } else { state.sdTime = 30; }
 
     document.getElementById('target-display').textContent = t;
     document.getElementById('click-count').textContent = '0';
+    document.getElementById('timer').textContent = state.mode === 'sudden_death' ? formatTime(state.sdTime) : '00:00';
     
-    if(state.mode === 'sudden_death') {
-        const m = Math.floor(state.sdTime / 60).toString().padStart(2,'0');
-        const s = (state.sdTime % 60).toString().padStart(2,'0');
-        document.getElementById('timer').textContent = `${m}:${s}`;
-    } else {
-        document.getElementById('timer').textContent = '00:00';
-    }
-
     document.getElementById('btn-load-cp').disabled = true;
-    document.getElementById('btn-set-cp').disabled = false;
-    document.getElementById('timer-box').classList.remove('danger-pulse');
     document.getElementById('gauntlet-bar').classList.toggle('active', state.mode === 'gauntlet');
-    
+
     document.getElementById('lobby').classList.add('hidden');
     document.getElementById('game-header').classList.add('active');
     document.getElementById('viewport').classList.add('active');
@@ -66,10 +44,17 @@ async function initGame() {
     state.timer = setInterval(tick, 1000);
 }
 
+function formatTime(s) {
+    const min = Math.floor(s / 60).toString().padStart(2,'0');
+    const sec = (s % 60).toString().padStart(2,'0');
+    return `${min}:${sec}`;
+}
+
 async function fetchTargetDesc(title) {
-    state.targetDesc = "Loading definition...";
+    state.targetDesc = "Loading...";
     try {
-        const r = await fetch(`${API}?action=query&prop=extracts&exintro&exchars=300&explaintext&titles=${encodeURIComponent(title)}&format=json&origin=*`);
+        const url = `${API}?action=query&prop=extracts&exintro&exchars=300&explaintext&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+        const r = await fetch(url);
         const d = await r.json();
         const pid = Object.keys(d.query.pages)[0];
         if(pid === "-1") state.targetDesc = "No definition available.";
@@ -77,111 +62,51 @@ async function fetchTargetDesc(title) {
     } catch(e) { state.targetDesc = "Could not fetch definition."; }
 }
 
-function setupGauntletUI() {
-    const c = document.getElementById('g-dots-container');
-    c.innerHTML = '';
-    state.target.forEach((_, i) => {
-        const d = document.createElement('div');
-        d.className = `g-dot ${i === 0 ? 'current' : ''}`;
-        d.id = `g-dot-${i}`;
-        c.appendChild(d);
-    });
-}
-
 function tick() {
     if(state.mode === 'sudden_death') {
         state.sdTime--;
-        
-        const m = Math.floor(state.sdTime / 60).toString().padStart(2,'0');
-        const s = (state.sdTime % 60).toString().padStart(2,'0');
-        
+        document.getElementById('timer-box').innerHTML = `⏱ ${formatTime(state.sdTime)}`;
         const box = document.getElementById('timer-box');
-        box.innerHTML = `⏱ ${m}:${s}`; 
-        
-        if(state.sdTime <= 10) box.classList.add('danger-pulse');
-        else box.classList.remove('danger-pulse');
-
+        if(state.sdTime <= 10) box.classList.add('danger-pulse'); else box.classList.remove('danger-pulse');
         if(state.sdTime <= 0) {
             clearInterval(state.timer);
-            playSound('alert');
-            showToast("Time Expired! Game Over.");
-            setTimeout(returnToLobby, 2500);
+            showToast("Time Expired!");
+            setTimeout(returnToLobby, 2000);
         }
     } else {
         const delta = Math.floor((Date.now() - state.startTime)/1000) + state.penalties;
-        const m = Math.floor(delta/60).toString().padStart(2,'0');
-        const s = (delta%60).toString().padStart(2,'0');
-        document.getElementById('timer').textContent = `${m}:${s}`;
+        document.getElementById('timer').textContent = formatTime(delta);
     }
 }
 
 async function loadPage(title, pushToHistory = true) {
     const loader = document.getElementById('loader');
     const content = document.getElementById('article-content');
-    
-    content.classList.remove('active');
-    content.classList.add('exit'); 
-    loader.classList.add('active');
+    loader.classList.add('active'); content.classList.add('exit');
 
     try {
-        const url = `${API}?action=parse&page=${encodeURIComponent(title)}&format=json&prop=text|images&redirects=1&disableeditsection=1&origin=*`;
+        const url = `${API}?action=parse&page=${encodeURIComponent(title)}&format=json&prop=text&redirects=1&disableeditsection=1&origin=*`;
         const res = await fetch(url);
         const data = await res.json();
-        
         if(data.error) throw new Error("Page not found");
-        
         const realTitle = data.parse.title;
         const html = data.parse.text['*'];
 
         if(pushToHistory) state.history.push(realTitle);
 
+        render(realTitle, html);
+        
         setTimeout(() => {
-            render(realTitle, html);
-            updateBreadcrumbs();
             loader.classList.remove('active');
-            
-            content.classList.remove('exit');
-            content.classList.add('enter');
-            void content.offsetWidth; 
-            content.classList.remove('enter');
-            content.classList.add('active'); 
-            
+            content.classList.remove('exit'); content.classList.add('enter');
+            setTimeout(() => content.classList.remove('enter'), 500);
             document.getElementById('wiki-container').scrollTop = 0;
             checkWinCondition(realTitle);
-        }, 400);
+        }, 300);
 
     } catch(e) {
-        showToast("Could not load page");
-        loader.classList.remove('active');
-        content.classList.remove('exit');
-        content.classList.add('active');
-    }
-}
-
-function checkWinCondition(currentTitle) {
-    const current = currentTitle.toLowerCase();
-    
-    if(state.mode === 'gauntlet') {
-        const currentTarget = state.target[state.gauntletIndex].toLowerCase();
-        if(current === currentTarget) {
-            playSound('win');
-            state.gauntletIndex++;
-            
-            document.getElementById(`g-dot-${state.gauntletIndex-1}`).classList.remove('current');
-            document.getElementById(`g-dot-${state.gauntletIndex-1}`).classList.add('done');
-
-            if(state.gauntletIndex >= state.target.length) {
-                winGame();
-            } else {
-                const nextT = state.target[state.gauntletIndex];
-                document.getElementById(`g-dot-${state.gauntletIndex}`).classList.add('current');
-                document.getElementById('target-display').textContent = nextT;
-                fetchTargetDesc(nextT);
-                showToast(`Target Reached! Next: ${nextT}`);
-            }
-        }
-    } else {
-        if(current === state.target.toLowerCase()) winGame();
+        showToast("Error loading page");
+        loader.classList.remove('active'); content.classList.remove('exit');
     }
 }
 
@@ -189,8 +114,7 @@ function render(title, html) {
     const div = document.getElementById('article-content');
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    
-    ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt', '.portal'].forEach(s => 
+    ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt'].forEach(s => 
         doc.querySelectorAll(s).forEach(e => e.remove())
     );
 
@@ -199,174 +123,49 @@ function render(title, html) {
         if(href && href.startsWith('/wiki/') && !href.includes(':')) {
             const pageName = decodeURIComponent(href.replace('/wiki/', ''));
             a.dataset.page = pageName;
-            a.removeAttribute('href');
+            a.removeAttribute('href'); a.removeAttribute('title');
             a.addEventListener('mouseenter', (e) => showPreview(e, pageName));
             a.addEventListener('mouseleave', hidePreview);
-        } else if (!href || href.includes(':')) {
-             const s = document.createElement('span');
-            s.innerHTML = a.innerHTML;
-            a.replaceWith(s);
         } else {
-            const s = document.createElement('span');
-            s.textContent = a.textContent;
-            a.replaceWith(s);
+            const span = document.createElement('span');
+            span.innerHTML = a.innerHTML;
+            a.replaceWith(span);
         }
     });
 
     doc.querySelectorAll('img').forEach(img => {
         if(img.src.startsWith('//')) img.src = 'https:' + img.src;
-        img.loading = "lazy";
+        img.loading = "lazy"; img.style.maxWidth = "100%"; img.style.height = "auto";
     });
 
     div.innerHTML = `<h1>${title}</h1>${doc.body.innerHTML}`;
-    
-    // RENDER MINI MAP
-    renderMiniMap(div);
+}
+
+function checkWinCondition(currentTitle) {
+    const current = currentTitle.toLowerCase();
+    if(state.mode === 'gauntlet') {
+        const target = state.target[state.gauntletIndex].toLowerCase();
+        if(current === target) {
+            playSound('win'); state.gauntletIndex++;
+            if(state.gauntletIndex >= state.target.length) winGame();
+            else {
+                const next = state.target[state.gauntletIndex];
+                document.getElementById('target-display').textContent = next;
+                fetchTargetDesc(next); showToast(`Target Reached! Next: ${next}`);
+            }
+        }
+    } else { if(current === state.target.toLowerCase()) winGame(); }
 }
 
 function winGame() {
     clearInterval(state.timer);
     playSound('win');
     startConfetti();
+    saveGameStats(true, Math.floor((Date.now() - state.startTime)/1000), state.clicks);
     
-    const timeStr = document.getElementById('timer').textContent;
-    document.getElementById('win-time').textContent = timeStr;
+    document.getElementById('win-time').textContent = document.getElementById('timer').textContent;
     document.getElementById('win-clicks').textContent = state.clicks;
-    document.getElementById('win-penalties').textContent = state.penalties + 's';
-    
-    const path = state.history.join(' → ');
-    document.getElementById('win-path').textContent = path;
-    
-    // --- AWARD XP ---
-    let earnedXP = 100; // Base
-    const duration = Math.floor((Date.now() - state.startTime) / 1000);
-    if(duration < 60) earnedXP += 50; // Speed Bonus
-    
-    addXP(earnedXP);
-    showToast(`Victory! +${earnedXP} XP`);
-    // ----------------
-
-    if(state.mode === 'gauntlet') document.getElementById('win-sub').textContent = "Gauntlet Completed";
-    else document.getElementById('win-sub').textContent = "Destination Reached";
-
+    document.getElementById('win-path').textContent = state.history.join(' → ');
     document.getElementById('win-screen').classList.remove('hidden');
-    
-    setTimeout(() => {
-        renderGalaxy(state.history);
-    }, 100);
-}
-
-// ... Randomize and other utils remain same ...
-async function randomize() {
-    const btn = document.querySelector('.btn-text'); 
-    const startIn = document.getElementById('start-in');
-    const endIn = document.getElementById('end-in');
-    const diff = document.getElementById('diff-value').value;
-    
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = `<span>🔄</span> Finding...`;
-    
-    startIn.value = "Scanning...";
-    if(state.mode !== 'gauntlet') endIn.value = "Calculating...";
-
-    try {
-        const url = `${API}?action=query&generator=random&grnnamespace=0&grnlimit=20&prop=info&format=json&origin=*`;
-        const res = await fetch(url);
-        const data = await res.json();
-        
-        if (!data.query || !data.query.pages) throw new Error("No data");
-
-        let pages = Object.values(data.query.pages);
-        pages = pages.filter(p => p.length > 2000);
-        pages.sort((a, b) => a.length - b.length); 
-
-        let sPage, tPage;
-
-        if (diff === 'easy') {
-            const pool = pages.slice(-5);
-            sPage = pool[Math.floor(Math.random() * pool.length)].title;
-            tPage = pages.slice(-6, -1)[0].title; 
-        } else if (diff === 'hard') {
-            const pool = pages.slice(0, 5);
-            sPage = pool[Math.floor(Math.random() * pool.length)].title;
-            tPage = pages.slice(1, 6)[0].title;
-        } else {
-            const mid = Math.floor(pages.length / 2);
-            const pool = pages.slice(mid - 3, mid + 3);
-            sPage = pool[Math.floor(Math.random() * pool.length)].title;
-            tPage = pool[Math.floor(Math.random() * pool.length) === 0 ? 1 : 0].title;
-        }
-
-        if(!sPage) sPage = pages[pages.length-1].title;
-        if(!tPage) tPage = pages[0].title;
-
-        animateText('start-in', sPage);
-        if(state.mode !== 'gauntlet') animateText('end-in', tPage);
-
-    } catch(e) {
-        console.error(e);
-        showToast("Randomizer failed. Retrying...");
-        const [s, t] = await Promise.all([getRandSimple(), getRandSimple()]);
-        document.getElementById('start-in').value = s;
-        if(state.mode !== 'gauntlet') document.getElementById('end-in').value = t;
-    }
-
-    btn.disabled = false;
-    btn.innerHTML = originalText;
-}
-
-async function getRandSimple() {
-    const r = await fetch(`${API}?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*`);
-    const d = await r.json();
-    return d.query.random[0].title;
-}
-
-function askBacktrack() {
-    if(state.history.length <= 1) return showToast("Start of history");
-    let penalty = state.mode === 'sudden_death' ? 0 : 10;
-    showModal("Backtrack?", `Return to previous page. Penalty: +${penalty}s`, () => {
-        state.penalties += penalty;
-        state.history.pop(); 
-        const prev = state.history[state.history.length - 1];
-        state.history.pop(); 
-        loadPage(prev);
-        showToast(`Backtracked (+${penalty}s)`);
-    });
-}
-
-function setCheckpoint() {
-    if(state.history.length === 0) return;
-    const current = state.history[state.history.length-1];
-    state.checkpoint = current;
-    state.checkpointIndex = state.history.length - 1;
-    document.getElementById('btn-load-cp').disabled = false;
-    playSound('click');
-    showToast(`Checkpoint Set: ${current}`);
-}
-
-function askLoadCheckpoint() {
-    if(!state.checkpoint) return;
-    showModal("Load Checkpoint?", `Return to ${state.checkpoint}. Penalty: +20s`, () => {
-        state.penalties += 20;
-        state.history = state.history.slice(0, state.checkpointIndex);
-        loadPage(state.checkpoint);
-        showToast("Checkpoint Loaded");
-    });
-}
-
-function askQuit() {
-    showModal("Quit Game?", "All progress will be lost.", () => returnToLobby());
-}
-
-function returnToLobby() {
-    clearInterval(state.timer);
-    state.isPlaying = false;
-    document.getElementById('game-header').classList.remove('active');
-    document.getElementById('viewport').classList.remove('active');
-    document.getElementById('win-screen').classList.add('hidden');
-    document.getElementById('lobby').classList.remove('hidden');
-    // Hide mini map
-    const map = document.getElementById('mini-map');
-    if(map) map.classList.remove('active');
+    setTimeout(() => renderGalaxy(state.history), 100);
 }
