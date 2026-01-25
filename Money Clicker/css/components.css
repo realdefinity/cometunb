@@ -1,61 +1,52 @@
 /* --- BIG BUTTON --- */
 .big-button-container {
-    perspective: 1200px; /* Increased depth perspective */
+    perspective: 1000px;
     width: 320px; height: 320px;
     display: flex; align-items: center; justify-content: center;
 }
 
 .big-button {
     width: 300px; height: 300px; border-radius: 50%; 
-    background: radial-gradient(circle at 30% 30%, #2a2a35, #000000);
-    border: 1px solid rgba(255,255,255,0.15);
-    /* Deeper shadows for 3D effect */
+    background: radial-gradient(circle at 30% 30%, rgba(30, 30, 45, 0.9), #050505);
+    border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 
-        0 30px 80px rgba(0,0,0,0.8), 
+        0 20px 60px rgba(0,0,0,0.6), 
         inset 10px 10px 40px rgba(255,255,255,0.05),
-        inset -10px -10px 60px rgba(0,0,0,1);
+        inset -10px -10px 60px rgba(0,0,0,0.9);
     cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; 
     z-index: 30; -webkit-tap-highlight-color: transparent; 
-    /* Removed transition! We handle movement in JS for 60FPS smoothness */
+    transition: border-color 0.2s, box-shadow 0.2s;
     backdrop-filter: blur(5px);
     transform-style: preserve-3d;
-    will-change: transform; /* Performance optimization */
 }
-
 .big-button::before { 
-    content: '$'; font-family: 'Outfit', sans-serif; font-size: 11rem; font-weight: 800; 
+    content: '$'; font-family: 'Outfit', sans-serif; font-size: 10rem; font-weight: 800; 
     color: rgba(255,255,255,0.05); 
-    text-shadow: 2px 4px 10px rgba(0,0,0,0.5);
-    transition: color 0.2s, text-shadow 0.2s; 
-    transform: translateZ(30px); /* Pops out more */
-    pointer-events: none;
+    text-shadow: 0 0 5px rgba(255,255,255,0.1);
+    transition: 0.2s; 
+    transform: translateZ(20px);
 }
-
-/* Spinner ring */
 .big-button::after {
-    content: ''; position: absolute; top: -8px; left: -8px; right: -8px; bottom: -8px;
+    content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
     border-radius: 50%;
     border: 2px solid transparent;
-    border-top-color: rgba(255,255,255,0.1);
-    border-bottom-color: rgba(255,255,255,0.1);
-    animation: spin-slow 15s linear infinite;
+    border-top-color: rgba(255,255,255,0.2);
+    border-bottom-color: rgba(255,255,255,0.2);
+    animation: spin-slow 10s linear infinite;
     pointer-events: none;
 }
-
-.big-button:hover { border-color: rgba(255,255,255,0.4); }
-.big-button:hover::before { color: var(--green); text-shadow: 0 0 60px var(--green-glow); }
+.big-button:hover { border-color: rgba(255,255,255,0.3); }
+.big-button:hover::before { color: var(--green); text-shadow: 0 0 50px var(--green-glow); }
 
 @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* MANIA MODE */
 body.mania-mode .big-button { 
     border-color: var(--purple); 
-    box-shadow: 0 0 100px var(--purple-glow), inset 0 0 30px rgba(191,0,255,0.3);
+    box-shadow: 0 0 80px var(--purple-glow), inset 0 0 30px rgba(191,0,255,0.3);
+    animation: pulse-purple 0.4s infinite alternate; 
 }
-body.mania-mode .big-button::before {
-    color: var(--purple);
-    text-shadow: 0 0 50px var(--purple);
-}
+@keyframes pulse-purple { from { box-shadow: 0 0 40px var(--purple-glow); } to { box-shadow: 0 0 80px var(--purple-glow); } }
 
 /* --- GOLDEN BILL --- */
 .golden-bill {
