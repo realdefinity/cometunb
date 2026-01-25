@@ -57,3 +57,15 @@ function setMode(m) {
         sdConfig.style.display = 'none';
     }
 }
+
+function adjustTime(amount) {
+    const input = document.getElementById('sd-time-in');
+    let val = parseInt(input.value) || 30;
+    
+    val += amount;
+    
+    if (val < 10) val = 10;
+    if (val > 300) val = 300;
+    
+    input.value = val;
+}
