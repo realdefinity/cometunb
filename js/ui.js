@@ -1,149 +1,222 @@
-// --- UI & VISUALS ---
+// --- AUDIO SYSTEM ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    const now = audioCtx.currentTime;
+    
+    if (type === 'click') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.08);
+        osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'win') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.linearRampToValueAtTime(600, now + 0.3);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.5);
+        osc.start(now); osc.stop(now + 0.5);
+    } else if (type === 'alert') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+    }
+}
+
+// --- MODALS & TOASTS ---
+function showModal(title, desc, onConfirm) {
+    const overlay = document.getElementById('modal-overlay');
+    const titleEl = document.getElementById('modal-title');
+    const descEl = document.getElementById('modal-desc');
+    const btnConfirm = document.getElementById('btn-confirm');
+    const btnCancel = document.getElementById('btn-cancel');
+
+    titleEl.textContent = title;
+    descEl.textContent = desc;
+    
+    overlay.classList.add('visible');
+    playSound('alert');
+
+    // Clean previous listeners
+    const newConfirm = btnConfirm.cloneNode(true);
+    const newCancel = btnCancel.cloneNode(true);
+    btnConfirm.parentNode.replaceChild(newConfirm, btnConfirm);
+    btnCancel.parentNode.replaceChild(newCancel, btnCancel);
+
+    newConfirm.addEventListener('click', () => {
+        overlay.classList.remove('visible');
+        onConfirm();
+    });
+    newCancel.addEventListener('click', () => {
+        overlay.classList.remove('visible');
+    });
+}
 
 function showToast(msg) {
     const t = document.getElementById('toast');
-    if(!t) return;
     t.textContent = msg;
     t.classList.add('visible');
     setTimeout(() => t.classList.remove('visible'), 3000);
 }
 
-function showModal(title, desc, onConfirm) {
-    const overlay = document.getElementById('modal-overlay');
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-desc').textContent = desc;
-    
-    // Remove old listeners to prevent stacking
-    const btnConfirm = document.getElementById('btn-confirm');
-    const newBtn = btnConfirm.cloneNode(true);
-    btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
-    
-    newBtn.onclick = () => {
-        overlay.classList.remove('visible');
-        onConfirm();
-    };
-    
-    document.getElementById('btn-cancel').onclick = () => overlay.classList.remove('visible');
-    overlay.classList.add('visible');
-}
-
 // --- THEMES ---
-const THEMES = [
-    { id: 'classic', name: 'Classic' },
-    { id: 'midnight', name: 'Midnight' },
-    { id: 'amoled', name: 'OLED Black' },
-    { id: 'cyberpunk', name: 'Cyberpunk' },
-    { id: 'paper', name: 'Paper' },
-    { id: 'ocean', name: 'Ocean' },
-    { id: 'forest', name: 'Forest' },
-    { id: 'sunset', name: 'Sunset' },
-    { id: 'cloud', name: 'Cloud' },
-    { id: 'matrix', name: 'Matrix' },
-    { id: 'royal', name: 'Royal' },
-    { id: 'coffee', name: 'Coffee' },
-    { id: 'lavender', name: 'Lavender' },
-    { id: 'mint', name: 'Mint' },
-    { id: 'glacier', name: 'Glacier' }
-];
-
-function toggleThemes() {
-    const p = document.getElementById('theme-panel');
-    p.classList.toggle('visible');
-}
-
 function renderThemes() {
-    const p = document.getElementById('theme-panel');
-    if(!p) return;
-    p.innerHTML = THEMES.map(t => 
-        `<div class="t-opt ${document.documentElement.getAttribute('data-theme') === t.id ? 'active' : ''}" 
-              onclick="setTheme('${t.id}')">${t.name}</div>`
-    ).join('');
-}
+    const list = document.getElementById('theme-panel');
+    const current = localStorage.getItem('wiki_theme') || 'Classic';
+    
+    list.innerHTML = ''; // Clear existing list to prevent duplicates
 
-function setTheme(id) {
-    document.documentElement.setAttribute('data-theme', id);
-    localStorage.setItem('wiki_theme', id);
-    renderThemes();
-}
+    themes.forEach(t => {
+        const d = document.createElement('div');
+        d.className = 't-opt';
+        d.textContent = t;
+        
+        if (t === current) d.classList.add('active');
 
-// --- PREVIEW ---
-function showPreview(e, title) {
-    const p = document.getElementById('link-preview');
-    if(!p) return;
-    // Basic positioning logic
-    const x = e.clientX + 15;
-    const y = e.clientY + 15;
-    p.style.transform = `translate(${x}px, ${y}px)`;
-    p.classList.add('visible');
-    document.getElementById('lp-title').textContent = title.replace(/_/g, ' ');
-    document.getElementById('lp-desc').textContent = "Click to navigate...";
+        d.onclick = () => {
+            document.documentElement.setAttribute('data-theme', t.toLowerCase());
+            localStorage.setItem('wiki_theme', t);
+            
+            // Visual Update
+            document.querySelectorAll('.t-opt').forEach(el => el.classList.remove('active'));
+            d.classList.add('active');
+            
+            // Optional: Close panel on click? 
+            // list.classList.remove('visible'); 
+        };
+        list.appendChild(d);
+    });
 }
+function toggleThemes() { document.getElementById('theme-panel').classList.toggle('visible'); }
 
-function hidePreview() {
-    const p = document.getElementById('link-preview');
-    if(p) p.classList.remove('visible');
-}
-
+// --- BREADCRUMBS ---
 function updateBreadcrumbs() {
-    const b = document.getElementById('breadcrumbs');
-    if(!b) return;
-    b.innerHTML = state.history.map((h, i) => {
-        const isLast = i === state.history.length - 1;
-        return `<div class="crumb ${isLast ? 'active' : ''}"><span>${h}</span></div>`;
-    }).join('');
-    b.scrollLeft = b.scrollWidth;
+    const c = document.getElementById('breadcrumbs');
+    c.innerHTML = '';
+    state.history.forEach((h, i) => {
+        const div = document.createElement('div');
+        div.className = `crumb ${i === state.history.length-1 ? 'active' : ''}`;
+        div.innerHTML = `<span>${h}</span> ${i < state.history.length-1 ? '›' : ''}`;
+        c.appendChild(div);
+    });
+    c.scrollLeft = c.scrollWidth;
+}
+
+// --- LINK PREVIEW ---
+let previewTimeout;
+async function showPreview(e, title) {
+    previewTimeout = setTimeout(async () => {
+        const box = document.getElementById('link-preview');
+        const img = document.getElementById('lp-img');
+        const rect = e.target.getBoundingClientRect();
+        
+        box.style.top = (rect.bottom + 15) + 'px';
+        let leftPos = rect.left;
+        if(leftPos + 300 > window.innerWidth) leftPos = window.innerWidth - 320;
+        box.style.left = leftPos + 'px';
+        
+        try {
+            const r = await fetch(`${API}?action=query&prop=extracts|pageimages&exchars=150&exintro&titles=${encodeURIComponent(title)}&format=json&pithumbsize=200&origin=*`);
+            const d = await r.json();
+            const pid = Object.keys(d.query.pages)[0];
+            const page = d.query.pages[pid];
+
+            if(page.thumbnail) {
+                img.src = page.thumbnail.source;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+            document.getElementById('lp-title').textContent = page.title;
+            document.getElementById('lp-desc').innerHTML = page.extract || "No description available.";
+            box.classList.add('visible');
+        } catch(err) {}
+    }, 600); 
+}
+function hidePreview() {
+    clearTimeout(previewTimeout);
+    document.getElementById('link-preview').classList.remove('visible');
+}
+
+// --- AUTOCOMPLETE ---
+function setupAutocomplete(id, boxId) {
+    const input = document.getElementById(id);
+    const box = document.getElementById(boxId);
+    let t;
+    input.addEventListener('input', () => {
+        clearTimeout(t);
+        t = setTimeout(async () => {
+            if(input.value.length < 2) { box.style.display='none'; return; }
+            const r = await fetch(`${API}?action=opensearch&search=${input.value}&limit=5&origin=*`);
+            const d = await r.json();
+            box.innerHTML = '';
+            d[1].forEach(x => {
+                const div = document.createElement('div');
+                div.className = 'sugg-item';
+                div.textContent = x;
+                div.onclick = () => { input.value = x; box.style.display='none'; };
+                box.appendChild(div);
+            });
+            box.style.display = 'block';
+        }, 300);
+    });
+    document.addEventListener('click', e => { if(e.target !== input) box.style.display='none'; });
 }
 
 // --- CONFETTI ---
 function startConfetti() {
     const canvas = document.getElementById('confetti-canvas');
-    if(!canvas) return;
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
     const particles = [];
-    const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
-    
+    const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#ffffff'];
+
     for(let i=0; i<150; i++) {
         particles.push({
-            x: window.innerWidth / 2,
-            y: window.innerHeight / 2,
-            vx: (Math.random() - 0.5) * 20,
-            vy: (Math.random() - 0.5) * 20,
+            x: canvas.width/2, y: canvas.height/2,
+            vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15,
             color: colors[Math.floor(Math.random()*colors.length)],
-            life: 1
+            size: Math.random()*8 + 2,
+            life: 100
         });
     }
 
-    function loop() {
-        ctx.clearRect(0,0,canvas.width, canvas.height);
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         let active = false;
         particles.forEach(p => {
             if(p.life > 0) {
                 active = true;
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.5; // Gravity
-                p.life -= 0.01;
+                p.x += p.vx; p.y += p.vy;
+                p.vy += 0.2; // gravity
+                p.life--;
+                p.size *= 0.96;
                 ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life;
-                ctx.fillRect(p.x, p.y, 8, 8);
+                ctx.fillRect(p.x, p.y, p.size, p.size);
             }
         });
-        if(active) requestAnimationFrame(loop);
-        else ctx.clearRect(0,0,canvas.width, canvas.height);
+        if(active) requestAnimationFrame(draw);
     }
-    loop();
+    draw();
 }
 
-// --- GALAXY VISUALIZER ---
 let galaxyAnim;
+
 function renderGalaxy(history) {
     const container = document.getElementById('galaxy-view');
     const canvas = document.getElementById('galaxy-canvas');
-    if(!container || !canvas) return;
-    
     const ctx = canvas.getContext('2d');
     const tooltip = document.getElementById('target-tooltip');
     const ttContent = document.getElementById('tt-content');
@@ -161,11 +234,14 @@ function renderGalaxy(history) {
 
     history.forEach((title, i) => {
         const pct = i / (history.length - 1 || 1);
+        
         let x = padding + pct * (width - padding * 2);
         let y = height / 2 + Math.sin(pct * Math.PI * 2) * 30;
 
         nodes.push({
-            x: x, y: y, title: title,
+            x: x,
+            y: y,
+            title: title,
             baseR: i === 0 || i === history.length - 1 ? 6 : 3,
             hoverR: 0
         });
@@ -177,17 +253,20 @@ function renderGalaxy(history) {
         mx = e.clientX - r.left;
         my = e.clientY - r.top;
     };
-    canvas.onmouseleave = () => { mx = -1000; if(tooltip) tooltip.classList.remove('visible'); };
+    canvas.onmouseleave = () => {
+        mx = -1000; 
+        tooltip.classList.remove('visible'); 
+    };
 
     if (galaxyAnim) cancelAnimationFrame(galaxyAnim);
 
     function draw() {
         ctx.clearRect(0, 0, width, height);
 
-        // Draw Line
         if (nodes.length > 1) {
             ctx.beginPath();
             ctx.moveTo(nodes[0].x, nodes[0].y);
+            
             for (let i = 0; i < nodes.length - 1; i++) {
                 const p0 = nodes[i];
                 const p1 = nodes[i + 1];
@@ -196,7 +275,7 @@ function renderGalaxy(history) {
                 ctx.quadraticCurveTo(p0.x, p0.y, cx, cy);
             }
             ctx.lineTo(nodes[nodes.length-1].x, nodes[nodes.length-1].y);
-            
+
             const gradient = ctx.createLinearGradient(0, 0, width, 0);
             gradient.addColorStop(0, "rgba(255, 255, 255, 0.1)");
             gradient.addColorStop(0.5, "rgba(59, 130, 246, 0.5)");
@@ -204,12 +283,14 @@ function renderGalaxy(history) {
             
             ctx.strokeStyle = gradient;
             ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             ctx.stroke();
         }
 
-        // Draw Nodes
         let activeNode = null;
-        nodes.forEach((n) => {
+
+        nodes.forEach((n, i) => {
             const dist = Math.hypot(n.x - mx, n.y - my);
             const isHover = dist < 20;
 
@@ -222,29 +303,29 @@ function renderGalaxy(history) {
             ctx.beginPath();
             ctx.arc(n.x, n.y, n.baseR + n.hoverR, 0, Math.PI * 2);
             ctx.fillStyle = "white";
+            ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
             ctx.shadowBlur = 10 + (n.hoverR * 5);
-            ctx.shadowColor = "white";
             ctx.fill();
             ctx.shadowBlur = 0;
         });
 
-        if (activeNode && tooltip) {
+        if (activeNode) {
             tooltip.classList.add('visible');
             tooltip.style.left = (canvas.getBoundingClientRect().left + activeNode.x) + 'px';
             tooltip.style.top = (canvas.getBoundingClientRect().top + activeNode.y - 50) + 'px';
             tooltip.querySelector('h5').textContent = "PAGE VIEWED";
-            if(ttContent) ttContent.textContent = activeNode.title;
+            ttContent.textContent = activeNode.title;
         }
 
         galaxyAnim = requestAnimationFrame(draw);
     }
+
     draw();
 }
 
-// --- STATS SYSTEM (FIXED) ---
+// --- STATS SYSTEM ---
 
 function getStats() {
-    const raw = localStorage.getItem('wiki_stats');
     const defaultStats = {
         gamesPlayed: 0,
         wins: 0,
@@ -252,16 +333,10 @@ function getStats() {
         bestStreak: 0,
         totalClicks: 0,
         totalTimeSeconds: 0,
-        fastestRun: null, 
-        themeUsage: {},
-        totalXP: 0 // Ensure this always exists
+        fastestRun: null, // seconds
+        themeUsage: {}
     };
-    
-    if (!raw) return defaultStats;
-    
-    const s = JSON.parse(raw);
-    // Merge to ensure new fields (like totalXP) exist in old saves
-    return { ...defaultStats, ...s };
+    return JSON.parse(localStorage.getItem('wiki_stats')) || defaultStats;
 }
 
 function saveGameStats(isWin, timeInSeconds, clicks) {
@@ -270,6 +345,7 @@ function saveGameStats(isWin, timeInSeconds, clicks) {
     s.totalClicks += clicks;
     s.totalTimeSeconds += timeInSeconds;
 
+    // Theme Tracking
     const currentTheme = localStorage.getItem('wiki_theme') || 'Classic';
     s.themeUsage[currentTheme] = (s.themeUsage[currentTheme] || 0) + 1;
 
@@ -277,6 +353,8 @@ function saveGameStats(isWin, timeInSeconds, clicks) {
         s.wins++;
         s.currentStreak++;
         if (s.currentStreak > s.bestStreak) s.bestStreak = s.currentStreak;
+        
+        // Check Fastest Run (Only updates if strictly faster)
         if (s.fastestRun === null || timeInSeconds < s.fastestRun) {
             s.fastestRun = timeInSeconds;
         }
@@ -290,15 +368,17 @@ function saveGameStats(isWin, timeInSeconds, clicks) {
 function showStats() {
     const s = getStats();
     const screen = document.getElementById('stats-screen');
-    if(!screen) return;
     
+    // Calculate Derived Stats
     const winRate = s.gamesPlayed > 0 ? Math.floor((s.wins / s.gamesPlayed) * 100) : 0;
     const avgClicks = s.wins > 0 ? (s.totalClicks / s.wins).toFixed(1) : 0;
     
+    // Format Time (Seconds -> H:M)
     const hours = Math.floor(s.totalTimeSeconds / 3600);
     const mins = Math.floor((s.totalTimeSeconds % 3600) / 60);
     const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
+    // Format Fastest Run
     let fastStr = "--:--";
     if (s.fastestRun !== null) {
         const fm = Math.floor(s.fastestRun / 60).toString().padStart(2,'0');
@@ -306,6 +386,7 @@ function showStats() {
         fastStr = `${fm}:${fs}`;
     }
 
+    // Find Fav Theme
     let favTheme = "None";
     let maxCount = 0;
     for (const [theme, count] of Object.entries(s.themeUsage)) {
@@ -315,6 +396,7 @@ function showStats() {
         }
     }
 
+    // Update UI
     document.getElementById('s-wins').textContent = s.wins;
     document.getElementById('s-rate').textContent = winRate + "%";
     document.getElementById('s-streak').textContent = s.currentStreak;
@@ -324,120 +406,11 @@ function showStats() {
     document.getElementById('s-total-links').textContent = s.totalClicks.toLocaleString();
     document.getElementById('s-fav-theme').textContent = favTheme;
 
-    // UPDATE RANK UI IN STATS
-    updateRankDisplay();
-
     screen.classList.remove('hidden');
 }
 
 function closeStats() {
-    const s = document.getElementById('stats-screen');
-    if(s) s.classList.add('hidden');
-}
-
-// --- RANK & XP SYSTEM ---
-const RANKS = [
-    { name: "Novice", xp: 0 },
-    { name: "Explorer", xp: 500 },
-    { name: "Scholar", xp: 1500 },
-    { name: "Archivist", xp: 3000 },
-    { name: "Historian", xp: 5000 },
-    { name: "Encyclopedist", xp: 8000 },
-    { name: "Time Lord", xp: 12000 },
-    { name: "Omniscient", xp: 20000 }
-];
-
-function getRankData(xp) {
-    let currentRank = RANKS[0];
-    let nextRank = RANKS[1];
-    
-    for (let i = 0; i < RANKS.length; i++) {
-        if (xp >= RANKS[i].xp) {
-            currentRank = RANKS[i];
-            nextRank = RANKS[i+1] || { name: "Max", xp: 999999 };
-        }
-    }
-    const level = Math.floor(xp / 250) + 1;
-    return { current: currentRank, next: nextRank, level };
-}
-
-function updateRankDisplay() {
-    const s = getStats(); 
-    const xp = s.totalXP || 0;
-    const { current, next, level } = getRankData(xp);
-    
-    // Safety check: Only update if elements exist
-    const lobbyBadge = document.getElementById('lobby-rank');
-    if(lobbyBadge) lobbyBadge.textContent = `Lvl ${level}`;
-
-    const rTitle = document.getElementById('rank-title');
-    if(rTitle) {
-        rTitle.textContent = current.name;
-        document.getElementById('rank-lvl').textContent = `Lvl ${level}`;
-        document.getElementById('xp-current').textContent = `${xp}`;
-        document.getElementById('xp-next').textContent = `${next.xp}`;
-        
-        let pct = 0;
-        if (next.name !== "Max") {
-            const range = next.xp - current.xp;
-            const progress = xp - current.xp;
-            pct = Math.min(100, Math.max(0, (progress / range) * 100));
-        } else {
-            pct = 100;
-        }
-        document.getElementById('xp-bar').style.width = `${pct}%`;
-    }
-}
-
-function addXP(amount) {
-    const s = getStats();
-    s.totalXP = (s.totalXP || 0) + amount;
-    localStorage.setItem('wiki_stats', JSON.stringify(s));
-    updateRankDisplay();
-}
-
-// --- MINI-MAP RENDERER ---
-function renderMiniMap(doc) {
-    const map = document.getElementById('mini-map');
-    if(!map) return;
-    
-    map.innerHTML = '';
-    map.classList.remove('active');
-
-    const headers = Array.from(doc.querySelectorAll('h2, h3'));
-    if (headers.length < 2) return; 
-
-    headers.forEach((h, index) => {
-        if (!h.id) h.id = `section-${index}`;
-        
-        const dot = document.createElement('div');
-        dot.className = 'map-dot';
-        dot.dataset.targetId = h.id;
-        dot.dataset.section = h.innerText.replace(/\[edit\]/g, '').trim();
-        
-        dot.onclick = (e) => {
-            e.stopPropagation();
-            document.getElementById(h.id).scrollIntoView({ behavior: 'smooth' });
-        };
-        
-        map.appendChild(dot);
-    });
-
-    setTimeout(() => {
-        const container = document.getElementById('article-content');
-        if(!container) return;
-        
-        const totalHeight = container.scrollHeight;
-        
-        headers.forEach((h) => {
-            const dot = map.querySelector(`[data-target-id="${h.id}"]`);
-            if(dot) {
-                const ratio = h.offsetTop / totalHeight;
-                dot.style.top = `${ratio * 100}%`;
-            }
-        });
-        map.classList.add('active');
-    }, 500); 
+    document.getElementById('stats-screen').classList.add('hidden');
 }
 
 // --- TEXT DECODER ANIMATION ---
@@ -447,25 +420,26 @@ function animateText(elementId, finalText) {
 
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let iterations = 0;
+    const maxIterations = 15; // How long it scrambles
     
+    // Clear previous interval if exists (attach to element to track it)
     if(el.dataset.animInterval) clearInterval(parseInt(el.dataset.animInterval));
 
     const interval = setInterval(() => {
         el.value = finalText.split("").map((letter, index) => {
-            if(index < iterations) return finalText[index];
-            return chars[Math.floor(Math.random() * chars.length)];
+            if(index < iterations) {
+                return finalText[index]; // Lock in correct char
+            }
+            return chars[Math.floor(Math.random() * chars.length)]; // Scramble
         }).join("");
 
         if(iterations >= finalText.length) {
             clearInterval(interval);
-            el.value = finalText;
+            el.value = finalText; // Ensure final fidelity
         }
 
-        iterations += 1 / 2;
+        iterations += 1 / 2; // Speed of decoding
     }, 30);
 
     el.dataset.animInterval = interval;
 }
-
-// Initial Call
-window.addEventListener('load', updateRankDisplay);
