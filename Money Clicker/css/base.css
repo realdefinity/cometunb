@@ -1,72 +1,105 @@
 :root {
-    /* --- FINTECH DARK THEME --- */
-    --bg: #000000;
-    --panel-bg: rgba(15, 15, 15, 0.7);
-    --panel-border: rgba(255, 255, 255, 0.08);
+    /* --- THEME VARIABLES --- */
+    --bg: #050505;
+    --panel-bg: #0f0f0f;
+    --panel-border: #1f1f1f;
     
     /* ACCENTS */
-    --green: #22c55e;        /* Profit Green */
+    --green: #22c55e;
+    --green-dim: #14532d;
     --green-glow: rgba(34, 197, 94, 0.4);
     
-    --gold: #eab308;         /* Premium Gold */
+    --gold: #eab308;
     --gold-glow: rgba(234, 179, 8, 0.4);
     
-    --purple: #d946ef;       /* Mania/Prestige */
+    --red: #ef4444;
+    --red-glow: rgba(239, 68, 68, 0.4);
     
-    /* TEXT */
+    /* TEXT & FONTS */
     --text-main: #ffffff;
-    --text-muted: #888888;
-    
-    /* UI VARS */
-    --radius: 16px;
-    --font-main: 'Outfit', sans-serif;
+    --text-muted: #737373;
+    --font-head: 'Outfit', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    
+    /* UI METRICS */
+    --radius: 12px;
+    --anim-fast: 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    --anim-smooth: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* GLOBAL RESETS */
-* { 
-    box-sizing: border-box; 
-    outline: none; 
-    user-select: none; 
-    -webkit-tap-highlight-color: transparent; 
+/* --- NUCLEAR RESET --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
+/* --- BASE TYPOGRAPHY --- */
 body {
-    margin: 0; padding: 0;
     background-color: var(--bg);
     color: var(--text-main);
-    font-family: var(--font-main);
+    font-family: var(--font-head);
+    line-height: 1.5;
+    /* Clean Text Rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     
-    /* SUBTLE TRADING GRID BACKGROUND */
+    /* BACKGROUND GRID */
     background-image: 
         linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
+    background-size: 40px 40px;
     
-    /* NUCLEAR LOCK: Prevents scrolling the whole page */
+    /* FULL LOCK */
     position: fixed; inset: 0; overflow: hidden;
-    
-    /* Ensures numbers don't jitter when changing width */
-    font-variant-numeric: tabular-nums;
 }
 
-/* --- Z-INDEX LAYERING SYSTEM --- */
-/* Level 1: Background (0)
-   Level 2: UI Layout (10)
-   Level 3: Game Canvas/Particles (100) - CLICKS PASS THROUGH
-   Level 4: Modals (10000)
-*/
-
-.bg-blobs { display: none; } /* Removing the blobs for cleaner look */
-
-#game-canvas { 
-    position: absolute; inset: 0; 
-    z-index: 100; /* On top of buttons */
-    pointer-events: none; /* Crucial: Lets you click things under it */
+/* --- GLOBAL SCROLLBARS --- */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+    border: 1px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
-#event-layer {
-    position: absolute; inset: 0; 
-    z-index: 101; 
-    pointer-events: none; /* Children (Golden Bill) will re-enable events */
+/* --- SELECTION COLOR --- */
+::selection {
+    background: var(--green);
+    color: #000;
 }
+
+/* --- INPUTS & BUTTON DEFAULTS --- */
+/* Removes default ugly styles from all form elements */
+input, button, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
+    border: none;
+    outline: none;
+    color: inherit;
+}
+
+button {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Focus Visibility (Accessibility but pretty) */
+:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+}
+
+/* --- LAYERS --- */
+#game-canvas { position: absolute; inset: 0; z-index: 50; pointer-events: none; }
+#event-layer { position: absolute; inset: 0; z-index: 60; pointer-events: none; }

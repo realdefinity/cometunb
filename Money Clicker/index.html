@@ -3,120 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>THE MINT // TERMINAL</title>
+    <title>THE MINT // FINTECH</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <!-- FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- STYLES -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
 </head>
 <body oncontextmenu="return false;">
 
-    <div class="bg-blobs"></div> <div class="layout">
+    <!-- BACKGROUND LAYERS -->
+    <div class="bg-blobs"></div> 
+    
+    <!-- MAIN GRID -->
+    <div class="layout">
         
+        <!-- PANEL 1: LEFT (Stats) -->
         <div class="panel-left">
-            <div>
-                <div class="header-title"><span>Net Assets</span> <span>USD</span></div>
-                <div class="balance" id="balance-el">$<span id="ui-money">0</span></div>
-                
-                <div class="prestige-container">
-                    <div class="prestige-rank" id="rank-name">Account Created</div>
-                    <div class="prestige-sub">
-                        <span class="prestige-pill">★ <span id="ui-influence">0</span></span>
-                        <span style="color:var(--green); font-weight:700;">+<span id="ui-bonus">0</span>% PROFIT</span>
+            <div class="panel-left-content">
+                <!-- Balance Block -->
+                <div>
+                    <div class="header-title"><span>Net Asset Value</span> <span>USD</span></div>
+                    <div class="balance" id="balance-el">$<span id="ui-money">0</span></div>
+                    
+                    <!-- Prestige Card -->
+                    <div class="prestige-container">
+                        <div class="prestige-rank" id="rank-name">NOVICE</div>
+                        <div class="prestige-sub">
+                            <span class="prestige-pill">★ <span id="ui-influence">0</span></span>
+                            <span style="color:var(--green); font-weight:700;">+<span id="ui-bonus">0</span>% PROFIT</span>
+                        </div>
+                        <div class="next-rank-bar"><div class="next-rank-fill" id="influence-bar"></div></div>
                     </div>
-                    <div class="next-rank-bar"><div class="next-rank-fill" id="influence-bar"></div></div>
-                    <div class="next-rank-text">NEXT RANK: $<span id="next-influence-cost">0</span></div>
+
+                    <!-- Flow Rate -->
+                    <div style="display:flex; justify-content:space-between; font-size:0.9rem; padding:12px 0; border-bottom:1px solid #222;">
+                        <span style="color:#666; font-weight:700;">FLOW</span>
+                        <span style="font-family:'JetBrains Mono'; font-weight:700;">+$<span id="ui-rate">0.00</span>/s</span>
+                    </div>
+                    
+                    <!-- Hype Bar -->
+                    <div class="hype-container">
+                        <div class="hype-label">
+                            <span>MARKET VOLATILITY</span>
+                            <span id="hype-text">0%</span>
+                        </div>
+                        <div class="hype-track"><div class="hype-fill" id="hype-bar"></div></div>
+                    </div>
                 </div>
 
-                <div class="rate-display">
-                    <span style="color:#666; font-weight:700;">CASH FLOW</span>
-                    <span>+$<span id="ui-rate">0.00</span>/s</span>
-                </div>
-                
-                <div class="hype-container">
-                    <div class="hype-label">
-                        <span>MARKET VOLATILITY</span>
-                        <span id="hype-text">0%</span>
+                <!-- Options -->
+                <div class="options-area" style="margin-top:auto;">
+                    <button class="opt-btn prestige-btn" id="btn-open-prestige" onclick="openPrestige()">LIQUIDATE ASSETS</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="opt-btn" onclick="openExport()">BACKUP</button>
+                        <button class="opt-btn" onclick="openImport()">RESTORE</button>
                     </div>
-                    <div class="hype-track"><div class="hype-fill" id="hype-bar"></div></div>
+                    <button class="opt-btn" style="border:1px solid rgba(239, 68, 68, 0.2); color:#ef4444;" onclick="hardReset()">FACTORY RESET</button>
                 </div>
-            </div>
-
-            <div class="options-area">
-                <button class="opt-btn prestige-btn" id="btn-open-prestige" onclick="openPrestige()">LIQUIDATE ASSETS</button>
-                <div style="display:flex; gap:8px;">
-                    <button class="opt-btn" onclick="openExport()">BACKUP SAVE</button>
-                    <button class="opt-btn" onclick="openImport()">RESTORE SAVE</button>
-                </div>
-                <button class="opt-btn" style="border:1px solid rgba(239, 68, 68, 0.3); color:#ef4444;" onclick="hardReset()">FACTORY RESET</button>
             </div>
         </div>
 
+        <!-- PANEL 2: CENTER (Interaction) -->
         <div class="panel-center">
             <div class="big-button-container">
                 <div class="big-button" id="main-btn"></div>
             </div>
             
-            <div id="mania-text" style="margin-top:20px; font-family:'JetBrains Mono'; color:#333; letter-spacing:2px; font-size:0.8rem;">SECURE CONNECTION</div>
+            <div style="margin-top:30px; font-family:'JetBrains Mono'; color:#333; letter-spacing:2px; font-size:0.75rem;">SECURE TERMINAL ACTIVE</div>
             
             <div class="news-bar">
                 <div class="news-content" id="news-content">INITIALIZING MARKET DATA STREAM...</div>
             </div>
         </div>
 
+        <!-- PANEL 3: RIGHT (Shop) -->
         <div class="panel-right">
             <div class="shop-header">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div class="header-title" style="margin:0;">ASSET MARKETS</div>
+                    <div class="header-title" style="margin:0;">ASSETS</div>
                     <div style="font-size:0.65rem; color:#444; font-weight:700;">QTY</div>
                 </div>
-                <div class="buy-controls">
+                <div class="buy-controls" style="margin-top:12px;">
                     <button class="buy-amt active" onclick="setBuyMode(1, this)">x1</button>
                     <button class="buy-amt" onclick="setBuyMode(10, this)">x10</button>
                     <button class="buy-amt" onclick="setBuyMode(100, this)">x100</button>
                     <button class="buy-amt" onclick="setBuyMode('MAX', this)">MAX</button>
                 </div>
             </div>
-            
             <div class="shop-list" id="shop-container"></div>
         </div>
     </div>
 
+    <!-- OVERLAYS -->
     <canvas id="game-canvas"></canvas>
     <div id="event-layer"></div>
-    <div id="mute-toggle" class="mute-btn" onclick="toggleAudio()">&#128266;</div>
+    <div id="mute-toggle" class="mute-btn" style="position:fixed; top:20px; left:20px; font-size:20px; color:#333; cursor:pointer; z-index:500;" onclick="toggleAudio()">&#128266;</div>
 
+    <!-- MODALS -->
     <div id="prestige-modal" class="modal">
         <div class="modal-content">
             <div class="close-modal" onclick="closeModal('prestige-modal')">&times;</div>
-            <h2 style="color:var(--gold); margin-bottom:10px; font-weight:900; letter-spacing:1px; text-transform:uppercase;">Liquidation</h2>
-            <p style="color:#888; font-size:0.8rem;">Sell company for Reputation Points.</p>
-            <div class="prestige-val">+<span id="claimable-influence">0</span></div>
-            <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; margin-bottom:20px; text-align:left; font-size:0.8rem;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span style="color:#666;">Current Multiplier:</span>
-                    <span id="current-bonus-modal" style="color:#fff; font-weight:700;">0%</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; color:var(--green);">
-                    <span>Post-Liquidation:</span>
-                    <span id="new-bonus-modal" style="font-weight:700;">0%</span>
-                </div>
-            </div>
-            <button class="opt-btn prestige-btn ready" onclick="confirmPrestige()" style="font-size:1rem; padding:16px;">CONFIRM</button>
+            <h2 style="color:var(--gold); margin-bottom:10px; font-weight:900; letter-spacing:1px;">LIQUIDATION</h2>
+            <p style="color:#666; font-size:0.8rem;">Sell company for Reputation Points.</p>
+            <div class="prestige-val" style="font-size:3rem; color:var(--gold); font-weight:900; margin:20px 0;">+<span id="claimable-influence">0</span></div>
+            <button class="opt-btn prestige-btn ready" onclick="confirmPrestige()" style="background:var(--gold); color:#000;">CONFIRM TRANSACTION</button>
         </div>
     </div>
 
     <div id="save-modal" class="modal">
         <div class="modal-content">
             <div class="close-modal" onclick="closeModal('save-modal')">&times;</div>
-            <h2 style="font-weight:900; letter-spacing:1px; margin-bottom:10px;">DATA IO</h2>
-            <textarea id="save-data-input" class="save-textarea" placeholder="Paste save code..."></textarea>
-            <button class="opt-btn" id="modal-action-btn" style="background:#fff; color:#000;">ACTION</button>
+            <h2 style="font-weight:900;">DATA I/O</h2>
+            <textarea id="save-data-input" class="save-textarea" placeholder="Paste data here..."></textarea>
+            <button class="opt-btn" id="modal-action-btn" style="background:#fff; color:#000;">EXECUTE</button>
         </div>
     </div>
 
+    <!-- SCRIPTS -->
     <script src="js/state.js"></script>
     <script src="js/audio.js"></script>
     <script src="js/game.js"></script>

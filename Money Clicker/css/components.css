@@ -1,251 +1,272 @@
 /* =========================================
-   1. THE MINT TERMINAL (Main Button)
+   1. THE MAINFRAME BUTTON
    ========================================= */
 .big-button-container {
     width: 100%; height: 100%;
-    /* Limits height so it doesn't crowd the screen */
-    max-height: 50vh; 
+    max-height: 50vh;
     display: flex; align-items: center; justify-content: center;
-    position: relative; z-index: 20;
+    position: relative; z-index: 10;
 }
 
 .big-button {
-    /* Responsive Geometry */
-    width: 36vmin; height: 36vmin;
-    min-width: 240px; min-height: 240px;
-    max-width: 420px; max-height: 420px;
-    
+    /* SIZE */
+    width: 38vmin; height: 38vmin;
+    min-width: 250px; min-height: 250px;
+    max-width: 450px; max-height: 450px;
     border-radius: 50%;
     
-    /* MATERIAL: Machined Metal */
-    background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #050505 80%, #000 100%);
+    /* MATERIAL: Radial Steel */
+    background: radial-gradient(circle at 30% 30%, #262626 0%, #000000 70%);
     
-    /* LIGHTING: Multiple rings for depth */
+    /* DEPTH STACK */
     box-shadow: 
-        /* Deep Ground Shadow */
-        0 40px 80px rgba(0,0,0,0.8),
-        /* Outer Rim Light */
-        0 0 0 1px rgba(255,255,255,0.05),
-        /* Inner Gloss */
-        inset 0 2px 20px rgba(255,255,255,0.05),
-        /* Bottom Occlusion */
-        inset 0 -20px 40px rgba(0,0,0,0.8);
+        /* Drop Shadow */
+        0 30px 60px rgba(0,0,0,0.8),
+        /* Top Rim Highlight */
+        inset 0 2px 20px rgba(255,255,255,0.1),
+        /* Bottom Rim Shadow */
+        inset 0 -10px 30px rgba(0,0,0,0.8),
+        /* Physical Border */
+        0 0 0 1px rgba(255,255,255,0.08);
         
-    border: 1px solid rgba(255,255,255,0.08);
-    
-    cursor: pointer; position: relative;
+    /* INTERACTION */
+    cursor: pointer;
+    position: relative;
     display: flex; align-items: center; justify-content: center;
-    
-    /* PHYSICS: Custom Bezier for "Heavy" feel */
-    transition: 
-        transform 0.08s cubic-bezier(0.1, 0.9, 0.2, 1), 
-        box-shadow 0.2s ease, 
-        border-color 0.2s ease;
-        
-    touch-action: manipulation;
+    transition: transform var(--anim-fast), box-shadow var(--anim-fast), border-color var(--anim-fast);
 }
 
-/* The Currency Symbol ($) */
+/* The Symbol */
 .big-button::before { 
     content: '$'; 
-    font-family: 'Outfit', sans-serif; 
+    font-family: var(--font-head); 
     font-weight: 800; font-size: 14vmin; 
-    color: rgba(255,255,255,0.08); 
-    text-shadow: 0 -2px 5px rgba(0,0,0,1);
-    transition: color 0.15s ease;
-    /* Prevents selecting text on rapid clicks */
-    pointer-events: none; 
-}
-
-/* The "Breathing" Ring */
-.big-button::after {
-    content: ''; position: absolute; inset: -4px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    border-top-color: rgba(255,255,255,0.1);
-    border-bottom-color: rgba(255,255,255,0.02);
-    animation: spin-slow 20s linear infinite;
-    opacity: 0.5;
+    color: #333;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.05);
+    transition: color 0.2s;
     pointer-events: none;
 }
-@keyframes spin-slow { to { transform: rotate(360deg); } }
 
-/* INTERACTION: Hover */
+/* Hover State */
 .big-button:hover { 
     transform: scale(1.02);
-    border-color: rgba(255,255,255,0.2);
-    box-shadow: 
-        0 50px 100px rgba(0,0,0,0.9),
-        0 0 30px rgba(255,255,255,0.02);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.9), 0 0 0 2px rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.1);
 }
 .big-button:hover::before { 
     color: var(--green); 
     text-shadow: 0 0 40px var(--green-glow);
 }
 
-/* INTERACTION: Click (The "Press" effect) */
+/* Click State */
 .big-button:active { 
-    transform: scale(0.96); 
-    border-color: var(--green);
-    box-shadow: 
-        0 10px 20px rgba(0,0,0,1),
-        inset 0 10px 30px rgba(0,0,0,0.8);
+    transform: scale(0.96);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.9);
 }
 
-/* MANIA MODE: Gold Overdrive */
+/* Mania Mode */
 body.mania-mode .big-button {
-    border-color: var(--gold);
-    box-shadow: 0 0 60px var(--gold-glow), inset 0 0 40px rgba(234, 179, 8, 0.1);
-    animation: pulse-gold 0.6s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 60px var(--gold-glow);
+    animation: pulse-gold 0.5s infinite alternate;
 }
 body.mania-mode .big-button:hover::before { color: var(--gold); }
 @keyframes pulse-gold { from { transform: scale(1); } to { transform: scale(1.02); } }
 
 
 /* =========================================
-   2. UPGRADE BLADES (Cards Redesigned)
+   2. UPGRADE CARDS (Data Blades)
    ========================================= */
 .upgrade {
-    /* FORMAT: Slim, horizontal "Data Blade" style */
-    background: linear-gradient(90deg, #111 0%, #0a0a0a 100%);
-    border-bottom: 1px solid #222;
-    padding: 14px 18px; 
+    background: linear-gradient(90deg, #111 0%, #0e0e0e 100%);
+    border: 1px solid #1f1f1f;
+    padding: 14px 18px; margin-bottom: 8px;
+    border-radius: 8px; /* Sharper corners for tech look */
     
-    cursor: pointer;
     display: flex; justify-content: space-between; align-items: center;
-    position: relative; overflow: hidden;
-    
-    transition: background 0.2s, transform 0.2s;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: all 0.2s ease;
 }
 
-/* The "Signal Light" indicator on the left */
+/* Signal Bar (Left) */
 .upgrade::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background: #333; transition: background 0.3s;
+    background: #222; transition: background 0.3s, width 0.2s;
 }
 
-/* HOVER */
-.upgrade:hover { 
-    background: #161616;
-    transform: translateX(4px); /* Slight slide right */
+.upgrade:hover {
+    background: #181818;
+    transform: translateX(4px);
+    border-color: #333;
 }
+.upgrade:hover::before { width: 4px; }
 
-/* STATES */
+/* States */
 .upgrade.locked { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
 
 .upgrade.affordable::before { background: var(--green); box-shadow: 2px 0 10px var(--green-glow); }
-.upgrade.affordable:hover { background: rgba(34, 197, 94, 0.03); }
-
 .upgrade.affordable-max::before { background: var(--gold); box-shadow: 2px 0 10px var(--gold-glow); }
 
-/* Typography inside Card */
+/* Text Styling */
 .upg-info h4 { 
-    font-size: 0.9rem; font-weight: 700; color: #eee; margin: 0 0 2px 0; 
-    letter-spacing: 0.5px;
+    font-size: 0.95rem; font-weight: 700; color: #eee; margin-bottom: 2px;
 }
 .upg-info p { 
-    font-size: 0.7rem; color: #666; font-family: 'JetBrains Mono', monospace; 
-    display: flex; gap: 8px;
+    font-size: 0.75rem; color: var(--text-muted); 
+    display: flex; gap: 8px; font-family: var(--font-mono);
 }
-.rate-boost { color: var(--green); }
+.rate-boost { color: var(--green); font-weight: 600; }
 
-/* Cost Section (Right Side) */
 .upg-cost { text-align: right; }
-.cost-text { 
-    font-size: 0.85rem; font-weight: 700; color: #aaa; 
-    font-family: 'JetBrains Mono', monospace; 
-    transition: color 0.2s;
-}
+.cost-text { font-family: var(--font-mono); font-weight: 700; color: #999; font-size: 0.9rem; }
 .upgrade.affordable .cost-text { color: #fff; }
 
 .count-badge { 
     display: inline-block;
-    background: #1a1a1a; border: 1px solid #333;
-    padding: 1px 6px; border-radius: 4px;
-    font-size: 0.65rem; font-weight: 700; color: #888;
+    background: #222; color: #aaa;
+    padding: 2px 6px; border-radius: 4px;
+    font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
     margin-top: 4px; min-width: 24px; text-align: center;
 }
 
 
 /* =========================================
-   3. STATS & PRESTIGE (Dashboard)
+   3. DASHBOARD UI
    ========================================= */
-/* Main Money Display */
+.header-title {
+    font-size: 0.65rem; color: #555; font-weight: 800; 
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px;
+}
+
 .balance { 
-    font-size: 3rem; font-weight: 900; color: #fff; margin-bottom: 24px; 
-    letter-spacing: -1.5px;
-    /* Gradient Text */
-    background: linear-gradient(180deg, #ffffff 40%, #777777 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    /* Text Shadow for legibility */
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+    font-size: 3.2rem; font-weight: 900; color: #fff; 
+    margin-bottom: 24px; letter-spacing: -1.5px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
-.header-title { 
-    font-size: 0.6rem; color: #555; font-weight: 800; 
-    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
-}
-
-/* Prestige Box */
-.prestige-container { 
-    background: rgba(255,255,255,0.02); 
-    border: 1px solid #222; 
-    padding: 16px; border-radius: 12px; margin-bottom: 20px; 
+/* Prestige/Rank Card */
+.prestige-container {
+    background: #111; border: 1px solid #222;
+    padding: 16px; border-radius: var(--radius); margin-bottom: 20px;
 }
 .prestige-rank { 
     color: var(--gold); font-weight: 800; font-size: 0.9rem; 
     text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
 }
-.prestige-sub { font-size: 0.7rem; color: #666; display: flex; gap: 10px; }
-
-/* Progress Bar */
+.prestige-sub { 
+    font-size: 0.75rem; color: #777; 
+    display: flex; gap: 8px; align-items: center; 
+}
+.prestige-pill {
+    background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2);
+    color: var(--gold); padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 0.7rem;
+}
 .next-rank-bar { 
     width: 100%; height: 4px; background: #222; 
-    border-radius: 4px; margin-top: 10px; overflow: hidden; 
+    border-radius: 2px; margin-top: 10px; overflow: hidden; 
 }
 .next-rank-fill { 
     height: 100%; background: var(--gold); 
-    box-shadow: 0 0 10px var(--gold-glow); transition: width 0.5s ease-out; 
+    box-shadow: 0 0 10px var(--gold-glow); 
+    transition: width 0.5s ease;
 }
 
-
-/* =========================================
-   4. UTILITIES & ANIMATIONS
-   ========================================= */
-/* Bonus Item (Floating Chip) */
-.golden-bill {
-    position: absolute; width: 100px; height: 100px;
-    background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
-    border-radius: 50%; border: 2px solid #fff;
-    box-shadow: 0 0 30px var(--gold-glow);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 900; color: #422006; font-size: 16px;
-    z-index: 9999; cursor: pointer;
-    animation: fly-across 10s linear forwards, rotate-chip 4s linear infinite;
+/* Hype Bar */
+.hype-container { margin-top: auto; }
+.hype-label { 
+    display: flex; justify-content: space-between; font-size: 0.7rem; 
+    color: #666; margin-bottom: 6px; font-weight: 700;
 }
-.golden-bill::after { content: 'BONUS'; }
-@keyframes fly-across { 0% { left: -150px; } 100% { left: 110vw; } }
-@keyframes rotate-chip { to { transform: rotate(360deg); } }
+.hype-track { width: 100%; height: 3px; background: #222; border-radius: 2px; overflow: hidden; }
+.hype-fill { 
+    height: 100%; width: 0%; 
+    background: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); 
+    transition: width 0.1s linear; 
+}
 
 /* News Ticker */
 .news-bar {
     position: absolute; bottom: 30px; 
-    width: 90%; max-width: 500px; height: 32px; 
-    background: #000; border: 1px solid #333;
-    border-radius: 4px; overflow: hidden; display: flex; align-items: center; 
-    pointer-events: auto;
+    width: 90%; max-width: 550px; height: 36px;
+    background: #000; border: 1px solid #222;
+    border-radius: 100px; overflow: hidden; 
+    display: flex; align-items: center; pointer-events: auto;
 }
-.news-content { 
-    white-space: nowrap; padding-left: 100%; 
-    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #666; 
-    font-weight: 600; animation: ticker 25s linear infinite; 
+.news-content {
+    white-space: nowrap; padding-left: 100%;
+    font-family: var(--font-mono); font-size: 0.75rem; color: #888;
+    font-weight: 500; animation: ticker 25s linear infinite;
 }
 @keyframes ticker { 100% { transform: translateX(-100%); } }
 
-/* Modals */
-.modal { display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s; }
+
+/* =========================================
+   4. BUTTONS & INPUTS
+   ========================================= */
+/* Generic UI Button */
+.opt-btn {
+    width: 100%;
+    background: #181818;
+    border: 1px solid #262626;
+    color: #888;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+    transition: all 0.2s;
+}
+.opt-btn:hover { background: #222; border-color: #444; color: #fff; }
+.opt-btn:active { transform: translateY(1px); }
+
+/* Prestige Button Specifics */
+.prestige-btn.ready {
+    background: var(--gold); color: #000; border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
+}
+.prestige-btn.ready:hover { background: #fff; }
+
+/* Buy Control Group */
+.buy-controls {
+    display: flex; gap: 4px; 
+    background: #000; padding: 3px; border-radius: 8px; border: 1px solid #222;
+}
+.buy-amt {
+    flex: 1; 
+    padding: 6px; 
+    color: #555; font-weight: 700; font-size: 0.75rem;
+    border-radius: 6px; transition: 0.2s;
+}
+.buy-amt:hover { color: #fff; }
+.buy-amt.active { background: #222; color: #fff; }
+.buy-amt.active-max { background: var(--gold); color: #000; }
+
+/* --- MODALS --- */
+.modal {
+    display: none; position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,0,0,0.9);
+    justify-content: center; align-items: center;
+    opacity: 0; transition: opacity 0.2s;
+}
 .modal.open { opacity: 1; }
-.modal-content { background: #080808; border: 1px solid #333; padding: 40px; width: 90%; max-width: 400px; border-radius: 16px; text-align: center; }
-.prestige-val { font-size: 3rem; color: var(--gold); font-weight: 900; margin: 20px 0; }
-.close-modal { position: absolute; top: 15px; right: 15px; font-size: 24px; color: #444; cursor: pointer; }
-.save-textarea { width: 100%; height: 100px; background: #000; border: 1px solid #333; color: #fff; padding: 10px; margin: 20px 0; resize: none; font-family: monospace; }
+
+.modal-content {
+    background: #0a0a0a; border: 1px solid #222;
+    padding: 32px; width: 90%; max-width: 440px;
+    border-radius: 16px; text-align: center;
+    box-shadow: 0 40px 80px rgba(0,0,0,1);
+}
+
+.save-textarea {
+    width: 100%; height: 120px;
+    background: #000; border: 1px solid #222;
+    color: var(--green);
+    font-family: var(--font-mono); font-size: 0.75rem;
+    padding: 12px; margin: 20px 0; border-radius: 8px;
+    resize: none;
+}
+.save-textarea:focus { border-color: var(--green); }
+
+.close-modal {
+    position: absolute; top: 16px; right: 20px;
+    font-size: 24px; color: #444; cursor: pointer;
+}
+.close-modal:hover { color: #fff; }
