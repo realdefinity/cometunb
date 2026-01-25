@@ -1,15 +1,13 @@
-/* css/layout.css */
-
-/* --- MAIN CONTAINER (Locks to screen) --- */
+/* --- MAIN LAYOUT CONTAINER --- */
 .layout { 
     display: flex; 
-    width: 100vw; 
-    height: 100vh; 
+    width: 100%; 
+    height: 100%; 
     position: relative; 
     z-index: 10; 
-    padding: 20px; 
-    gap: 20px;
-    overflow: hidden; /* Prevents body scroll */
+    padding: 24px; 
+    gap: 24px;
+    overflow: hidden; /* Critical for keeping UI on screen */
 }
 
 /* --- THE GLASS PANELS --- */
@@ -22,75 +20,77 @@
     display: flex; 
     flex-direction: column; 
     z-index: 20;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     
-    /* RESCALING MAGIC */
-    flex-shrink: 0; /* Don't squash me too small */
-    max-height: 100%; /* Never go taller than screen */
+    /* RESCALING LOGIC */
+    flex-shrink: 0; 
+    max-height: 100%; 
 }
 
-/* Specific Widths (Responsive) */
 .panel-left { 
-    width: 300px; 
+    width: 320px; 
     padding: 24px; 
-    overflow-y: auto; /* Allow internal scrolling if screen is tiny */
+    overflow-y: auto; /* Allow scrolling if screen is tiny */
 }
+/* Hide scrollbar on left panel */
+.panel-left::-webkit-scrollbar { width: 0px; }
 
 .panel-right { 
-    width: 400px; 
-    min-width: 320px; /* Don't get unreadable */
+    width: 420px; 
+    min-width: 300px;
 }
 
 /* --- CENTER STAGE --- */
 .panel-center {
-    flex: 1; /* Take all remaining space */
+    flex: 1; /* Takes all remaining space */
     display: flex; 
     flex-direction: column; 
     align-items: center; 
     justify-content: center;
     position: relative; 
-    min-width: 0; /* Flexbox overflow fix */
+    min-width: 0; /* Prevents flexbox blowout */
 }
 
 /* --- SCROLLABLE SHOP AREA --- */
-/* This was likely pushing content off screen before */
 .shop-header {
     padding: 20px 24px;
     border-bottom: 1px solid var(--glass-border);
     background: rgba(255,255,255,0.02);
-    flex-shrink: 0; /* Header stays fixed height */
+    flex-shrink: 0; /* Header stays fixed */
 }
 
 .shop-list { 
-    flex: 1; /* Fill the rest of the vertical space */
-    overflow-y: auto; /* Scroll ONLY inside this box */
+    flex: 1; /* Fills remaining height */
+    overflow-y: auto; /* Scrolls internally */
     padding: 16px;
-    min-height: 0; /* Firefox flex fix */
+    min-height: 0; /* Firefox fix */
 }
 
-/* Hide scrollbar but keep functionality */
-.shop-list::-webkit-scrollbar { width: 4px; }
-.shop-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+/* Custom Scrollbar for Shop */
+.shop-list::-webkit-scrollbar { width: 6px; }
+.shop-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
 .shop-list::-webkit-scrollbar-track { background: transparent; }
 
-/* --- RESPONSIVE MEDIA QUERIES --- */
-/* If screen is smaller than 1100px, switch to tablet mode */
+
+/* --- TABLET / MOBILE MODE --- */
 @media (max-width: 1100px) {
     .layout {
-        flex-wrap: wrap; /* Allow stacking */
-        overflow-y: auto; /* Allow scrolling entire page on tablets */
+        flex-direction: column;
+        overflow-y: auto; /* Enable page scroll */
         height: auto;
         min-height: 100vh;
+        padding: 16px;
     }
     
     .panel-left, .panel-right, .panel-center {
-        width: 100%; /* Full width bars */
-        flex: none;
+        width: 100%;
         height: auto;
         max-height: none;
+        flex: none;
     }
     
-    .panel-center { order: 1; height: 50vh; } /* Clicker on top */
-    .panel-left { order: 2; }   /* Stats middle */
-    .panel-right { order: 3; height: 600px; } /* Shop bottom */
+    /* Order: Game first, then Stats, then Shop */
+    .panel-center { order: 1; height: 50vh; min-height: 400px; margin-bottom: 20px;} 
+    .panel-left { order: 2; margin-bottom: 20px; }
+    .panel-right { order: 3; height: 600px; }
 }
