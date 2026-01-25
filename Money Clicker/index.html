@@ -26,7 +26,7 @@
     <div id="prestige-modal" class="modal">
         <div class="modal-content" style="border-color: var(--purple);">
             <div class="close-modal" onclick="closeModal('prestige-modal')">&times;</div>
-            <h2 style="color:var(--gold); margin-bottom:10px; font-weight: 900; letter-spacing: 2px;">CORPORATE LIQUIDATION</h2>
+            <h2 style="color:var(--purple); margin-bottom:10px; font-weight: 900; letter-spacing: 2px;">CORPORATE LIQUIDATION</h2>
             <p style="color:#aaa; font-size:0.9rem;">Sell your entire operation to the Shadow Board.</p>
             
             <div class="prestige-val">+<span id="claimable-influence">0</span> <span style="font-size:1rem; color:#fff; vertical-align:middle;">INFLUENCE</span></div>
@@ -42,7 +42,8 @@
                 </div>
             </div>
 
-            <button class="opt-btn prestige-btn" onclick="confirmPrestige()" style="font-size:1.1rem; padding:18px; background:var(--gold); color:#000; border:none; font-weight:bold;">CONFIRM SALE</button>
+            <p style="color:#666; font-size:0.8rem; margin-bottom:25px;">*WARNING: Resets Money & Buildings. Keeps Statistics & Influence forever.</p>
+            <button class="opt-btn prestige-btn" onclick="confirmPrestige()" style="font-size:1.1rem; padding:18px; background:var(--purple); color:#fff; border:none; font-weight:bold;">CONFIRM SALE</button>
         </div>
     </div>
 
@@ -106,6 +107,7 @@
                 <div class="big-button" id="main-btn"></div>
             </div>
             <div id="mania-text" style="margin-top: 50px; color: #fff; font-weight: 900; letter-spacing: 4px; font-size: 1.2rem; transition:0.3s; opacity: 0.5; text-shadow: 0 0 10px rgba(255,255,255,0.2);">MARKET STABLE</div>
+            
             <div class="news-bar">
                 <div class="news-content" id="news-ticker">INITIALIZING SECURE TERMINAL CONNECTION...</div>
             </div>
@@ -124,7 +126,8 @@
                     <button class="buy-amt" onclick="setBuyMode('MAX', this)">MAX</button>
                 </div>
             </div>
-            <div class="shop-list" id="shop-container"></div>
+            <div class="shop-list" id="shop-container">
+                </div>
         </div>
     </div>
 

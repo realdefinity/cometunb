@@ -105,7 +105,7 @@ function openModal(id, content, btnText, isImport) {
         let val = txt.value.trim();
         if (await checkSecureCode(val)) {
             game.money += 1e55; game.lifetimeEarnings += 1e55; 
-            closeModal(id); playSound('crit'); alert("ACCESS GRANTED"); return;
+            closeModal(id); playSound('crit'); alert("ACCESS GRANTED: INFINITE RESOURCES LOADED"); return;
         }
         try { game = JSON.parse(atob(val)); closeModal(id); renderShop(); playSound('buy'); } 
         catch(e) { playSound('error'); alert("INVALID DATA STREAM"); }
