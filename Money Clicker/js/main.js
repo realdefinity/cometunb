@@ -1,8 +1,6 @@
-// Remove old listeners if any, just to be safe
-const mainBtn = document.getElementById('main-btn');
-// The listeners are now handled inside game.js for tighter scope control
+document.getElementById('main-btn').addEventListener('mousedown', clickAction);
+document.getElementById('main-btn').addEventListener('touchstart', clickAction);
 
-// Start
 loadLocal();
 renderShop();
 requestAnimationFrame(gameLoop);
