@@ -4,6 +4,7 @@ let width, height;
 let lastTick = performance.now();
 let particles = [];
 
+// --- RESIZE LOGIC ---
 function resize() {
     width = window.innerWidth;
     height = window.innerHeight;
@@ -13,6 +14,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+// --- PARTICLE SYSTEM ---
 class Particle {
     constructor(x, y, text, type) {
         this.x = x; this.y = y;
@@ -115,6 +117,7 @@ class Particle {
     }
 }
 
+// --- GAME LOGIC ---
 function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { if(upgrades[i]) base += count * upgrades[i].baseRate; });
@@ -182,54 +185,51 @@ function endMania() {
     document.getElementById('mania-text').style.color = "#fff";
 }
 
-// --- FIXED GOLDEN BILL LOGIC ---
+// --- IMPROVED GOLDEN BILL LOGIC ---
+let activeBills = []; // Track active bills for smooth animation
+
 function spawnGoldenBill() {
     let bill = document.createElement('div');
     bill.className = 'golden-bill';
     bill.innerText = "$$$";
     
-    // 1. Set Random Vertical Start (Avoid very top/bottom)
-    let startY = Math.random() * (window.innerHeight - 200) + 100;
+    // 1. Setup Position
+    let startY = Math.random() * (window.innerHeight - 300) + 150; // Keep it centered-ish
     bill.style.top = startY + "px";
+    bill.style.left = "-150px"; // Start off-screen
     
-    // 2. Start Off-screen Left
-    let currentX = -150;
-    bill.style.left = currentX + "px";
+    document.getElementById('event-layer').appendChild(bill);
 
-    // 3. Random Speed (Faster = Harder)
-    // Between 4 and 10 pixels per frame (approx 240px/s to 600px/s)
-    let speed = Math.random() * 6 + 4; 
+    // 2. Setup Physics
+    let state = {
+        el: bill,
+        x: -150,
+        y: startY,
+        vx: Math.random() * 2 + 3, // Speed: 3 to 5 pixels per frame (Faster!)
+        time: 0,
+        amplitude: Math.random() * 40 + 20, // Height of the bob
+        frequency: Math.random() * 0.05 + 0.02,
+        rotation: (Math.random() - 0.5) * 10
+    };
 
-    let startTime = Date.now();
-    
-    // 4. Movement Loop
-    let billInterval = setInterval(() => {
-        if(!bill.parentNode) { clearInterval(billInterval); return; }
-        
-        // Move Right
-        currentX += speed;
-        bill.style.left = currentX + "px";
+    activeBills.push(state);
 
-        // Bob up and down (Faster bobbing for difficulty)
-        let elapsed = (Date.now() - startTime) / 1000;
-        bill.style.marginTop = (Math.sin(elapsed * 10) * 30) + "px";
-
-        // Despawn if off-screen Right
-        if (currentX > window.innerWidth) {
-            bill.remove();
-            clearInterval(billInterval);
-        }
-    }, 16); // ~60fps
-
+    // 3. Interaction
     bill.onclick = (e) => {
         e.stopPropagation();
-        clearInterval(billInterval); // Stop moving immediately
         
+        // Remove from animation loop
+        state.dead = true; 
+        bill.remove();
+
+        // Calculate Reward
         let reward = game.money * 0.25;
-        if(reward === 0) reward = 10000;
+        if(reward < 500) reward = 500; // FIX: Minimum $500 reward
+
         game.money += reward;
         game.lifetimeEarnings += reward;
         
+        // Effects
         for(let i=0; i<15; i++) createParticle(e.clientX, e.clientY, '', 'spark');
         createParticle(e.clientX, e.clientY, "+"+formatNumber(reward), 'text');
         
@@ -238,12 +238,87 @@ function spawnGoldenBill() {
         setTimeout(() => bal.classList.remove('pulse'), 200);
         
         playSound('crit');
-        bill.remove();
     };
-    
-    document.getElementById('event-layer').appendChild(bill);
 }
 
+// --- MAIN LOOP ---
+function gameLoop(currentTime) {
+    let dt = (currentTime - lastTick) / 1000;
+    if (dt > 86400) dt = 86400; if (dt < 0) dt = 0;
+    lastTick = currentTime;
+
+    // 1. Income Logic
+    let rate = calculateIncome();
+    if (rate > 0) {
+        let amount = rate * dt;
+        game.money += amount;
+        game.lifetimeEarnings += amount;
+    }
+
+    // 2. Mania & Hype
+    if (maniaMode) {
+        maniaTimer -= dt;
+        if(Math.random() > 0.8) createParticle(0,0,'','confetti');
+        if (maniaTimer <= 0) endMania();
+    } else {
+        hype = Math.max(0, hype - (5 * dt));
+    }
+
+    // 3. News Ticker
+    tickerTimer += dt;
+    if(tickerTimer > 25) {
+        let item = newsHeadlines[Math.floor(Math.random() * newsHeadlines.length)];
+        let newsEl = document.getElementById('news-ticker');
+        newsEl.innerText = item + " // " + item + " //";
+        newsEl.style.animation = 'none'; newsEl.offsetHeight; 
+        newsEl.style.animation = 'ticker 25s linear infinite';
+        tickerTimer = 0;
+    }
+
+    // 4. Golden Bill Spawner
+    goldenBillTimer -= dt * 1000;
+    if (goldenBillTimer <= 0) {
+        spawnGoldenBill();
+        goldenBillTimer = Math.random() * 30000 + 15000;
+    }
+
+    // 5. Animate Golden Bills (Smooth!)
+    activeBills = activeBills.filter(b => {
+        if(b.dead) return false;
+
+        b.x += b.vx; // Move right
+        b.time += 1;
+        
+        // Smooth sine wave motion
+        let bob = Math.sin(b.time * b.frequency) * b.amplitude;
+        let rot = Math.sin(b.time * 0.05) * 10; // Gentle tilt
+
+        b.el.style.transform = `translate(${b.x}px, ${bob}px) rotate(${rot}deg)`;
+
+        // Remove if off screen
+        if(b.x > window.innerWidth + 150) {
+            b.el.remove();
+            return false;
+        }
+        return true;
+    });
+
+    // 6. Particles
+    ctx.clearRect(0, 0, width, height);
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i]; p.update(); p.draw();
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // 7. UI & AutoSave
+    updateUI(rate);
+    autoSaveTimer += dt;
+    if(autoSaveTimer > 5) { saveLocal(); autoSaveTimer = 0; }
+    
+    requestAnimationFrame(gameLoop);
+}
+
+// ... Shop Functions below remain unchanged ...
 function getCost(id, count) {
     let u = upgrades[id];
     let currentCost = u.baseCost * Math.pow(1.15, game.counts[id]);
@@ -269,7 +344,6 @@ function buy(id) {
     if (game.money >= cost) {
         game.money -= cost;
         game.counts[id] += amount;
-        
         let rect = document.getElementById(`upg-${id}`).getBoundingClientRect();
         for(let i=0; i<8; i++) {
             createParticle(rect.right - 50 + (Math.random()*40), rect.top + (rect.height/2), '', 'spark');
@@ -281,11 +355,9 @@ function buy(id) {
 function openPrestige() {
     let potential = Math.floor(Math.pow(game.lifetimeEarnings / 1000000, 0.5));
     let claimable = Math.max(0, potential - game.influence);
-    
     document.getElementById('claimable-influence').innerText = formatNumber(claimable);
     document.getElementById('current-bonus-modal').innerText = formatNumber(game.influence * 10) + "%";
     document.getElementById('new-bonus-modal').innerText = formatNumber((game.influence + claimable) * 10) + "%";
-    
     openModal('prestige-modal', '', '', false);
 }
 
@@ -300,52 +372,4 @@ function confirmPrestige() {
         renderShop();
         playSound('crit');
     }
-}
-
-function gameLoop(currentTime) {
-    let dt = (currentTime - lastTick) / 1000;
-    if (dt > 86400) dt = 86400; if (dt < 0) dt = 0;
-    lastTick = currentTime;
-
-    let rate = calculateIncome();
-    if (rate > 0) {
-        let amount = rate * dt;
-        game.money += amount;
-        game.lifetimeEarnings += amount;
-    }
-
-    if (maniaMode) {
-        maniaTimer -= dt;
-        if(Math.random() > 0.8) createParticle(0,0,'','confetti');
-        if (maniaTimer <= 0) endMania();
-    } else {
-        hype = Math.max(0, hype - (5 * dt));
-    }
-
-    tickerTimer += dt;
-    if(tickerTimer > 25) {
-        let item = newsHeadlines[Math.floor(Math.random() * newsHeadlines.length)];
-        let newsEl = document.getElementById('news-ticker');
-        newsEl.innerText = item + " // " + item + " //";
-        newsEl.style.animation = 'none'; newsEl.offsetHeight; 
-        newsEl.style.animation = 'ticker 25s linear infinite';
-        tickerTimer = 0;
-    }
-
-    goldenBillTimer -= dt * 1000;
-    if (goldenBillTimer <= 0) {
-        spawnGoldenBill();
-        goldenBillTimer = Math.random() * 30000 + 15000;
-    }
-
-    ctx.clearRect(0, 0, width, height);
-    for (let i = particles.length - 1; i >= 0; i--) {
-        let p = particles[i]; p.update(); p.draw();
-        if (p.life <= 0) particles.splice(i, 1);
-    }
-
-    updateUI(rate);
-    autoSaveTimer += dt;
-    if(autoSaveTimer > 5) { saveLocal(); autoSaveTimer = 0; }
-    requestAnimationFrame(gameLoop);
 }
