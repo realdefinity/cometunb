@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE MINT // FLUIDITY</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+    <div id="event-layer"></div>
+
+    <div id="mute-toggle" class="mute-btn" onclick="toggleAudio()">&#128266;</div>
+
+    <div id="prestige-modal" class="modal">
+        <div class="modal-content" style="border-color: var(--purple);">
+            <div class="close-modal" onclick="closeModal('prestige-modal')">&times;</div>
+            <h2 style="color:var(--purple); margin-bottom:10px; font-weight: 900; letter-spacing: 2px;">CORPORATE LIQUIDATION</h2>
+            <p style="color:#aaa; font-size:0.9rem;">Sell your entire operation to the Shadow Board.</p>
+            
+            <div class="prestige-val">+<span id="claimable-influence">0</span> <span style="font-size:1rem; color:#fff; vertical-align:middle;">INFLUENCE</span></div>
+            
+            <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:16px; margin-bottom:20px; text-align:left;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#888;">Current Multiplier:</span>
+                    <span id="current-bonus-modal" style="color:#fff; font-weight:bold;">0%</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--green);">
+                    <span>Post-Sale Multiplier:</span>
+                    <span id="new-bonus-modal" style="font-weight:bold;">0%</span>
+                </div>
+            </div>
+
+            <p style="color:#666; font-size:0.8rem; margin-bottom:25px;">*WARNING: Resets Money & Buildings. Keeps Statistics & Influence forever.</p>
+            <button class="opt-btn prestige-btn" onclick="confirmPrestige()" style="font-size:1.1rem; padding:18px; background:var(--purple); color:#fff; border:none; font-weight:bold;">CONFIRM SALE</button>
+        </div>
+    </div>
+
+    <div id="save-modal" class="modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="closeModal('save-modal')">&times;</div>
+            <h2 id="modal-title">DATA MANAGEMENT</h2>
+            <textarea id="save-data-input" class="save-textarea" placeholder="Paste save code here..."></textarea>
+            <div style="display:flex; gap:10px;">
+                <button class="opt-btn" id="modal-action-btn" style="background: #fff; color:#000;">ACTION</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="layout">
+        <div class="panel-left">
+            <div>
+                <div class="header-title"><span>NET WORTH</span> <span>USD</span></div>
+                <div class="balance" id="balance-el">$<span id="ui-money">0</span></div>
+                
+                <div class="prestige-container">
+                    <div class="prestige-rank" id="rank-name">STREET RAT</div>
+                    <div class="prestige-sub">
+                        <span class="prestige-pill">★ <span id="ui-influence">0</span></span>
+                        <span style="color:var(--green); font-weight:600;">+<span id="ui-bonus">0</span>% BONUS</span>
+                    </div>
+                    <div class="next-rank-bar">
+                        <div class="next-rank-fill" id="influence-bar"></div>
+                    </div>
+                    <div class="next-rank-text">NEXT: $<span id="next-influence-cost">0</span></div>
+                </div>
+
+                <div class="rate-display">
+                    <span style="font-size:0.9rem; color:#aaa; font-weight:600;">INCOME</span>
+                    <span style="font-weight:bold;">+$<span id="ui-rate">0.00</span>/s</span>
+                </div>
+                
+                <div class="hype-container">
+                    <div class="hype-label">
+                        <span>MARKET VOLATILITY</span>
+                        <span id="hype-text">0%</span>
+                    </div>
+                    <div class="hype-track">
+                        <div class="hype-fill" id="hype-bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="options-area">
+                <button class="opt-btn prestige-btn" id="btn-open-prestige" onclick="openPrestige()">SELL COMPANY</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="opt-btn" onclick="openExport()">SAVE</button>
+                    <button class="opt-btn" onclick="openImport()">LOAD</button>
+                </div>
+                <button class="opt-btn" style="border:1px solid rgba(255, 50, 50, 0.2); color:#ff6666;" onclick="hardReset()">HARD RESET</button>
+            </div>
+        </div>
+
+        <div class="panel-center">
+            <div class="big-button-container">
+                <div class="big-button" id="main-btn"></div>
+            </div>
+            <div id="mania-text" style="margin-top: 50px; color: #fff; font-weight: 900; letter-spacing: 4px; font-size: 1.2rem; transition:0.3s; opacity: 0.5; text-shadow: 0 0 10px rgba(255,255,255,0.2);">MARKET STABLE</div>
+            
+            <div class="news-bar">
+                <div class="news-content" id="news-ticker">INITIALIZING SECURE TERMINAL CONNECTION...</div>
+            </div>
+        </div>
+
+        <div class="panel-right">
+            <div class="shop-header">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="header-title" style="margin:0; color:#fff; font-size:1rem;">ASSETS</div>
+                    <div style="font-size:0.7rem; color:#888; font-weight:bold;">MULTIPLIER</div>
+                </div>
+                <div class="buy-controls">
+                    <button class="buy-amt active" onclick="setBuyMode(1, this)">1x</button>
+                    <button class="buy-amt" onclick="setBuyMode(10, this)">10x</button>
+                    <button class="buy-amt" onclick="setBuyMode(100, this)">100x</button>
+                    <button class="buy-amt" onclick="setBuyMode('MAX', this)">MAX</button>
+                </div>
+            </div>
+            <div class="shop-list" id="shop-container">
+                </div>
+        </div>
+    </div>
+
+    <script src="js/state.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
