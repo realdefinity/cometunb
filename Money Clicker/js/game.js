@@ -4,7 +4,7 @@ let width, height;
 let lastTick = performance.now();
 let particles = [];
 
-// --- BUTTON PHYSICS VARIABLES ---
+// --- BUTTON PHYSICS VARS ---
 const btnEl = document.getElementById('main-btn');
 let btnTiltX = 0;
 let btnTiltY = 0;
@@ -32,22 +32,19 @@ btnEl.addEventListener('mousemove', (e) => {
     const rect = btnEl.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    // Calculate tilt (inverted Y for natural feel)
     btnTiltX = -y / 8;
     btnTiltY = x / 8;
 });
 
-// --- CLICK HANDLER (Integrated directly) ---
+// --- CLICK HANDLER ---
 function triggerClick(e) {
-    // Prevent default on touch to stop double-firing
     if (e.type === 'touchstart') e.preventDefault();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
-    // 1. PHYSICS KICK (This makes it bounce)
-    // We shove the velocity down. The loop handles the recovery.
+    // Physics Kick
     btnVelocity = -0.25; 
 
-    // 2. LOGIC
+    // Income Logic
     let baseRate = 0;
     game.counts.forEach((c, i) => { if(upgrades[i]) baseRate += c * upgrades[i].baseRate; });
     
@@ -68,9 +65,8 @@ function triggerClick(e) {
         if (hype >= 100) startMania();
     }
 
-    // 3. PARTICLES
+    // Particles
     const rect = btnEl.getBoundingClientRect();
-    // Default to center if touch/keyboard
     const clientX = e.clientX || rect.left + rect.width/2;
     const clientY = e.clientY || rect.top + rect.height/2;
 
@@ -79,7 +75,6 @@ function triggerClick(e) {
     if(isCrit) createParticle(clientX, clientY, '', 'spark');
 }
 
-// Attach Listeners
 btnEl.addEventListener('mousedown', triggerClick);
 btnEl.addEventListener('touchstart', triggerClick);
 
@@ -129,10 +124,7 @@ class Particle {
         } else {
             this.x += this.vx; this.y += this.vy;
             if(this.gravity) this.vy += this.gravity;
-            
-            // Friction
-            this.vx *= 0.95;
-            this.vy *= 0.95;
+            this.vx *= 0.95; this.vy *= 0.95;
 
             if(this.type === 'text') {
                 this.life -= 0.015;
@@ -209,7 +201,7 @@ function endMania() {
     document.getElementById('mania-text').style.color = "#fff";
 }
 
-// --- SMOOTH GOLDEN BILL LOGIC ---
+// --- GOLDEN BILL LOGIC (FIXED) ---
 let activeBills = [];
 
 function spawnGoldenBill() {
@@ -217,43 +209,53 @@ function spawnGoldenBill() {
     bill.className = 'golden-bill';
     bill.innerText = "$$$";
     
-    // 1. Setup Position
-    let startY = Math.random() * (window.innerHeight - 300) + 150;
+    // 1. Setup Position (Ensure it stays within readable vertical area)
+    let startY = Math.random() * (window.innerHeight - 200) + 100;
     bill.style.top = startY + "px";
-    bill.style.left = "-150px"; 
+    bill.style.left = "-150px"; // Start off-screen left
     
     document.getElementById('event-layer').appendChild(bill);
 
     // 2. Setup Physics State
+    // Use an object to track exact float values for smoothness
     let state = {
         el: bill,
         x: -150,
         y: startY,
-        vx: Math.random() * 2 + 2, // Smooth speed
+        vx: Math.random() * 2 + 3, // Speed between 3 and 5
         time: 0,
-        amplitude: Math.random() * 50 + 20,
+        amplitude: Math.random() * 40 + 20,
         frequency: Math.random() * 0.04 + 0.02,
-        rotationOffset: Math.random() * 360
+        rotationOffset: Math.random() * 360,
+        dead: false
     };
 
     activeBills.push(state);
 
-    // 3. Interaction
-    bill.onclick = (e) => {
+    // 3. Interaction - USE MOUSEDOWN for instant response on moving targets
+    const collectBill = (e) => {
+        if(state.dead) return; // Prevent double clicks
         e.stopPropagation();
+        e.preventDefault(); // Stop touch scrolling
         
         state.dead = true; 
         bill.remove();
 
-        // REWARD LOGIC: $500 Minimum
+        // REWARD LOGIC: Min $500
         let reward = game.money * 0.25;
         if(reward < 500) reward = 500; 
 
         game.money += reward;
         game.lifetimeEarnings += reward;
         
-        for(let i=0; i<15; i++) createParticle(e.clientX, e.clientY, '', 'spark');
-        createParticle(e.clientX, e.clientY, "+"+formatNumber(reward), 'text');
+        // Visuals
+        let rect = bill.getBoundingClientRect();
+        // Use click coords or fallback to bill center
+        let ex = e.clientX || (rect.left + rect.width/2);
+        let ey = e.clientY || (rect.top + rect.height/2);
+
+        for(let i=0; i<15; i++) createParticle(ex, ey, '', 'spark');
+        createParticle(ex, ey, "+"+formatNumber(reward), 'text');
         
         let bal = document.getElementById('balance-el');
         bal.classList.add('pulse');
@@ -261,27 +263,28 @@ function spawnGoldenBill() {
         
         playSound('crit');
     };
+
+    bill.addEventListener('mousedown', collectBill);
+    bill.addEventListener('touchstart', collectBill);
 }
 
-// --- MAIN GAME LOOP ---
+// --- MAIN LOOP ---
 function gameLoop(currentTime) {
     let dt = (currentTime - lastTick) / 1000;
     if (dt > 86400) dt = 86400; if (dt < 0) dt = 0;
     lastTick = currentTime;
 
-    // 1. UPDATE BUTTON PHYSICS (Spring System)
+    // 1. BUTTON PHYSICS
     let targetScale = isHovering ? 1.05 : 1.0;
-    let tension = 0.2; // Stiffness
-    let damping = 0.6; // Bounciness
-    
+    let tension = 0.2; 
+    let damping = 0.6; 
     let force = (targetScale - btnScale) * tension;
     btnVelocity += force;
     btnVelocity *= damping;
     btnScale += btnVelocity;
-
-    // Safety check to prevent disappearance
-    if (isNaN(btnScale) || btnScale < 0.1) { btnScale = 1; btnVelocity = 0; }
-
+    
+    // Safety
+    if(isNaN(btnScale)) btnScale = 1;
     btnEl.style.transform = `rotateX(${btnTiltX}deg) rotateY(${btnTiltY}deg) scale(${btnScale})`;
 
     // 2. INCOME
@@ -329,9 +332,11 @@ function gameLoop(currentTime) {
         let bob = Math.sin(b.time * b.frequency) * b.amplitude;
         let rot = Math.sin(b.time * 0.05 + b.rotationOffset) * 15;
 
+        // Apply transform via JS
         b.el.style.transform = `translate(${b.x}px, ${bob}px) rotate(${rot}deg)`;
 
-        if(b.x > window.innerWidth + 150) {
+        // Despawn if off screen
+        if(b.x > window.innerWidth + 200) {
             b.el.remove();
             return false;
         }

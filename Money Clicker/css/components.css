@@ -59,17 +59,33 @@ body.mania-mode .big-button::before {
 
 /* --- GOLDEN BILL (UPDATED) --- */
 .golden-bill {
-    position: absolute; width: 120px; height: 70px; 
+    position: absolute; 
+    width: 120px; 
+    height: 70px; 
     background: linear-gradient(135deg, rgba(255,215,0,0.95) 0%, rgba(255,255,255,0.95) 50%, rgba(255,215,0,0.95) 100%);
-    border: 2px solid rgba(255,255,255,0.9); border-radius: 12px; 
+    border: 2px solid rgba(255,255,255,0.9); 
+    border-radius: 12px; 
     box-shadow: 0 0 50px var(--gold), inset 0 0 20px rgba(255,255,255,0.5);
     backdrop-filter: blur(5px);
-    cursor: pointer; pointer-events: auto;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 900; color: #4a3b00; font-size: 28px;
-    z-index: 100;
-    /* Removed transition so JS can move it smoothly */
+    
+    /* INTERACTION */
+    cursor: crosshair; /* Distinct cursor */
+    pointer-events: auto; /* MUST BE AUTO */
+    z-index: 200; /* Above everything */
+    
+    /* LAYOUT */
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-weight: 900; 
+    color: #4a3b00; 
+    font-size: 28px;
+    
+    /* NO TRANSITION: JS handles movement */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
+
 .golden-bill:hover { filter: brightness(1.2); }
 .golden-bill:active { transform: scale(0.95); }
 
