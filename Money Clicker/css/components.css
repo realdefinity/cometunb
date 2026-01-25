@@ -1,5 +1,5 @@
 /* =========================================
-   1. THE OBSIDIAN ORB (Main Button)
+   1. THE OBSIDIAN ORB (REMASTERED)
    ========================================= */
 .big-button-container {
     perspective: 1200px;
@@ -10,283 +10,234 @@
 }
 
 .big-button {
-    /* Responsive Sizing */
+    /* Fluid Sizing */
     width: 38vmin; height: 38vmin;
     min-width: 260px; min-height: 260px;
-    max-width: 420px; max-height: 420px;
+    max-width: 440px; max-height: 440px;
     
     border-radius: 50%;
     
-    /* MATERIAL: Hyper-Real Obsidian */
-    background: radial-gradient(circle at 30% 30%, #333 0%, #000 55%, #000 100%);
+    /* MATERIAL: Deepest Black with subtle radial light */
+    background: radial-gradient(circle at 35% 35%, #2a2a2a 0%, #080808 60%, #000 100%);
     
-    /* LIGHTING STACK: Rim light, ambient occlusion, and deep shadow */
+    /* PHYSICAL LIGHTING: 4-Layer Shadow Stack */
     box-shadow: 
-        0 40px 100px rgba(0,0,0,0.9),           /* Ground shadow */
-        inset 0 20px 40px rgba(255,255,255,0.15), /* Top gloss */
-        inset 0 -20px 60px rgba(0,0,0,1.0),     /* Bottom occlusion */
-        0 0 0 1px rgba(255,255,255,0.08);       /* Physical rim */
+        0 30px 60px rgba(0,0,0,0.8),          /* Deep Ground Shadow */
+        inset 0 25px 40px rgba(255,255,255,0.1), /* Upper Gloss */
+        inset 0 -25px 50px rgba(0,0,0,1.0),   /* Lower Occlusion */
+        0 0 0 1px rgba(255,255,255,0.08);     /* Physical Rim */
         
     cursor: pointer; position: relative;
     display: flex; align-items: center; justify-content: center;
     
-    /* Performance optimizations */
-    transition: transform 0.06s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s;
+    /* ANIMATION: Spring Physics Curve */
+    transition: 
+        transform 0.08s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+        
     transform-style: preserve-3d;
     will-change: transform;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* The Symbol ($) */
+/* The Symbol */
 .big-button::before { 
     content: '$'; 
     font-family: 'Outfit', sans-serif; 
     font-weight: 800; font-size: 14vmin; 
-    color: rgba(255,255,255,0.1); 
+    color: rgba(255,255,255,0.08); 
     text-shadow: 0 4px 10px rgba(0,0,0,0.8);
-    transition: all 0.2s;
-    transform: translateZ(20px); /* Parallax depth */
+    transition: color 0.15s;
+    transform: translateZ(20px); /* Parallax pop */
     pointer-events: none;
 }
 
-/* Glass Spinner Ring */
+/* The Ring */
 .big-button::after {
-    content: ''; position: absolute; inset: -1px;
+    content: ''; position: absolute; inset: -2px;
     border-radius: 50%;
-    border: 1px solid transparent;
-    border-top-color: rgba(255,255,255,0.15);
-    border-left-color: rgba(255,255,255,0.05);
-    animation: spin-slow 12s linear infinite;
+    border: 2px solid transparent;
+    border-top-color: rgba(255,255,255,0.1);
+    border-left-color: rgba(255,255,255,0.03);
+    animation: spin-slow 15s linear infinite;
     pointer-events: none;
 }
 @keyframes spin-slow { to { transform: rotate(360deg); } }
 
-/* HOVER STATE */
+/* HOVER & ACTIVE */
 .big-button:hover { 
     transform: scale(1.02);
-    border-color: rgba(255,255,255,0.2); 
+    border-color: rgba(255,255,255,0.15); 
     box-shadow: 
-        0 60px 120px rgba(0,0,0,0.8), 
-        inset 0 20px 50px rgba(255,255,255,0.2),
-        0 0 0 2px rgba(255,255,255,0.1); /* Outer glow */
+        0 50px 100px rgba(0,0,0,0.7), 
+        inset 0 30px 60px rgba(255,255,255,0.15),
+        0 0 0 3px rgba(255,255,255,0.03);
 }
 .big-button:hover::before { 
     color: var(--accent); 
     text-shadow: 0 0 50px var(--accent-glow); 
 }
-.big-button:active { transform: scale(0.97); box-shadow: 0 20px 40px rgba(0,0,0,0.9), inset 0 10px 20px rgba(0,0,0,0.8); }
-
-/* MANIA MODE OVERRIDE */
-body.mania-mode .big-button {
-    border-color: var(--purple);
-    box-shadow: 0 0 80px var(--purple-glow), inset 0 0 40px rgba(217, 70, 239, 0.2);
-    animation: mania-pulse 0.4s infinite alternate ease-in-out;
+.big-button:active { 
+    transform: scale(0.96); 
+    box-shadow: 
+        0 15px 30px rgba(0,0,0,0.9), 
+        inset 0 10px 20px rgba(0,0,0,0.9); 
 }
-@keyframes mania-pulse { from { transform: scale(1); } to { transform: scale(1.03); } }
 
 
 /* =========================================
-   2. GOLDEN BILL (Fixed Flight)
+   2. HOLOGRAPHIC CHIP (Golden Bill Replacement)
    ========================================= */
 .golden-bill {
     position: absolute; 
-    width: 120px; height: 70px;
-    background: linear-gradient(135deg, #ffd700 0%, #fff 50%, #b8860b 100%);
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    /* Holographic texture */
+    background: conic-gradient(from 180deg at 50% 50%, #FFD700 0deg, #FFF 60deg, #FFD700 120deg, #B8860B 240deg, #FFD700 360deg);
     border: 2px solid #fff; 
-    border-radius: 6px;
+    box-shadow: 0 0 40px var(--gold-glow), 0 0 10px #fff;
     
-    /* Lighting */
-    box-shadow: 
-        0 0 30px var(--gold-glow), 
-        0 15px 30px rgba(0,0,0,0.5);
-        
     cursor: pointer; pointer-events: auto;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 900; color: #5c4000; font-size: 28px;
+    font-weight: 900; color: #5c4000; font-size: 14px;
     z-index: 9999;
     
-    /* ANIMATION FIX: Actually moves across screen now */
     left: -150px; /* Start off-screen */
-    animation: 
-        fly-across 12s linear forwards, 
-        wobble 2s ease-in-out infinite;
+    animation: fly-across 10s linear forwards, spin-chip 3s linear infinite;
 }
-.golden-bill::after { content: '$$$'; }
-.golden-bill:hover { transform: scale(1.1) rotate(-5deg); filter: brightness(1.2); }
-.golden-bill:active { transform: scale(0.9); }
+.golden-bill::after { content: '$$$'; font-size: 20px; animation: counter-spin 3s linear infinite; }
 
-/* The Flight Path */
-@keyframes fly-across {
-    0% { left: -150px; }
-    100% { left: 100vw; }
-}
-/* The Bobbing Effect */
-@keyframes wobble { 
-    0%, 100% { transform: rotate(0deg) translateY(0); } 
-    25% { transform: rotate(3deg) translateY(-10px); } 
-    75% { transform: rotate(-3deg) translateY(10px); } 
-}
+/* Flight Path */
+@keyframes fly-across { 0% { left: -150px; top: 20%; } 50% { top: 80%; } 100% { left: 110vw; top: 40%; } }
+@keyframes spin-chip { to { transform: rotate(360deg); } }
+@keyframes counter-spin { to { transform: rotate(-360deg); } }
 
 
 /* =========================================
-   3. UPGRADE CARDS (Sleek UI)
+   3. UPGRADE CARDS (Glass Tech)
    ========================================= */
 .upgrade {
-    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-    border: 1px solid rgba(255,255,255,0.05);
-    padding: 18px 22px; 
-    margin-bottom: 12px;
-    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.0) 100%);
+    border: 1px solid rgba(255,255,255,0.04);
+    padding: 16px 20px; 
+    margin-bottom: 10px;
+    border-radius: 14px;
     cursor: pointer;
     display: flex; justify-content: space-between; align-items: center;
-    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative; overflow: hidden;
 }
 
-/* Interactivity */
 .upgrade:hover { 
-    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
-    transform: translateY(-2px); 
-    border-color: rgba(255,255,255,0.15); 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+    transform: translateX(6px); 
+    border-color: rgba(255,255,255,0.1); 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
 }
 
-/* Logic States */
-.upgrade.locked { opacity: 0.3; filter: grayscale(1); pointer-events: none; }
+.upgrade.locked { opacity: 0.25; filter: grayscale(1); pointer-events: none; }
 
 .upgrade.affordable { 
-    border-left: 3px solid var(--accent); 
-    background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%);
+    border-left: 2px solid var(--accent); 
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
 }
 .upgrade.affordable-max { 
-    border-left: 3px solid var(--gold); 
-    background: linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0%, transparent 100%);
+    border-left: 2px solid var(--gold); 
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
 }
 
-/* Typography */
-.upg-info h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; color: #fff; letter-spacing: 0.5px; }
-.upg-info p { font-size: 0.75rem; color: var(--text-dim); display: flex; gap: 8px; font-family: 'JetBrains Mono', monospace; }
+.upg-info h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 3px; color: #fff; letter-spacing: 0.5px; }
+.upg-info p { font-size: 0.7rem; color: var(--text-dim); display: flex; gap: 8px; font-family: 'JetBrains Mono', monospace; }
 .rate-boost { color: var(--accent); font-weight: 700; }
 
-.upg-cost { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.cost-text { font-size: 0.85rem; font-weight: 700; color: #ccc; font-family: 'JetBrains Mono', monospace; }
-
+.upg-cost { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.cost-text { font-size: 0.8rem; font-weight: 700; color: #ccc; font-family: 'JetBrains Mono', monospace; }
 .count-badge { 
     background: #000; border: 1px solid rgba(255,255,255,0.15); 
-    padding: 2px 10px; border-radius: 6px; 
-    font-size: 0.75rem; font-weight: 700; color: #fff; 
-    min-width: 34px; text-align: center; 
+    padding: 1px 8px; border-radius: 6px; 
+    font-size: 0.7rem; font-weight: 700; color: #fff; 
+    min-width: 28px; text-align: center; 
 }
 
 
 /* =========================================
-   4. DASHBOARD & STATS
+   4. STATS UI (Crisp)
    ========================================= */
-/* Main Money Display */
 .balance { 
-    font-size: 3.2rem; font-weight: 800; color: #fff; margin-bottom: 24px; 
+    font-size: 3.2rem; font-weight: 900; color: #fff; margin-bottom: 24px; 
     letter-spacing: -1.5px;
-    /* Metallic Gradient Text */
-    background: linear-gradient(180deg, #ffffff 20%, #94a3b8 100%);
+    background: linear-gradient(180deg, #fff 40%, #888 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 30px rgba(255,255,255,0.1));
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.05));
+    transition: transform 0.05s;
 }
+.balance.pulse { transform: scale(1.05); filter: brightness(1.2); }
 
-/* Headers */
 .header-title { 
-    font-size: 0.7rem; color: var(--text-dim); font-weight: 800; 
-    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; 
+    font-size: 0.65rem; color: var(--text-dim); font-weight: 800; 
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; opacity: 0.8;
 }
 
-/* Prestige Box */
-.prestige-container { 
-    background: rgba(255,255,255,0.015); 
-    border: 1px solid var(--glass-border); 
-    padding: 20px; border-radius: 20px; margin-bottom: 20px; 
-}
-.prestige-rank { color: var(--purple); font-weight: 900; font-size: 1rem; margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase;}
-.prestige-sub { font-size: 0.75rem; display: flex; gap: 10px; color: var(--text-dim); align-items: center; }
-.prestige-pill { 
-    background: rgba(217, 70, 239, 0.1); border: 1px solid rgba(217, 70, 239, 0.3);
-    padding: 2px 8px; border-radius: 12px; color: #fff; font-weight: 600; 
-}
-.next-rank-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 12px; overflow: hidden; }
-.next-rank-fill { height: 100%; background: var(--purple); box-shadow: 0 0 20px var(--purple-glow); transition: width 0.5s; }
-
-/* Income Display */
 .rate-display {
-    display: flex; justify-content: space-between; padding: 16px;
-    background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: 16px; margin-bottom: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+    display: flex; justify-content: space-between; padding: 14px;
+    background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 12px; margin-bottom: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
 }
-.rate-display span:last-child { color: var(--accent); font-weight: 700; text-shadow: 0 0 15px var(--accent-glow); }
+.rate-display span:last-child { color: var(--accent); font-weight: 700; }
+
+/* Prestige */
+.prestige-container { 
+    background: rgba(255,255,255,0.015); border: 1px solid var(--glass-border); 
+    padding: 18px; border-radius: 16px; margin-bottom: 20px; 
+}
+.prestige-rank { color: var(--purple); font-weight: 900; font-size: 0.95rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;}
+.prestige-sub { font-size: 0.7rem; display: flex; gap: 10px; color: var(--text-dim); }
+.next-rank-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 12px; overflow: hidden; }
+.next-rank-fill { height: 100%; background: var(--purple); box-shadow: 0 0 15px var(--purple-glow); transition: width 0.5s; }
+
+/* Hype */
+.hype-container { margin-top: auto; }
+.hype-label { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 6px; font-weight: 700; letter-spacing: 1px;}
+.hype-track { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+.hype-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4); width: 0%; box-shadow: 0 0 8px #06b6d4; transition: width 0.1s; }
 
 
 /* =========================================
-   5. UTILS & OVERLAYS
+   5. CONTROLS
    ========================================= */
-/* News Ticker */
-.news-bar {
-    position: absolute; bottom: 30px; 
-    width: 90%; max-width: 600px; height: 40px; 
-    background: rgba(10,10,10,0.7); 
-    border: 1px solid var(--glass-border);
-    border-radius: 50px; 
-    overflow: hidden; display: flex; align-items: center; 
-    backdrop-filter: blur(16px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-    z-index: 50; pointer-events: auto;
+.options-area { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+
+.opt-btn { 
+    background: rgba(255,255,255,0.03); border: 1px solid transparent; 
+    color: var(--text-dim); padding: 12px; border-radius: 10px; 
+    font-weight: 700; font-size: 0.7rem; cursor: pointer; transition: 0.2s; 
+    letter-spacing: 0.5px;
 }
-.news-content {
-    white-space: nowrap; padding-left: 100%;
-    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #999;
-    animation: ticker 30s linear infinite;
-}
-@keyframes ticker { 100% { transform: translateX(-100%); } }
-
-/* Mania Text */
-#mania-text { 
-    font-family: 'JetBrains Mono', monospace; font-size: 1rem; letter-spacing: 4px; 
-    margin-top: 40px; opacity: 0.4; pointer-events: none; z-index: 50;
-}
-
-/* Modals */
-.modal { 
-    display: none; position: fixed; inset: 0; z-index: 9999; 
-    background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); 
-    align-items: center; justify-content: center; 
-    opacity: 0; transition: opacity 0.3s; 
-}
-.modal.open { opacity: 1; }
-
-.modal-content { 
-    background: #050505; border: 1px solid rgba(255,255,255,0.1); 
-    padding: 40px; width: 90%; max-width: 500px; border-radius: 30px; 
-    text-align: center; position: relative;
-    box-shadow: 0 50px 100px rgba(0,0,0,0.9); 
-    transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); 
-}
-.modal.open .modal-content { transform: scale(1); }
-
-.close-modal { position: absolute; top: 25px; right: 25px; font-size: 24px; color: #555; cursor: pointer; transition: 0.2s; }
-.close-modal:hover { color: #fff; }
-
-.prestige-val { font-size: 3.5rem; color: var(--purple); font-weight: 900; margin: 20px 0; text-shadow: 0 0 40px var(--purple-glow); line-height: 1; }
-.save-textarea { width: 100%; height: 120px; background: #000; border: 1px solid #333; color: var(--accent); padding: 14px; border-radius: 12px; margin: 20px 0; resize: none; font-family: monospace; font-size: 0.8rem; }
-
-/* Buttons & Controls */
-.opt-btn { background: rgba(255,255,255,0.04); border: 1px solid transparent; color: var(--text-dim); padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
 .opt-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.1); }
-.prestige-btn { border-color: rgba(217, 70, 239, 0.3); color: #e879f9; background: rgba(217, 70, 239, 0.05); }
-.prestige-btn.ready { background: var(--purple); color: #fff; box-shadow: 0 0 30px var(--purple-glow); border-color: transparent; }
-.prestige-btn.ready:hover { transform: scale(1.02); }
 
-.buy-controls { display: flex; gap: 4px; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 12px; border: 1px solid var(--glass-border); }
-.buy-amt { flex: 1; background: transparent; border: none; color: #666; padding: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; border-radius: 8px; transition: 0.2s; }
+.buy-controls { display: flex; gap: 4px; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 10px; border: 1px solid var(--glass-border); }
+.buy-amt { flex: 1; background: transparent; border: none; color: #666; padding: 6px; font-weight: 700; font-size: 0.7rem; cursor: pointer; border-radius: 6px; transition: 0.2s; }
 .buy-amt:hover { color: #fff; }
 .buy-amt.active { background: rgba(255,255,255,0.15); color: #fff; }
-.buy-amt.active-max { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold-glow); }
+.buy-amt.active-max { background: var(--gold); color: #000; }
 
-.mute-btn { position: fixed; top: 20px; left: 20px; font-size: 20px; color: rgba(255,255,255,0.2); cursor: pointer; z-index: 200; transition: 0.2s; }
-.mute-btn:hover { color: #fff; transform: scale(1.1); }
-.mute-btn.active { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
+.news-bar {
+    position: absolute; bottom: 30px; 
+    width: 90%; max-width: 550px; height: 32px; 
+    background: rgba(10,10,10,0.8); border: 1px solid var(--glass-border);
+    border-radius: 50px; overflow: hidden; display: flex; align-items: center; 
+    backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 50; pointer-events: auto;
+}
+.news-content { white-space: nowrap; padding-left: 100%; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #888; animation: ticker 30s linear infinite; }
+@keyframes ticker { 100% { transform: translateX(-100%); } }
+
+/* Modals */
+.modal { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+.modal.open { opacity: 1; }
+.modal-content { background: #050505; border: 1px solid rgba(255,255,255,0.1); padding: 40px; width: 90%; max-width: 450px; border-radius: 24px; text-align: center; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 50px 100px rgba(0,0,0,0.9); }
+.modal.open .modal-content { transform: scale(1); }
+.close-modal { position: absolute; top: 20px; right: 20px; font-size: 20px; color: #444; cursor: pointer; } .close-modal:hover { color: #fff; }
+.prestige-val { font-size: 3rem; color: var(--purple); font-weight: 900; margin: 15px 0; text-shadow: 0 0 30px var(--purple-glow); line-height: 1; }
+.save-textarea { width: 100%; height: 100px; background: #000; border: 1px solid #333; color: var(--accent); padding: 12px; border-radius: 10px; margin: 20px 0; resize: none; font-family: monospace; font-size: 0.75rem; }
