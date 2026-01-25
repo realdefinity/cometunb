@@ -6,7 +6,6 @@ async function initGame() {
     if(state.mode !== 'gauntlet' && (!s || !t)) return showToast("Please enter both pages");
     if(state.mode === 'gauntlet' && !s) return showToast("Please enter start page");
 
-    // --- GAUNTLET SETUP ---
     if(state.mode === 'gauntlet') {
         showToast("Generating Gauntlet...");
         try {
@@ -24,10 +23,8 @@ async function initGame() {
     }
     state.start = s;
 
-    // Fetch Definition
     fetchTargetDesc(t);
 
-    // Reset Everything
     if(state.timer) clearInterval(state.timer);
     state.clicks = 0;
     state.penalties = 0;
@@ -35,18 +32,33 @@ async function initGame() {
     state.checkpoint = null;
     state.startTime = Date.now();
     state.isPlaying = true;
-    state.sdTime = 30;
+    
+    // --- SUDDEN DEATH CUSTOM TIME LOGIC ---
+    if(state.mode === 'sudden_death') {
+        const customTime = parseInt(document.getElementById('sd-time-in').value) || 30;
+        state.sdTime = customTime;
+        state.sdMaxTime = customTime; // Save for resets if you implement retry later
+    } else {
+        state.sdTime = 30;
+    }
 
-    // UI Reset
     document.getElementById('target-display').textContent = t;
     document.getElementById('click-count').textContent = '0';
-    document.getElementById('timer').textContent = state.mode === 'sudden_death' ? '00:30' : '00:00';
+    
+    // Format timer display immediately
+    if(state.mode === 'sudden_death') {
+        const m = Math.floor(state.sdTime / 60).toString().padStart(2,'0');
+        const s = (state.sdTime % 60).toString().padStart(2,'0');
+        document.getElementById('timer').textContent = `${m}:${s}`;
+    } else {
+        document.getElementById('timer').textContent = '00:00';
+    }
+
     document.getElementById('btn-load-cp').disabled = true;
     document.getElementById('btn-set-cp').disabled = false;
     document.getElementById('timer-box').classList.remove('danger-pulse');
     document.getElementById('gauntlet-bar').classList.toggle('active', state.mode === 'gauntlet');
     
-    // Switch Screens
     document.getElementById('lobby').classList.add('hidden');
     document.getElementById('game-header').classList.add('active');
     document.getElementById('viewport').classList.add('active');
@@ -80,8 +92,13 @@ function setupGauntletUI() {
 function tick() {
     if(state.mode === 'sudden_death') {
         state.sdTime--;
+        
+        // Format MM:SS for Sudden Death
+        const m = Math.floor(state.sdTime / 60).toString().padStart(2,'0');
+        const s = (state.sdTime % 60).toString().padStart(2,'0');
+        
         const box = document.getElementById('timer-box');
-        box.innerHTML = `⏱ 00:${state.sdTime.toString().padStart(2,'0')}`;
+        box.innerHTML = `⏱ ${m}:${s}`; // Fixed format
         
         if(state.sdTime <= 10) box.classList.add('danger-pulse');
         else box.classList.remove('danger-pulse');
@@ -120,10 +137,9 @@ async function loadPage(title, pushToHistory = true) {
 
         if(pushToHistory) state.history.push(realTitle);
 
-        if(state.mode === 'sudden_death') {
-            state.sdTime = 15; 
-            if(state.history.length === 1) state.sdTime = 30; 
-        }
+        // Note: I removed the logic that resets time on page load for Sudden Death
+        // because we are now using a fixed total time limit instead of "per page".
+        // If you want "per page" time logic back, let me know.
 
         setTimeout(() => {
             render(realTitle, html);
@@ -180,7 +196,6 @@ function render(title, html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     
-    // Clean
     ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt', '.portal'].forEach(s => 
         doc.querySelectorAll(s).forEach(e => e.remove())
     );
@@ -204,7 +219,6 @@ function render(title, html) {
         }
     });
 
-    // Lazy load images
     doc.querySelectorAll('img').forEach(img => {
         if(img.src.startsWith('//')) img.src = 'https:' + img.src;
         img.loading = "lazy";
@@ -243,7 +257,6 @@ async function getRand() {
     return d.query.random[0].title;
 }
 
-// --- PLAYER ACTIONS ---
 function askBacktrack() {
     if(state.history.length <= 1) return showToast("Start of history");
     let penalty = state.mode === 'sudden_death' ? 0 : 10;

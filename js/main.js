@@ -9,7 +9,6 @@ window.onload = () => {
     const savedMode = localStorage.getItem('wiki_mode');
     if(savedMode) setMode(savedMode);
 
-    // Target Tooltip Logic
     const targetPill = document.getElementById('target-pill');
     const tooltip = document.getElementById('target-tooltip');
     
@@ -21,7 +20,6 @@ window.onload = () => {
     });
     targetPill.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
 
-    // Global Click Handler for Wiki Links
     document.getElementById('article-content').addEventListener('click', (e) => {
         const link = e.target.closest('a');
         if(link && link.dataset.page) {
@@ -42,11 +40,20 @@ function setMode(m) {
     if(m === 'gauntlet') document.getElementById('m-gnt').classList.add('active');
 
     const grp = document.getElementById('end-input-group');
+    const sdConfig = document.getElementById('sd-config'); // NEW INPUT CONTAINER
+
+    // Toggle Inputs based on mode
     if(m === 'gauntlet') {
         grp.style.opacity = '0.5'; grp.style.pointerEvents = 'none';
         document.getElementById('end-in').value = "Randomly Generated...";
+        sdConfig.style.display = 'none';
+    } else if (m === 'sudden_death') {
+        grp.style.opacity = '1'; grp.style.pointerEvents = 'all';
+        document.getElementById('end-in').value = "";
+        sdConfig.style.display = 'block'; // SHOW TIME LIMIT INPUT
     } else {
         grp.style.opacity = '1'; grp.style.pointerEvents = 'all';
         document.getElementById('end-in').value = "";
+        sdConfig.style.display = 'none';
     }
 }

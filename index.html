@@ -50,8 +50,13 @@
 
             <div class="mode-select">
                 <div class="mode-btn active" onclick="setMode('standard')" id="m-std">Standard<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">Speed Run</span></div>
-                <div class="mode-btn" onclick="setMode('sudden_death')" id="m-sd">Sudden Death<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">30s Timer</span></div>
+                <div class="mode-btn" onclick="setMode('sudden_death')" id="m-sd">Sudden Death<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">Timer</span></div>
                 <div class="mode-btn" onclick="setMode('gauntlet')" id="m-gnt">Gauntlet<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">3 Targets</span></div>
+            </div>
+
+            <div class="input-group" id="sd-config" style="display:none; animation: fadeIn 0.5s;">
+                <span class="input-label">Time Limit (Seconds)</span>
+                <input type="number" id="sd-time-in" class="lobby-input" value="30" min="10" max="300">
             </div>
 
             <div class="input-group">
