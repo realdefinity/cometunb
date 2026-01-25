@@ -258,80 +258,65 @@ function winGame() {
 }
 
 async function randomize() {
-    const btn = document.querySelector('.rand-btn');
+    // Updated selector to match new design
+    const btn = document.querySelector('.btn-text'); 
     const startIn = document.getElementById('start-in');
     const endIn = document.getElementById('end-in');
     const diff = document.getElementById('diff-value').value;
-
-    // Visual Feedback
-    btn.disabled = true;
-    btn.innerHTML = `<div class="spin" style="width:14px; height:14px; border-width:2px; display:inline-block;"></div> Thinking...`;
     
-    // Placeholder animation
-    startIn.value = "Scanning Archive...";
-    if(state.mode !== 'gauntlet') endIn.value = "Calculating complexity...";
+    // Visual Feedback
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span>🔄</span> Finding...`;
+    
+    startIn.value = "Scanning...";
+    if(state.mode !== 'gauntlet') endIn.value = "Calculating...";
 
     try {
-        // 1. Fetch a BATCH of random pages (20 items) with their metadata (length)
-        // We use generator=random to get pages + prop=info to get their size (bytes)
         const url = `${API}?action=query&generator=random&grnnamespace=0&grnlimit=20&prop=info&format=json&origin=*`;
         const res = await fetch(url);
         const data = await res.json();
         
         if (!data.query || !data.query.pages) throw new Error("No data");
 
-        // 2. Convert to Array and Filter
         let pages = Object.values(data.query.pages);
-        
-        // Filter out tiny stubs (under 2000 bytes) to ensure quality
         pages = pages.filter(p => p.length > 2000);
-
-        // 3. Sort by Length (Proxy for "Difficulty/Connectivity")
-        // Long pages = More links = Easier
-        // Short pages = Fewer links = Harder
-        pages.sort((a, b) => a.length - b.length); // Ascending (Smallest first)
+        pages.sort((a, b) => a.length - b.length); 
 
         let sPage, tPage;
 
-        // 4. Select based on Difficulty
         if (diff === 'easy') {
-            // Pick from the top 5 Largest pages (End of array)
             const pool = pages.slice(-5);
             sPage = pool[Math.floor(Math.random() * pool.length)].title;
-            // Get another batch or pick distinct
             tPage = pages.slice(-6, -1)[0].title; 
         } else if (diff === 'hard') {
-            // Pick from the bottom 5 Smallest pages (Start of array)
             const pool = pages.slice(0, 5);
             sPage = pool[Math.floor(Math.random() * pool.length)].title;
             tPage = pages.slice(1, 6)[0].title;
         } else {
-            // Medium: Pick from the middle
             const mid = Math.floor(pages.length / 2);
             const pool = pages.slice(mid - 3, mid + 3);
             sPage = pool[Math.floor(Math.random() * pool.length)].title;
             tPage = pool[Math.floor(Math.random() * pool.length) === 0 ? 1 : 0].title;
         }
 
-        // Fallback if filtering killed too many pages
         if(!sPage) sPage = pages[pages.length-1].title;
         if(!tPage) tPage = pages[0].title;
 
-        // 5. Apply Fluid Animation
+        // Apply Matrix Animation
         animateText('start-in', sPage);
         if(state.mode !== 'gauntlet') animateText('end-in', tPage);
 
     } catch(e) {
         console.error(e);
         showToast("Randomizer failed. Retrying...");
-        // Fallback to simple random if batch fails
         const [s, t] = await Promise.all([getRandSimple(), getRandSimple()]);
         document.getElementById('start-in').value = s;
         if(state.mode !== 'gauntlet') document.getElementById('end-in').value = t;
     }
 
     btn.disabled = false;
-    btn.innerHTML = "🎲 Randomize";
+    btn.innerHTML = originalText;
 }
 
 async function getRandSimple() {
