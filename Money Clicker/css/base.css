@@ -1,20 +1,18 @@
 :root {
-    --bg: #000000;
+    --bg: #050505;
     
-    /* ULTRA DARK GLASS */
-    --glass-surface: rgba(15, 15, 20, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.06);
-    --glass-blur: 50px;
+    /* GLASS THEME */
+    --glass-surface: rgba(20, 20, 25, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: 40px;
 
-    /* NEON PALETTE */
-    --accent: #00ffa3;
-    --accent-glow: rgba(0, 255, 163, 0.4);
-    
-    --purple: #d946ef;
-    --gold: #ffd700;
-    
+    /* COLORS */
     --text-main: #ffffff;
-    --text-muted: #888;
+    --text-dim: #94a3b8;
+    --accent: #10b981; /* Emerald */
+    --accent-glow: rgba(16, 185, 129, 0.5);
+    --purple: #d946ef;
+    --gold: #fbbf24;
 }
 
 * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -25,32 +23,26 @@ body {
     color: var(--text-main);
     font-family: 'Outfit', sans-serif;
     
-    /* LOCK SCREEN */
+    /* FIXED LAYOUT LOCK */
     position: fixed; inset: 0;
     overflow: hidden;
+    
+    /* Prevents numbers from wiggling when they change */
+    font-variant-numeric: tabular-nums;
 }
 
-/* --- BACKGROUND FX --- */
-.bg-blobs {
-    position: absolute; inset: 0; z-index: 0; pointer-events: none;
-    background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
-}
+/* BACKGROUND */
+.bg-blobs { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(circle, #111 0%, #000 100%); }
+.blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4; animation: float 20s infinite alternate; }
+.blob-1 { width: 60vh; height: 60vh; background: #064e3b; top: -10%; left: -10%; }
+.blob-2 { width: 50vh; height: 50vh; background: #312e81; bottom: -10%; right: -10%; }
+@keyframes float { from { transform: translate(0,0); } to { transform: translate(40px, 20px); } }
 
-.blob {
-    position: absolute; border-radius: 50%;
-    filter: blur(120px); opacity: 0.3;
-    animation: float 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
-}
-.blob-1 { width: 70vw; height: 70vw; background: #0f172a; top: -20%; left: -20%; }
-.blob-2 { width: 60vw; height: 60vw; background: #022c22; bottom: -20%; right: -20%; }
-
-@keyframes float { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, 30px); } }
-
-/* --- THE FIX: TOP LAYER CANVAS --- */
+/* --- THE ANIMATION FIX --- */
+/* Puts the canvas on top of the UI, but invisible to mouse clicks */
 #game-canvas { 
     position: absolute; inset: 0; 
-    z-index: 100; /* ON TOP OF EVERYTHING */
-    pointer-events: none; /* LET CLICKS PASS THROUGH */
+    z-index: 100; 
+    pointer-events: none; 
 }
-
 #event-layer { position: absolute; inset: 0; z-index: 101; pointer-events: none; }
