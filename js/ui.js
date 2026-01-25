@@ -322,3 +322,93 @@ function renderGalaxy(history) {
 
     draw();
 }
+
+// --- STATS SYSTEM ---
+
+function getStats() {
+    const defaultStats = {
+        gamesPlayed: 0,
+        wins: 0,
+        currentStreak: 0,
+        bestStreak: 0,
+        totalClicks: 0,
+        totalTimeSeconds: 0,
+        fastestRun: null, // seconds
+        themeUsage: {}
+    };
+    return JSON.parse(localStorage.getItem('wiki_stats')) || defaultStats;
+}
+
+function saveGameStats(isWin, timeInSeconds, clicks) {
+    const s = getStats();
+    s.gamesPlayed++;
+    s.totalClicks += clicks;
+    s.totalTimeSeconds += timeInSeconds;
+
+    // Theme Tracking
+    const currentTheme = localStorage.getItem('wiki_theme') || 'Classic';
+    s.themeUsage[currentTheme] = (s.themeUsage[currentTheme] || 0) + 1;
+
+    if (isWin) {
+        s.wins++;
+        s.currentStreak++;
+        if (s.currentStreak > s.bestStreak) s.bestStreak = s.currentStreak;
+        
+        // Check Fastest Run (Only updates if strictly faster)
+        if (s.fastestRun === null || timeInSeconds < s.fastestRun) {
+            s.fastestRun = timeInSeconds;
+        }
+    } else {
+        s.currentStreak = 0;
+    }
+
+    localStorage.setItem('wiki_stats', JSON.stringify(s));
+}
+
+function showStats() {
+    const s = getStats();
+    const screen = document.getElementById('stats-screen');
+    
+    // Calculate Derived Stats
+    const winRate = s.gamesPlayed > 0 ? Math.floor((s.wins / s.gamesPlayed) * 100) : 0;
+    const avgClicks = s.wins > 0 ? (s.totalClicks / s.wins).toFixed(1) : 0;
+    
+    // Format Time (Seconds -> H:M)
+    const hours = Math.floor(s.totalTimeSeconds / 3600);
+    const mins = Math.floor((s.totalTimeSeconds % 3600) / 60);
+    const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+    // Format Fastest Run
+    let fastStr = "--:--";
+    if (s.fastestRun !== null) {
+        const fm = Math.floor(s.fastestRun / 60).toString().padStart(2,'0');
+        const fs = (s.fastestRun % 60).toString().padStart(2,'0');
+        fastStr = `${fm}:${fs}`;
+    }
+
+    // Find Fav Theme
+    let favTheme = "None";
+    let maxCount = 0;
+    for (const [theme, count] of Object.entries(s.themeUsage)) {
+        if (count > maxCount) {
+            maxCount = count;
+            favTheme = theme;
+        }
+    }
+
+    // Update UI
+    document.getElementById('s-wins').textContent = s.wins;
+    document.getElementById('s-rate').textContent = winRate + "%";
+    document.getElementById('s-streak').textContent = s.currentStreak;
+    document.getElementById('s-fast').textContent = fastStr;
+    document.getElementById('s-avg-clicks').textContent = avgClicks;
+    document.getElementById('s-total-time').textContent = timeStr;
+    document.getElementById('s-total-links').textContent = s.totalClicks.toLocaleString();
+    document.getElementById('s-fav-theme').textContent = favTheme;
+
+    screen.classList.remove('hidden');
+}
+
+function closeStats() {
+    document.getElementById('stats-screen').classList.add('hidden');
+}

@@ -77,8 +77,11 @@
                 <div class="suggestions" id="sugg-end"></div>
             </div>
 
-            <button class="btn-primary" onclick="initGame()">Start Race</button>
-            <button class="btn-primary" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text); margin-top:12px; box-shadow:none;" onclick="randomize()">🎲 Randomize</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button class="btn-primary" onclick="initGame()" style="flex: 2; margin: 0;">Start Race</button>
+                <button class="btn-primary" onclick="showStats()" style="flex: 1; margin: 0; background: rgba(255,255,255,0.1); box-shadow:none;">📊</button>
+            </div>
+            <button class="btn-primary" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text); margin-top:0px; box-shadow:none;" onclick="randomize()">🎲 Randomize</button>
         </div>
     </div>
 
@@ -87,22 +90,67 @@
         <div class="card" style="z-index:201;">
             <h1 style="color:var(--success); font-size:3rem; margin-bottom:10px;">Victory!</h1>
             <p class="subtitle" id="win-sub">Destination Reached</p>
+
+            <div id="galaxy-view">
+                <canvas id="galaxy-canvas"></canvas>
+                <div id="galaxy-overlay">Hover to view path</div>
+            </div>
+
             <div style="font-size:4.5rem; font-weight:800; margin-bottom:15px; font-family:var(--font-ui); color:var(--text); text-shadow:0 10px 30px rgba(0,0,0,0.3);" id="win-time">0:00</div>
             <div style="display:flex; justify-content:center; gap:30px; margin-bottom:40px; opacity:0.9; font-size:1.1rem;">
                 <span>Clicks: <b id="win-clicks" style="color:var(--accent);">0</b></span>
                 <span>Penalties: <b id="win-penalties" style="color:var(--danger);">0s</b></span>
             </div>
-
-<div id="galaxy-view">
-    <canvas id="galaxy-canvas"></canvas>
-    <div id="galaxy-overlay">Hover to view path</div>
-</div>
-
             <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; margin-bottom:25px; text-align:left; max-height:150px; overflow-y:auto; font-size:0.9rem; border:1px solid rgba(255,255,255,0.05);">
                 <strong style="color:var(--accent); display:block; margin-bottom:5px; font-size:0.75rem; text-transform:uppercase;">Traversed Path</strong> 
                 <span id="win-path" style="opacity:0.8; line-height:1.6;"></span>
             </div>
             <button class="btn-primary" onclick="returnToLobby()">Back to Lobby</button>
+        </div>
+    </div>
+
+    <div class="screen hidden" id="stats-screen">
+        <div class="card" style="max-width: 600px;">
+            <h2 class="title" style="font-size: 2.5rem; margin-bottom: 20px;">Flow Profile</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="s-label">Games Won</div>
+                    <div class="s-val" id="s-wins">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="s-label">Win Rate</div>
+                    <div class="s-val" id="s-rate">0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="s-label">Current Streak</div>
+                    <div class="s-val" id="s-streak">0</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="s-label">Fastest Run</div>
+                    <div class="s-val highlight" id="s-fast">--:--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="s-label">Avg. Clicks</div>
+                    <div class="s-val" id="s-avg-clicks">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="s-label">Total Time</div>
+                    <div class="s-val" id="s-total-time">0h</div>
+                </div>
+
+                <div class="stat-card wide">
+                    <div class="s-label">Total Links Surfed</div>
+                    <div class="s-val" id="s-total-links" style="font-size: 2rem; color: var(--accent);">0</div>
+                </div>
+                <div class="stat-card wide">
+                    <div class="s-label">Favorite Theme</div>
+                    <div class="s-val" id="s-fav-theme" style="font-size: 1.2rem; text-transform: uppercase;">Classic</div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="closeStats()" style="margin-top: 30px;">Close</button>
         </div>
     </div>
 

@@ -240,13 +240,18 @@ function winGame() {
     const path = state.history.join(' → ');
     document.getElementById('win-path').textContent = path;
     
+    // --- NEW: SAVE STATS ---
+    // Calculate total seconds for the record
+    const now = Date.now();
+    const duration = Math.floor((now - state.startTime) / 1000) + state.penalties;
+    saveGameStats(true, duration, state.clicks);
+    // -----------------------
+
     if(state.mode === 'gauntlet') document.getElementById('win-sub').textContent = "Gauntlet Completed";
     else document.getElementById('win-sub').textContent = "Destination Reached";
 
     document.getElementById('win-screen').classList.remove('hidden');
     
-    // --- TRIGGER GALAXY ---
-    // Slight delay to allow the modal to appear before calculating canvas size
     setTimeout(() => {
         renderGalaxy(state.history);
     }, 100);
