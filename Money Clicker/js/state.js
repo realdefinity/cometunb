@@ -77,3 +77,5 @@ function loadLocal() {
 }
 
 async function checkSecureCode(input) { return false; }
+
+window.game_heartbeat = true;
