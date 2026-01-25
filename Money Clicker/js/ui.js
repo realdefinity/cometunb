@@ -1,6 +1,6 @@
 const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
 
-// --- 0. STYLE INJECTION (Toasts & Tooltips) ---
+// --- 0. STYLE & UI INJECTION (Toasts, Tooltips, & Analytics) ---
 (function injectUIStyles() {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -33,6 +33,17 @@ const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "N
         #ui-tooltip strong { display: block; color: #fff; margin-bottom: 4px; font-family: 'Outfit', sans-serif; font-size: 0.8rem; }
         #ui-tooltip .val { color: #eab308; font-weight: 700; }
         #ui-tooltip .bad { color: #ef4444; }
+
+        /* Analytics Specific Styles */
+        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-top: 20px; }
+        .analytics-card { background: rgba(255,255,255,0.03); border: 1px solid #222; border-radius: 12px; padding: 15px; }
+        .analytics-card h5 { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 10px; }
+        .graph-container { height: 100px; width: 100%; position: relative; }
+        .breakdown-row { display: flex; justify-content: space-between; font-size: 0.65rem; margin-bottom: 4px; font-family: 'JetBrains Mono'; }
+        .breakdown-bar-bg { height: 4px; background: #222; border-radius: 2px; width: 100%; margin-top: 2px; overflow: hidden; }
+        .breakdown-bar-fill { height: 100%; background: var(--green); }
+        .stat-big { font-size: 1.2rem; font-weight: 800; color: #fff; font-family: 'JetBrains Mono'; }
+        .stat-sub { font-size: 0.6rem; color: #555; }
     `;
     document.head.appendChild(style);
     
@@ -44,6 +55,48 @@ const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "N
     const tooltip = document.createElement('div');
     tooltip.id = 'ui-tooltip';
     document.body.appendChild(tooltip);
+
+    // Create Analytics Modal Structure if it doesn't exist
+    if (!document.getElementById('analytics-modal')) {
+        const modal = document.createElement('div');
+        modal.id = 'analytics-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="close-modal" onclick="closeModal('analytics-modal')">&times;</div>
+                <h2 style="font-weight:900; letter-spacing:1px; margin-bottom:5px;">MARKET ANALYTICS</h2>
+                <p style="color:#666; font-size:0.75rem;">Real-time performance metrics and portfolio distribution.</p>
+                
+                <div class="analytics-grid">
+                    <div class="analytics-card" style="grid-column: span 2;">
+                        <h5>Income Velocity (60s)</h5>
+                        <div class="graph-container">
+                            <canvas id="income-graph" style="width:100%; height:100%;"></canvas>
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <h5>Asset Distribution</h5>
+                        <div id="asset-breakdown-list"></div>
+                    </div>
+                    <div class="analytics-card">
+                        <h5>Network Statistics</h5>
+                        <div id="network-stats">
+                            <div style="margin-bottom:10px;">
+                                <div class="stat-big" id="stat-session-earned">$0</div>
+                                <div class="stat-sub">SESSION EARNINGS</div>
+                            </div>
+                            <div>
+                                <div class="stat-big" id="stat-cps">0.0</div>
+                                <div class="stat-sub">CLICKS PER SECOND</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="opt-btn" onclick="closeModal('analytics-modal')" style="margin-top:20px;">CLOSE DATA STREAM</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
 })();
 
 // --- 1. FORMATTER ---
@@ -58,37 +111,66 @@ function formatNumber(num) {
     return num.toExponential(2).replace('+', '');
 }
 
-// --- 2. NEW UI UTILITIES ---
+// --- 2. ANALYTICS DATA TRACKING ---
+const analytics = {
+    history: [], // Income history for graph
+    maxHistory: 60,
+    sessionStartMoney: 0,
+    clickHistory: [],
+    lastGraphUpdate: 0,
 
-// Toast System
+    update(currentRate) {
+        const now = Date.now();
+        
+        // Update session earnings
+        if (this.sessionStartMoney === 0) this.sessionStartMoney = game.money;
+        
+        // Track income history every second
+        if (now - this.lastGraphUpdate > 1000) {
+            this.history.push(currentRate);
+            if (this.history.length > this.maxHistory) this.history.shift();
+            this.lastGraphUpdate = now;
+        }
+
+        // Clean click history (older than 1s)
+        this.clickHistory = this.clickHistory.filter(t => now - t < 1000);
+    },
+
+    getCPS() {
+        return this.clickHistory.length;
+    }
+};
+
+// Override clickAction to track CPS
+const originalClickAction = window.clickAction;
+window.clickAction = function(e) {
+    analytics.clickHistory.push(Date.now());
+    if (originalClickAction) originalClickAction(e);
+};
+
+// --- 3. NEW UI UTILITIES ---
+
 function showToast(msg, type = 'info') {
     const cont = document.getElementById('toast-container');
     const el = document.createElement('div');
     el.className = `toast ${type}`;
     el.innerHTML = type === 'success' ? `<span>✓</span> ${msg}` : (type === 'error' ? `<span>✕</span> ${msg}` : msg);
-    
     cont.appendChild(el);
-    
-    // Remove after 2.5s
     setTimeout(() => {
         el.style.animation = 'toast-out 0.3s forwards';
         setTimeout(() => el.remove(), 300);
     }, 2500);
 }
 
-// Dynamic News System
 function pushNews(text) {
     const el = document.getElementById('news-content');
     if (!el) return;
-    
-    // Force reset CSS animation to play immediately
     el.style.animation = 'none';
-    el.offsetHeight; /* trigger reflow */
+    el.offsetHeight;
     el.innerText = text;
     el.style.animation = 'ticker 25s linear infinite';
 }
 
-// Tooltip Logic
 const tooltip = document.getElementById('ui-tooltip');
 function showTooltip(e, id) {
     const u = upgrades[id];
@@ -97,8 +179,6 @@ function showTooltip(e, id) {
     if(buyMode === 'MAX' && amt === 0) amt = 1;
     let cost = getCost(id, amt);
     
-    // Calculate ROI (Time to break even)
-    // Rate = Base * Count * InfluenceMult * Mania
     let influenceMult = 1 + (game.influence * 0.10);
     let rate = u.baseRate * amt * influenceMult;
     let roiSeconds = rate > 0 ? cost / rate : 0;
@@ -118,24 +198,108 @@ function showTooltip(e, id) {
     moveTooltip(e);
 }
 
-function hideTooltip() {
-    tooltip.style.opacity = '0';
-}
+function hideTooltip() { tooltip.style.opacity = '0'; }
 
 function moveTooltip(e) {
-    // Keep inside screen
     let x = e.clientX + 15;
     let y = e.clientY + 15;
     if (x + 200 > window.innerWidth) x = e.clientX - 215;
     if (y + 100 > window.innerHeight) y = e.clientY - 100;
-    
     tooltip.style.left = x + 'px';
     tooltip.style.top = y + 'px';
 }
 
+// Analytics Visuals
+function drawIncomeGraph() {
+    const canvas = document.getElementById('income-graph');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
 
-// --- 3. MAIN UI LOOP ---
+    const data = analytics.history;
+    if (data.length < 2) return;
+
+    const max = Math.max(...data) * 1.2 || 10;
+    const stepX = rect.width / (analytics.maxHistory - 1);
+    
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    
+    // Draw Line
+    ctx.beginPath();
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    
+    data.forEach((val, i) => {
+        const x = i * stepX;
+        const y = rect.height - (val / max) * rect.height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Draw Fill
+    ctx.lineTo((data.length - 1) * stepX, rect.height);
+    ctx.lineTo(0, rect.height);
+    const grad = ctx.createLinearGradient(0, 0, 0, rect.height);
+    grad.addColorStop(0, 'rgba(34, 197, 94, 0.2)');
+    grad.addColorStop(1, 'rgba(34, 197, 94, 0)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+}
+
+function updateAnalyticsUI(rate) {
+    if (document.getElementById('analytics-modal').style.display !== 'flex') return;
+
+    // Session Earned
+    document.getElementById('stat-session-earned').innerText = `$${formatNumber(game.money - analytics.sessionStartMoney)}`;
+    document.getElementById('stat-cps').innerText = analytics.getCPS().toFixed(1);
+
+    // Breakdown
+    const list = document.getElementById('asset-breakdown-list');
+    let html = '';
+    const totalRate = rate || 1;
+    
+    // Get top 5 income sources
+    const sources = upgrades.map((u, i) => ({
+        name: u.name,
+        income: game.counts[i] * u.baseRate * (1 + (game.influence * 0.10)) * (maniaMode ? 2 : 1)
+    })).sort((a, b) => b.income - a.income).slice(0, 5);
+
+    sources.forEach(s => {
+        if (s.income <= 0) return;
+        const pct = (s.income / totalRate) * 100;
+        html += `
+            <div style="margin-bottom:8px;">
+                <div class="breakdown-row">
+                    <span>${s.name}</span>
+                    <span>${pct.toFixed(1)}%</span>
+                </div>
+                <div class="breakdown-bar-bg">
+                    <div class="breakdown-bar-fill" style="width:${pct}%"></div>
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html || '<div style="color:#444; font-size:0.7rem; text-align:center; margin-top:20px;">No Active Assets</div>';
+
+    drawIncomeGraph();
+}
+
+function openAnalytics() {
+    openModal('analytics-modal');
+}
+
+// --- 4. MAIN UI LOOP ---
 function updateUI(rate) {
+    // Analytics tracking
+    analytics.update(rate);
+
     // 1. Core
     document.title = `$${formatNumber(game.money)} - THE MINT`;
     document.getElementById('ui-money').innerText = formatNumber(game.money);
@@ -146,22 +310,17 @@ function updateUI(rate) {
     // 2. Rank & Prestige Logic
     let currentRankIndex = 0;
     for(let i = 0; i < rankData.length; i++) {
-        if(game.influence >= rankData[i].req) {
-            currentRankIndex = i;
-        } else {
-            break; 
-        }
+        if(game.influence >= rankData[i].req) currentRankIndex = i;
+        else break; 
     }
     
     let currentRank = rankData[currentRankIndex];
     let nextRank = rankData[currentRankIndex + 1];
     
-    // Update Prestige Card
     document.getElementById('rank-name').innerText = currentRank.name;
     document.getElementById('ui-influence').innerText = formatNumber(game.influence);
     document.getElementById('ui-bonus').innerText = formatNumber(game.influence * 10);
     
-    // Rank Progress Bar
     let rankProgress = 0;
     let nextGoalText = "MAX RANK ACHIEVED";
     
@@ -204,8 +363,9 @@ function updateUI(rate) {
     if(hypeBar) hypeBar.style.width = hype + '%';
     if(hypeText) hypeText.innerText = Math.floor(hype) + '%';
     
-    // 5. Shop
+    // 5. Shop & Analytics UI
     updateShopUI(1 + (game.influence * 0.10));
+    updateAnalyticsUI(rate);
 }
 
 function updateShopUI(influenceMult) {
@@ -220,13 +380,11 @@ function updateShopUI(influenceMult) {
         let cost = getCost(i, amt);
         let affordable = game.money >= cost;
         
-        // Update Text
         el.querySelector('.cost-text').innerText = "$" + formatNumber(cost);
         el.querySelector('.count-badge').innerText = game.counts[i];
         
         let buyAmountText = (buyMode === 'MAX' && max > 0) ? `+${max}` : (buyMode !== 1 && buyMode !== 'MAX' ? `+${amt}` : '');
         
-        // --- NEW: DISCOUNT TAG ---
         let discountHtml = '';
         if (amt >= 100) discountHtml = `<span style='color:#22c55e; font-weight:800; font-size:0.7em; margin-left:6px; letter-spacing:0.5px;'>SALE -20%</span>`;
         else if (amt >= 10) discountHtml = `<span style='color:#22c55e; font-weight:800; font-size:0.7em; margin-left:6px; letter-spacing:0.5px;'>SALE -10%</span>`;
@@ -236,7 +394,6 @@ function updateShopUI(influenceMult) {
         let boostRate = u.baseRate * influenceMult * (maniaMode ? 2 : 1);
         el.querySelector('.rate-boost').innerText = `+$${formatNumber(boostRate)}/s`;
         
-        // Update Classes
         el.classList.remove('affordable', 'affordable-max', 'locked');
         if (affordable && (buyMode !== 'MAX' || max > 0)) {
             el.classList.add(buyMode === 'MAX' ? 'affordable-max' : 'affordable');
@@ -254,24 +411,18 @@ function renderShop() {
         div.className = 'upgrade';
         div.id = `upg-${i}`;
         
-        // --- UPDATED CLICK HANDLER (News + Toasts) ---
         div.onclick = () => {
             let prevCount = game.counts[i];
-            buy(i); // Call Game Logic
-            
+            buy(i);
             if (game.counts[i] > prevCount) {
-                // Success!
                 pushNews(`MARKET ALERT: ACQUIRED ${u.name.toUpperCase()}. PORTFOLIO UP.`);
                 showToast(`Bought ${u.name}`, 'success');
-                // Instant update of tooltip numbers
                 showTooltip({ clientX: parseFloat(tooltip.style.left), clientY: parseFloat(tooltip.style.top) }, i);
             } else {
-                // Fail
                 showToast(`Insufficient Funds`, 'error');
             }
         };
 
-        // --- MOUSE EVENTS (Tooltips) ---
         div.onmouseenter = (e) => showTooltip(e, i);
         div.onmousemove = (e) => moveTooltip(e);
         div.onmouseleave = hideTooltip;
@@ -366,3 +517,6 @@ function toggleAudio() {
         showToast("Audio Muted", "info");
     }
 }
+
+// Helper to allow analytics to be opened via a button in index.html (if added later)
+window.openAnalytics = openAnalytics;
