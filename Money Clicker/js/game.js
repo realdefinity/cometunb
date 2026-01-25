@@ -129,15 +129,12 @@ function calculateIncome() {
     let base = 0;
     // Sum up buildings
     game.counts.forEach((count, i) => { 
-        if(upgrades[i]) {
-            // Updated: Multiply yield by current Level
-            const assetLevelMult = game.levels[i] || 1;
-            base += count * upgrades[i].baseRate * assetLevelMult; 
-        }
+        if(upgrades[i]) base += count * upgrades[i].baseRate; 
     });
     
+    // Multipliers
     let influenceMult = 1 + (game.influence * 0.10); 
-    let maniaMult = maniaMode ? 2 : 1; 
+    let maniaMult = maniaMode ? 2 : 1; // Mania is 2x
     
     return base * influenceMult * maniaMult;
 }
@@ -160,12 +157,7 @@ function clickAction(e) {
 
     // 2. Calculate Click Value
     let baseRate = 0;
-    game.counts.forEach((c, i) => { 
-        if(upgrades[i]) {
-            const assetLevelMult = game.levels[i] || 1;
-            baseRate += c * upgrades[i].baseRate * assetLevelMult; 
-        }
-    });
+    game.counts.forEach((c, i) => { if(upgrades[i]) baseRate += c * upgrades[i].baseRate; });
     
     // Base Click is 1 + 5% of your automatic income
     let clickVal = (1 + (baseRate * 0.05));
@@ -270,27 +262,6 @@ function getCost(id, count) {
     return total;
 }
 
-// Logic for Asset Upgrades (Levels)
-function getUpgradeCost(id) {
-    let u = upgrades[id];
-    let level = game.levels[id] || 1;
-    // Upgrade cost scales drastically: Base * 50 * 5^Level
-    return u.baseCost * 50 * Math.pow(5, level - 1);
-}
-
-function buyAssetUpgrade(id) {
-    let cost = getUpgradeCost(id);
-    if (game.money >= cost) {
-        game.money -= cost;
-        game.levels[id] = (game.levels[id] || 1) + 1;
-        playSound('buy');
-        showToast(`${upgrades[id].name} optimized to Lv. ${game.levels[id]}`, 'success');
-        if (window.renderPortfolio) window.renderPortfolio();
-    } else {
-        showToast("Insufficient capital for optimization", "error");
-    }
-}
-
 function getMaxBuy(id) {
     let u = upgrades[id];
     let currentCost = u.baseCost * Math.pow(1.15, game.counts[id]);
@@ -348,7 +319,6 @@ function confirmPrestige() {
         // Reset Progress
         game.money = 0;
         game.counts = Array(upgrades.length).fill(0);
-        game.levels = Array(upgrades.length).fill(1); // Reset levels on prestige
         
         closeModal('prestige-modal');
         saveLocal();

@@ -1,6 +1,6 @@
 const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
 
-// --- 0. STYLE & UI INJECTION (Toasts, Tooltips, Analytics, & Portfolio) ---
+// --- 0. STYLE & UI INJECTION (Toasts, Tooltips, & Analytics) ---
 (function injectUIStyles() {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -44,13 +44,6 @@ const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "N
         .breakdown-bar-fill { height: 100%; background: var(--green); }
         .stat-big { font-size: 1.2rem; font-weight: 800; color: #fff; font-family: 'JetBrains Mono'; }
         .stat-sub { font-size: 0.6rem; color: #555; }
-
-        /* Portfolio Tabs */
-        .shop-tabs { display: flex; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--panel-border); padding-bottom: 12px; }
-        .tab-btn { font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; color: #444; cursor: pointer; transition: color 0.2s; position: relative; }
-        .tab-btn.active { color: var(--text-main); }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: -13px; left: 0; right: 0; height: 2px; background: var(--green); box-shadow: 0 0 10px var(--green-glow); }
-        .portfolio-empty { text-align: center; padding: 40px 20px; color: #444; font-family: 'JetBrains Mono'; font-size: 0.8rem; }
     `;
     document.head.appendChild(style);
     
@@ -63,6 +56,7 @@ const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "N
     tooltip.id = 'ui-tooltip';
     document.body.appendChild(tooltip);
 
+    // Create Analytics Modal Structure if it doesn't exist
     if (!document.getElementById('analytics-modal')) {
         const modal = document.createElement('div');
         modal.id = 'analytics-modal';
@@ -71,10 +65,14 @@ const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "N
             <div class="modal-content" style="max-width: 600px;">
                 <div class="close-modal" onclick="closeModal('analytics-modal')">&times;</div>
                 <h2 style="font-weight:900; letter-spacing:1px; margin-bottom:5px;">MARKET ANALYTICS</h2>
+                <p style="color:#666; font-size:0.75rem;">Real-time performance metrics and portfolio distribution.</p>
+                
                 <div class="analytics-grid">
                     <div class="analytics-card" style="grid-column: span 2;">
                         <h5>Income Velocity (60s)</h5>
-                        <div class="graph-container"><canvas id="income-graph"></canvas></div>
+                        <div class="graph-container">
+                            <canvas id="income-graph" style="width:100%; height:100%;"></canvas>
+                        </div>
                     </div>
                     <div class="analytics-card">
                         <h5>Asset Distribution</h5>
@@ -83,8 +81,14 @@ const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "N
                     <div class="analytics-card">
                         <h5>Network Statistics</h5>
                         <div id="network-stats">
-                            <div style="margin-bottom:10px;"><div class="stat-big" id="stat-session-earned">$0</div><div class="stat-sub">SESSION EARNINGS</div></div>
-                            <div><div class="stat-big" id="stat-cps">0.0</div><div class="stat-sub">CLICKS PER SECOND</div></div>
+                            <div style="margin-bottom:10px;">
+                                <div class="stat-big" id="stat-session-earned">$0</div>
+                                <div class="stat-sub">SESSION EARNINGS</div>
+                            </div>
+                            <div>
+                                <div class="stat-big" id="stat-cps">0.0</div>
+                                <div class="stat-sub">CLICKS PER SECOND</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -95,9 +99,7 @@ const suffixStandard = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "N
     }
 })();
 
-// --- 1. STATE & UTILS ---
-let currentShopTab = 'markets';
-
+// --- 1. FORMATTER ---
 function formatNumber(num) {
     if (num < 1000) return Math.floor(num).toLocaleString();
     let tier = Math.floor(Math.log10(num) / 3);
@@ -109,33 +111,45 @@ function formatNumber(num) {
     return num.toExponential(2).replace('+', '');
 }
 
+// --- 2. ANALYTICS DATA TRACKING ---
 const analytics = {
-    history: [],
+    history: [], // Income history for graph
     maxHistory: 60,
     sessionStartMoney: 0,
     clickHistory: [],
     lastGraphUpdate: 0,
+
     update(currentRate) {
         const now = Date.now();
+        
+        // Update session earnings
         if (this.sessionStartMoney === 0) this.sessionStartMoney = game.money;
+        
+        // Track income history every second
         if (now - this.lastGraphUpdate > 1000) {
             this.history.push(currentRate);
             if (this.history.length > this.maxHistory) this.history.shift();
             this.lastGraphUpdate = now;
         }
+
+        // Clean click history (older than 1s)
         this.clickHistory = this.clickHistory.filter(t => now - t < 1000);
     },
-    getCPS() { return this.clickHistory.length; }
+
+    getCPS() {
+        return this.clickHistory.length;
+    }
 };
 
-// Track clicks for Analytics
+// Override clickAction to track CPS
 const originalClickAction = window.clickAction;
 window.clickAction = function(e) {
     analytics.clickHistory.push(Date.now());
     if (originalClickAction) originalClickAction(e);
 };
 
-// --- 2. NOTIFICATIONS & TOOLTIPS ---
+// --- 3. NEW UI UTILITIES ---
+
 function showToast(msg, type = 'info') {
     const cont = document.getElementById('toast-container');
     const el = document.createElement('div');
@@ -166,8 +180,7 @@ function showTooltip(e, id) {
     let cost = getCost(id, amt);
     
     let influenceMult = 1 + (game.influence * 0.10);
-    let levelMult = game.levels[id] || 1;
-    let rate = u.baseRate * amt * influenceMult * levelMult;
+    let rate = u.baseRate * amt * influenceMult;
     let roiSeconds = rate > 0 ? cost / rate : 0;
     let roiText = roiSeconds < 60 ? `${roiSeconds.toFixed(1)}s` : 
                   (roiSeconds < 3600 ? `${(roiSeconds/60).toFixed(1)}m` : 
@@ -184,7 +197,9 @@ function showTooltip(e, id) {
     tooltip.style.opacity = '1';
     moveTooltip(e);
 }
+
 function hideTooltip() { tooltip.style.opacity = '0'; }
+
 function moveTooltip(e) {
     let x = e.clientX + 15;
     let y = e.clientY + 15;
@@ -194,27 +209,41 @@ function moveTooltip(e) {
     tooltip.style.top = y + 'px';
 }
 
-// --- 3. ANALYTICS & GRAPHING ---
+// Analytics Visuals
 function drawIncomeGraph() {
     const canvas = document.getElementById('income-graph');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const rect = canvas.parentNode.getBoundingClientRect();
-    canvas.width = rect.width; canvas.height = rect.height;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
     const data = analytics.history;
     if (data.length < 2) return;
+
     const max = Math.max(...data) * 1.2 || 10;
     const stepX = rect.width / (analytics.maxHistory - 1);
+    
     ctx.clearRect(0, 0, rect.width, rect.height);
+    
+    // Draw Line
     ctx.beginPath();
     ctx.strokeStyle = '#22c55e';
     ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    
     data.forEach((val, i) => {
         const x = i * stepX;
         const y = rect.height - (val / max) * rect.height;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
     });
     ctx.stroke();
+
+    // Draw Fill
     ctx.lineTo((data.length - 1) * stepX, rect.height);
     ctx.lineTo(0, rect.height);
     const grad = ctx.createLinearGradient(0, 0, 0, rect.height);
@@ -226,136 +255,116 @@ function drawIncomeGraph() {
 
 function updateAnalyticsUI(rate) {
     if (document.getElementById('analytics-modal').style.display !== 'flex') return;
+
+    // Session Earned
     document.getElementById('stat-session-earned').innerText = `$${formatNumber(game.money - analytics.sessionStartMoney)}`;
     document.getElementById('stat-cps').innerText = analytics.getCPS().toFixed(1);
+
+    // Breakdown
     const list = document.getElementById('asset-breakdown-list');
     let html = '';
     const totalRate = rate || 1;
+    
+    // Get top 5 income sources
     const sources = upgrades.map((u, i) => ({
         name: u.name,
-        income: game.counts[i] * u.baseRate * (1 + (game.influence * 0.10)) * (game.levels[i] || 1) * (maniaMode ? 2 : 1)
+        income: game.counts[i] * u.baseRate * (1 + (game.influence * 0.10)) * (maniaMode ? 2 : 1)
     })).sort((a, b) => b.income - a.income).slice(0, 5);
+
     sources.forEach(s => {
         if (s.income <= 0) return;
         const pct = (s.income / totalRate) * 100;
-        html += `<div style="margin-bottom:8px;"><div class="breakdown-row"><span>${s.name}</span><span>${pct.toFixed(1)}%</span></div><div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${pct}%"></div></div></div>`;
+        html += `
+            <div style="margin-bottom:8px;">
+                <div class="breakdown-row">
+                    <span>${s.name}</span>
+                    <span>${pct.toFixed(1)}%</span>
+                </div>
+                <div class="breakdown-bar-bg">
+                    <div class="breakdown-bar-fill" style="width:${pct}%"></div>
+                </div>
+            </div>
+        `;
     });
-    list.innerHTML = html || '<div class="portfolio-empty">No Active Assets</div>';
+    list.innerHTML = html || '<div style="color:#444; font-size:0.7rem; text-align:center; margin-top:20px;">No Active Assets</div>';
+
     drawIncomeGraph();
 }
 
-function openAnalytics() { openModal('analytics-modal'); }
-window.openAnalytics = openAnalytics;
-
-// --- 4. TABS & PORTFOLIO ---
-function setShopTab(tab) {
-    currentShopTab = tab;
-    const marketBtn = document.getElementById('btn-tab-markets');
-    const portfolioBtn = document.getElementById('btn-tab-portfolio');
-    const marketControls = document.getElementById('market-controls');
-    const portfolioControls = document.getElementById('portfolio-controls');
-    const shopContainer = document.getElementById('shop-container');
-    const portfolioContainer = document.getElementById('portfolio-container');
-
-    if (tab === 'markets') {
-        marketBtn.classList.add('active'); portfolioBtn.classList.remove('active');
-        marketControls.style.display = 'block'; portfolioControls.style.display = 'none';
-        shopContainer.style.display = 'block'; portfolioContainer.style.display = 'none';
-    } else {
-        marketBtn.classList.remove('active'); portfolioBtn.classList.add('active');
-        marketControls.style.display = 'none'; portfolioControls.style.display = 'block';
-        shopContainer.style.display = 'none'; portfolioContainer.style.display = 'block';
-        renderPortfolio();
-    }
+function openAnalytics() {
+    openModal('analytics-modal');
 }
-window.setShopTab = setShopTab;
 
-function renderPortfolio() {
-    const container = document.getElementById('portfolio-container');
-    if (!container) return;
-    let ownedAny = false;
-    let html = '';
-    upgrades.forEach((u, i) => {
-        if (game.counts[i] > 0) {
-            ownedAny = true;
-            let level = game.levels[i] || 1;
-            let upgCost = window.getUpgradeCost ? window.getUpgradeCost(i) : 0;
-            let canAfford = game.money >= upgCost;
-            html += `
-                <div class="upgrade ${canAfford ? 'affordable-max' : ''}" style="border-left: 3px solid var(--gold);">
-                    <div class="upg-info">
-                        <h4>${u.name} <span style="color:var(--gold)">Lv. ${level}</span></h4>
-                        <p><span class="rate-boost">Yield Multiplier: ${level}x</span><span style="opacity:0.5">| Qty: ${game.counts[i]}</span></p>
-                    </div>
-                    <div class="upg-cost" onclick="window.buyAssetUpgrade(${i}); event.stopPropagation();">
-                        <div class="cost-text" style="color: ${canAfford ? 'var(--gold)' : '#555'}">Optimize</div>
-                        <div class="count-badge" style="background:var(--gold); color:#000; border:none;">$${formatNumber(upgCost)}</div>
-                    </div>
-                </div>`;
-        }
-    });
-    container.innerHTML = ownedAny ? html : `<div class="portfolio-empty">NO ASSETS UNDER MANAGEMENT.</div>`;
-}
-window.renderPortfolio = renderPortfolio;
-
-// --- 5. MAIN UI LOOP ---
+// --- 4. MAIN UI LOOP ---
 function updateUI(rate) {
+    // Analytics tracking
     analytics.update(rate);
+
+    // 1. Core
+    document.title = `$${formatNumber(game.money)} - THE MINT`;
     document.getElementById('ui-money').innerText = formatNumber(game.money);
     
     const elRate = document.getElementById('ui-rate');
     if(elRate) elRate.innerText = formatNumber(rate);
-
-    // Rank Logic
+    
+    // 2. Rank & Prestige Logic
     let currentRankIndex = 0;
     for(let i = 0; i < rankData.length; i++) {
         if(game.influence >= rankData[i].req) currentRankIndex = i;
-        else break;
+        else break; 
     }
+    
     let currentRank = rankData[currentRankIndex];
     let nextRank = rankData[currentRankIndex + 1];
+    
     document.getElementById('rank-name').innerText = currentRank.name;
     document.getElementById('ui-influence').innerText = formatNumber(game.influence);
     document.getElementById('ui-bonus').innerText = formatNumber(game.influence * 10);
     
     let rankProgress = 0;
     let nextGoalText = "MAX RANK ACHIEVED";
+    
     if (nextRank) {
         let range = nextRank.req - currentRank.req;
         let currentInTier = game.influence - currentRank.req;
         rankProgress = Math.max(0, Math.min(100, (currentInTier / range) * 100));
-        nextGoalText = `${formatNumber(nextRank.req - game.influence)} INF TO ${nextRank.name.toUpperCase()}`;
-    } else rankProgress = 100;
+        let missingInf = nextRank.req - game.influence;
+        nextGoalText = `${formatNumber(missingInf)} INF TO ${nextRank.name.toUpperCase()}`;
+    } else {
+        rankProgress = 100;
+    }
     
     const bar = document.getElementById('influence-bar');
     if(bar) bar.style.width = rankProgress + "%";
+    
     const nextText = document.getElementById('next-rank-text');
     if(nextText) nextText.innerText = nextGoalText;
 
-    // Prestige Button
+    // 3. Prestige Button State
     let nextPointTotal = game.influence + 1;
     let costForNextPoint = Math.pow(nextPointTotal, 2) * 1000000;
     let potential = Math.floor(Math.pow(game.lifetimeEarnings / 1000000, 0.5));
     let btn = document.getElementById('btn-open-prestige');
+    
     if (potential > game.influence) {
+        let gain = potential - game.influence;
         btn.classList.add('ready');
-        btn.innerHTML = `LIQUIDATE ASSETS <span style="font-size:0.8em; opacity:0.9; margin-left:5px;">(+${formatNumber(potential - game.influence)} Inf)</span>`;
+        btn.innerHTML = `LIQUIDATE ASSETS <span style="font-size:0.8em; opacity:0.9; margin-left:5px;">(+${formatNumber(gain)} Inf)</span>`;
     } else {
         let missingCash = costForNextPoint - game.lifetimeEarnings;
+        if(missingCash < 0) missingCash = 0; 
         btn.classList.remove('ready');
-        btn.innerHTML = `NEED $${formatNumber(Math.max(0, missingCash))} MORE VALUE`;
+        btn.innerHTML = `NEED $${formatNumber(missingCash)} MORE VALUE`;
     }
 
-    // Hype
+    // 4. Hype
     const hypeBar = document.getElementById('hype-bar');
+    const hypeText = document.getElementById('hype-text');
     if(hypeBar) hypeBar.style.width = hype + '%';
-    const hText = document.getElementById('hype-text');
-    if(hText) hText.innerText = Math.floor(hype) + '%';
+    if(hypeText) hypeText.innerText = Math.floor(hype) + '%';
     
-    // Refresh Shop/Portfolio
-    if (currentShopTab === 'portfolio') renderPortfolio();
-    else updateShopUI(1 + (game.influence * 0.10));
-
+    // 5. Shop & Analytics UI
+    updateShopUI(1 + (game.influence * 0.10));
     updateAnalyticsUI(rate);
 }
 
@@ -363,9 +372,11 @@ function updateShopUI(influenceMult) {
     upgrades.forEach((u, i) => {
         let el = document.getElementById(`upg-${i}`);
         if (!el) return;
+        
         let max = getMaxBuy(i);
         let amt = (buyMode === 'MAX') ? max : buyMode;
         if(buyMode === 'MAX' && amt === 0) amt = 1;
+
         let cost = getCost(i, amt);
         let affordable = game.money >= cost;
         
@@ -373,15 +384,22 @@ function updateShopUI(influenceMult) {
         el.querySelector('.count-badge').innerText = game.counts[i];
         
         let buyAmountText = (buyMode === 'MAX' && max > 0) ? `+${max}` : (buyMode !== 1 && buyMode !== 'MAX' ? `+${amt}` : '');
-        let discountHtml = amt >= 100 ? `<span style='color:#22c55e; font-weight:800; font-size:0.7em; margin-left:6px;'>SALE -20%</span>` : (amt >= 10 ? `<span style='color:#22c55e; font-weight:800; font-size:0.7em; margin-left:6px;'>SALE -10%</span>` : '');
+        
+        let discountHtml = '';
+        if (amt >= 100) discountHtml = `<span style='color:#22c55e; font-weight:800; font-size:0.7em; margin-left:6px; letter-spacing:0.5px;'>SALE -20%</span>`;
+        else if (amt >= 10) discountHtml = `<span style='color:#22c55e; font-weight:800; font-size:0.7em; margin-left:6px; letter-spacing:0.5px;'>SALE -10%</span>`;
 
         el.querySelector('h4').innerHTML = `${u.name} <span style="font-size:0.7em; opacity:0.5; margin-left:4px;">${buyAmountText}</span>${discountHtml}`;
-        let boostRate = u.baseRate * influenceMult * (game.levels[i] || 1) * (maniaMode ? 2 : 1);
+        
+        let boostRate = u.baseRate * influenceMult * (maniaMode ? 2 : 1);
         el.querySelector('.rate-boost').innerText = `+$${formatNumber(boostRate)}/s`;
         
         el.classList.remove('affordable', 'affordable-max', 'locked');
-        if (affordable && (buyMode !== 'MAX' || max > 0)) el.classList.add(buyMode === 'MAX' ? 'affordable-max' : 'affordable');
-        else if (game.counts[i] === 0 && !affordable) el.classList.add('locked');
+        if (affordable && (buyMode !== 'MAX' || max > 0)) {
+            el.classList.add(buyMode === 'MAX' ? 'affordable-max' : 'affordable');
+        } else if (game.counts[i] === 0 && !affordable) {
+            el.classList.add('locked');
+        }
     });
 }
 
@@ -392,23 +410,40 @@ function renderShop() {
         let div = document.createElement('div');
         div.className = 'upgrade';
         div.id = `upg-${i}`;
+        
         div.onclick = () => {
             let prevCount = game.counts[i];
             buy(i);
             if (game.counts[i] > prevCount) {
-                pushNews(`MARKET ALERT: ACQUIRED ${u.name.toUpperCase()}.`);
+                pushNews(`MARKET ALERT: ACQUIRED ${u.name.toUpperCase()}. PORTFOLIO UP.`);
                 showToast(`Bought ${u.name}`, 'success');
-            } else showToast(`Insufficient Funds`, 'error');
+                showTooltip({ clientX: parseFloat(tooltip.style.left), clientY: parseFloat(tooltip.style.top) }, i);
+            } else {
+                showToast(`Insufficient Funds`, 'error');
+            }
         };
+
         div.onmouseenter = (e) => showTooltip(e, i);
         div.onmousemove = (e) => moveTooltip(e);
         div.onmouseleave = hideTooltip;
-        div.innerHTML = `<div class="upg-info"><h4>${u.name}</h4><p><span class="rate-boost">+$0/s</span><span style="opacity:0.5">| Base: $${formatNumber(u.baseRate)}</span></p></div><div class="upg-cost"><div class="cost-text">...</div><div class="count-badge">0</div></div>`;
+
+        div.innerHTML = `
+            <div class="upg-info">
+                <h4>${u.name}</h4>
+                <p>
+                    <span class="rate-boost">+$0/s</span> 
+                    <span style="opacity:0.5">| Base: $${formatNumber(u.baseRate)}</span>
+                </p>
+            </div>
+            <div class="upg-cost">
+                <div class="cost-text">...</div>
+                <div class="count-badge">0</div>
+            </div>
+        `;
         container.appendChild(div);
     });
 }
 
-// --- 6. GLOBAL CONTROLS & MODALS ---
 function setBuyMode(mode, btn) {
     buyMode = mode;
     document.querySelectorAll('.buy-amt').forEach(b => b.classList.remove('active', 'active-max'));
@@ -421,6 +456,7 @@ function openModal(id) {
     modal.style.display = 'flex';
     setTimeout(() => modal.classList.add('open'), 10);
 }
+
 function closeModal(id) { 
     const modal = document.getElementById(id);
     modal.classList.remove('open');
@@ -445,19 +481,28 @@ function openExport() {
 function openImport() {
     const txt = document.getElementById('save-data-input');
     const btn = document.getElementById('modal-action-btn');
-    txt.value = ""; txt.placeholder = "Paste code...";
+    txt.value = ""; txt.placeholder = "Paste save code...";
     btn.innerText = "IMPORT";
     btn.onclick = () => {
         try {
             let data = JSON.parse(atob(txt.value.trim()));
             game = { ...game, ...data };
-            saveLocal(); location.reload();
-        } catch(e) { showToast("Invalid Data", "error"); }
+            saveLocal(); 
+            showToast("Save Loaded", "success");
+            setTimeout(() => location.reload(), 500);
+        } catch(e) { 
+            showToast("Invalid Save Data", "error"); 
+        }
     };
     openModal('save-modal');
 }
 
-function hardReset() { if(confirm("FACTORY RESET: Wipe progress?")) { localStorage.removeItem('mintV7_money_save'); location.reload(); } }
+function hardReset() {
+    if(confirm("FACTORY RESET: Wipe all progress?")) {
+        localStorage.removeItem('mintV7_money_save');
+        location.reload();
+    }
+}
 
 let audioEnabled = true;
 function toggleAudio() {
@@ -472,3 +517,6 @@ function toggleAudio() {
         showToast("Audio Muted", "info");
     }
 }
+
+// Helper to allow analytics to be opened via a button in index.html (if added later)
+window.openAnalytics = openAnalytics;
