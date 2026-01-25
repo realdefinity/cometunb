@@ -879,3 +879,151 @@ input[type=number] {
     background: var(--accent);
     color: white;
 }
+
+/* --- LOBBY REDESIGN --- */
+.lobby-card {
+    padding: 30px;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.lobby-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.logo-badge {
+    width: 48px;
+    height: 48px;
+    background: var(--accent);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: rotate(-5deg);
+}
+
+.icon-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: auto;
+    transition: 0.2s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); }
+
+/* SETTINGS GRID */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.setting-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mode-select.compact {
+    display: flex;
+    gap: 5px;
+    margin: 0;
+}
+
+.mode-select.compact .mode-btn {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 1.2rem;
+    border-radius: 10px;
+}
+
+/* PATH VISUALIZATION */
+.path-section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.path-line {
+    position: absolute;
+    left: 24px;
+    top: 30px;
+    bottom: 30px;
+    width: 2px;
+    background: rgba(255,255,255,0.1);
+    z-index: 0;
+}
+
+.path-dot {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.path-dot.start { background: var(--success); box-shadow: 0 0 10px var(--success); }
+.path-dot.end { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+
+.path-section .input-group {
+    margin: 0;
+}
+
+.path-section .lobby-input {
+    padding-left: 35px; /* Room for dots */
+    background: rgba(255,255,255,0.03);
+    border-color: transparent;
+}
+.path-section .lobby-input:focus {
+    background: rgba(255,255,255,0.06);
+    border-color: var(--accent);
+}
+
+/* ACTION BUTTONS */
+.action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.btn-secondary {
+    flex: 1;
+    padding: 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--accent);
+}
+
+.btn-primary.big {
+    flex: 2;
+    margin: 0;
+    font-size: 1.1rem;
+    box-shadow: 0 10px 30px -5px var(--accent);
+}

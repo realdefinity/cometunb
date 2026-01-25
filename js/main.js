@@ -40,21 +40,28 @@ function setMode(m) {
     if(m === 'gauntlet') document.getElementById('m-gnt').classList.add('active');
 
     const grp = document.getElementById('end-input-group');
-    const sdConfig = document.getElementById('sd-config'); // NEW INPUT CONTAINER
+    const sdConfig = document.getElementById('sd-config');
+    const diffDD = document.getElementById('diff-dd');
+    const label = document.getElementById('setting-label');
 
-    // Toggle Inputs based on mode
     if(m === 'gauntlet') {
         grp.style.opacity = '0.5'; grp.style.pointerEvents = 'none';
         document.getElementById('end-in').value = "Randomly Generated...";
         sdConfig.style.display = 'none';
+        diffDD.style.display = 'flex';
+        label.textContent = "Difficulty";
     } else if (m === 'sudden_death') {
         grp.style.opacity = '1'; grp.style.pointerEvents = 'all';
         document.getElementById('end-in').value = "";
-        sdConfig.style.display = 'block'; // SHOW TIME LIMIT INPUT
+        sdConfig.style.display = 'block';
+        diffDD.style.display = 'none';
+        label.textContent = "Time Limit";
     } else {
         grp.style.opacity = '1'; grp.style.pointerEvents = 'all';
         document.getElementById('end-in').value = "";
         sdConfig.style.display = 'none';
+        diffDD.style.display = 'flex';
+        label.textContent = "Difficulty";
     }
 }
 
