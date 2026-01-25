@@ -195,7 +195,10 @@ function render(title, html) {
     const div = document.getElementById('article-content');
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    
+    div.innerHTML = `<h1>${title}</h1>${doc.body.innerHTML}`;
+
+    renderMiniMap(div); 
+}
     ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt', '.portal'].forEach(s => 
         doc.querySelectorAll(s).forEach(e => e.remove())
     );
@@ -246,6 +249,16 @@ function winGame() {
     const duration = Math.floor((now - state.startTime) / 1000) + state.penalties;
     saveGameStats(true, duration, state.clicks);
     // -----------------------
+
+    // --- AWARD XP ---
+    // Base XP: 100
+    // Bonus: 50 if under 60 seconds
+    let earnedXP = 100;
+    const duration = Math.floor((Date.now() - state.startTime) / 1000);
+    if(duration < 60) earnedXP += 50;
+    
+    addXP(earnedXP); // Save to storage
+    showToast(`Victory! +${earnedXP} XP`); // Notify user
 
     if(state.mode === 'gauntlet') document.getElementById('win-sub').textContent = "Gauntlet Completed";
     else document.getElementById('win-sub').textContent = "Destination Reached";
