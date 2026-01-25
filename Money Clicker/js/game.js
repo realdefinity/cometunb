@@ -4,14 +4,14 @@ let width, height;
 let lastTick = performance.now();
 let particles = [];
 
-// --- BUTTON PHYSICS VARS ---
+// --- BUTTON PHYSICS VARIABLES ---
+const btnEl = document.getElementById('main-btn');
 let btnTiltX = 0;
 let btnTiltY = 0;
 let btnScale = 1;
 let btnVelocity = 0;
 let isHovering = false;
 
-// --- RESIZE LOGIC ---
 function resize() {
     width = window.innerWidth;
     height = window.innerHeight;
@@ -21,8 +21,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// --- MOUSE TRACKING FOR TILT ---
-const btnEl = document.getElementById('main-btn');
+// --- MOUSE TRACKING ---
 btnEl.addEventListener('mouseenter', () => isHovering = true);
 btnEl.addEventListener('mouseleave', () => {
     isHovering = false;
@@ -33,10 +32,57 @@ btnEl.addEventListener('mousemove', (e) => {
     const rect = btnEl.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    // Smoothly update target tilt
-    btnTiltX = -y / 10;
-    btnTiltY = x / 10;
+    // Calculate tilt (inverted Y for natural feel)
+    btnTiltX = -y / 8;
+    btnTiltY = x / 8;
 });
+
+// --- CLICK HANDLER (Integrated directly) ---
+function triggerClick(e) {
+    // Prevent default on touch to stop double-firing
+    if (e.type === 'touchstart') e.preventDefault();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    // 1. PHYSICS KICK (This makes it bounce)
+    // We shove the velocity down. The loop handles the recovery.
+    btnVelocity = -0.25; 
+
+    // 2. LOGIC
+    let baseRate = 0;
+    game.counts.forEach((c, i) => { if(upgrades[i]) baseRate += c * upgrades[i].baseRate; });
+    
+    let clickVal = (1 + (baseRate * 0.05));
+    let influenceMult = 1 + (game.influence * 0.10);
+    let maniaMult = maniaMode ? 3 : 1;
+    let total = clickVal * influenceMult * maniaMult;
+    
+    let isCrit = Math.random() < 0.05;
+    if (isCrit) { total *= 5; playSound('crit'); }
+    else { playSound('click'); }
+
+    game.money += total;
+    game.lifetimeEarnings += total;
+
+    if (!maniaMode) {
+        hype = Math.min(100, hype + 4);
+        if (hype >= 100) startMania();
+    }
+
+    // 3. PARTICLES
+    const rect = btnEl.getBoundingClientRect();
+    // Default to center if touch/keyboard
+    const clientX = e.clientX || rect.left + rect.width/2;
+    const clientY = e.clientY || rect.top + rect.height/2;
+
+    createParticle(clientX, clientY, "+" + formatNumber(total), 'text');
+    createParticle(clientX, clientY, '', 'shockwave'); 
+    if(isCrit) createParticle(clientX, clientY, '', 'spark');
+}
+
+// Attach Listeners
+btnEl.addEventListener('mousedown', triggerClick);
+btnEl.addEventListener('touchstart', triggerClick);
+
 
 // --- PARTICLE SYSTEM ---
 class Particle {
@@ -50,60 +96,52 @@ class Particle {
             this.vx = (Math.random() - 0.5) * 4;
             this.vy = -5 - Math.random() * 5;
             this.gravity = 0.2;
-            this.drag = 0.96;
             this.scale = 1;
-            this.color = maniaMode ? '#d8b4fe' : '#6ee7b7'; // Lighter colors for text
+            this.color = maniaMode ? '#d8b4fe' : '#6ee7b7';
         } else if (type === 'spark') {
             const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 15 + 5; // Faster sparks
+            const speed = Math.random() * 15 + 5;
             this.vx = Math.cos(angle) * speed;
             this.vy = Math.sin(angle) * speed;
             this.gravity = 0.4;
-            this.drag = 0.85;
             this.scale = Math.random() * 3 + 1;
-            this.decay = 0.04;
             this.color = Math.random() > 0.5 ? '#fff' : (maniaMode ? '#d400ff' : '#00ffaa');
-        } else if (type === 'shockwave') { // NEW SHOCKWAVE
+        } else if (type === 'shockwave') {
             this.scale = 0.5;
-            this.maxScale = 4.0;
-            this.decay = 0.04; // Fast fade
             this.color = maniaMode ? 'rgba(191,0,255,' : 'rgba(0,255,170,';
             this.vx = 0; this.vy = 0;
-            this.lineWidth = 10;
         } else if (type === 'confetti') {
             this.x = Math.random() * width;
             this.y = -20;
             this.vx = (Math.random() - 0.5) * 5;
             this.vy = Math.random() * 8 + 5;
             this.gravity = 0.05;
-            this.drag = 0.98;
             this.scale = Math.random() * 5 + 5;
             this.rotation = Math.random() * 360;
-            this.rotSpeed = (Math.random() - 0.5) * 10;
             this.color = `hsl(${Math.random()*360}, 100%, 60%)`;
-            this.decay = 0.005;
         }
     }
 
     update() {
         if (this.type === 'shockwave') {
-            this.scale += 0.15; // Expand fast
-            this.lineWidth *= 0.9; // Thin out
-            this.life -= this.decay;
-        } else if (this.type === 'confetti') {
-            this.x += this.vx; this.y += this.vy; this.vy += this.gravity;
-            this.vx *= this.drag;
-            this.rotation += this.rotSpeed;
-            this.life -= this.decay;
-        } else if (this.type === 'spark') {
-             this.x += this.vx; this.y += this.vy; this.vy += this.gravity;
-             this.vx *= this.drag; this.vy *= this.drag;
-             this.life -= this.decay;
+            this.scale += 0.2;
+            this.life -= 0.05;
         } else {
-            this.x += this.vx; this.y += this.vy; this.vy += this.gravity;
-            this.vx *= this.drag; this.vy *= this.drag;
-            this.life -= 0.015;
-            this.scale += 0.01; // Text grows slightly
+            this.x += this.vx; this.y += this.vy;
+            if(this.gravity) this.vy += this.gravity;
+            
+            // Friction
+            this.vx *= 0.95;
+            this.vy *= 0.95;
+
+            if(this.type === 'text') {
+                this.life -= 0.015;
+                this.scale += 0.01;
+            } else if(this.type === 'spark') {
+                this.life -= 0.04;
+            } else {
+                this.life -= 0.005;
+            }
         }
     }
 
@@ -116,7 +154,7 @@ class Particle {
             ctx.translate(this.x, this.y);
             ctx.beginPath();
             ctx.strokeStyle = this.color + this.life + ')';
-            ctx.lineWidth = this.lineWidth;
+            ctx.lineWidth = 8;
             ctx.arc(0, 0, this.scale * 30, 0, Math.PI*2);
             ctx.stroke();
         } else if (this.type === 'spark') {
@@ -133,7 +171,7 @@ class Particle {
         } else {
             ctx.translate(this.x, this.y);
             ctx.scale(this.scale, this.scale);
-            ctx.font = "900 24px Outfit"; // Bolder font
+            ctx.font = "900 24px Outfit";
             ctx.fillStyle = this.color;
             ctx.shadowColor = this.color;
             ctx.shadowBlur = 20;
@@ -143,7 +181,6 @@ class Particle {
     }
 }
 
-// --- LOGIC ---
 function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { if(upgrades[i]) base += count * upgrades[i].baseRate; });
@@ -153,43 +190,6 @@ function calculateIncome() {
 }
 
 function createParticle(x, y, text, type) { particles.push(new Particle(x, y, text, type)); }
-
-// --- CLICK ACTION ---
-function clickAction(e) {
-    if (e.type === 'touchstart') e.preventDefault();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-
-    const rect = btnEl.getBoundingClientRect();
-    const clientX = e.clientX || e.touches?.[0]?.clientX || (rect.left + rect.width/2);
-    const clientY = e.clientY || e.touches?.[0]?.clientY || (rect.top + rect.height/2);
-
-    // KICK THE BUTTON PHYSICS
-    // We impart negative velocity to simulate being hit inward
-    btnVelocity = -0.15; 
-
-    // Update Income
-    let baseRate = 0;
-    game.counts.forEach((c, i) => { if(upgrades[i]) baseRate += c * upgrades[i].baseRate; });
-    let clickVal = (1 + (baseRate * 0.05));
-    let influenceMult = 1 + (game.influence * 0.10);
-    let maniaMult = maniaMode ? 3 : 1;
-    let total = clickVal * influenceMult * maniaMult;
-    
-    let isCrit = Math.random() < 0.05;
-    if (isCrit) { total *= 5; playSound('crit'); createParticle(clientX, clientY, '', 'spark'); }
-    else { playSound('click'); }
-
-    game.money += total;
-    game.lifetimeEarnings += total;
-
-    if (!maniaMode) {
-        hype = Math.min(100, hype + 4);
-        if (hype >= 100) startMania();
-    }
-
-    createParticle(clientX, clientY, "+" + formatNumber(total), 'text');
-    createParticle(clientX, clientY, '', 'shockwave'); // Add Shockwave
-}
 
 function startMania() {
     maniaMode = true; maniaTimer = 15;
@@ -209,7 +209,7 @@ function endMania() {
     document.getElementById('mania-text').style.color = "#fff";
 }
 
-// --- GOLDEN BILL LOGIC ---
+// --- SMOOTH GOLDEN BILL LOGIC ---
 let activeBills = [];
 
 function spawnGoldenBill() {
@@ -217,30 +217,35 @@ function spawnGoldenBill() {
     bill.className = 'golden-bill';
     bill.innerText = "$$$";
     
-    // Position
+    // 1. Setup Position
     let startY = Math.random() * (window.innerHeight - 300) + 150;
     bill.style.top = startY + "px";
     bill.style.left = "-150px"; 
+    
     document.getElementById('event-layer').appendChild(bill);
 
+    // 2. Setup Physics State
     let state = {
         el: bill,
         x: -150,
         y: startY,
-        vx: Math.random() * 3 + 2, // Slightly slower, smoother speed
+        vx: Math.random() * 2 + 2, // Smooth speed
         time: 0,
-        amplitude: Math.random() * 60 + 30, // Bigger floaty waves
-        frequency: Math.random() * 0.02 + 0.01, // Slower waves
-        rotation: (Math.random() - 0.5) * 15
+        amplitude: Math.random() * 50 + 20,
+        frequency: Math.random() * 0.04 + 0.02,
+        rotationOffset: Math.random() * 360
     };
+
     activeBills.push(state);
 
+    // 3. Interaction
     bill.onclick = (e) => {
         e.stopPropagation();
+        
         state.dead = true; 
         bill.remove();
 
-        // REWARD LOGIC: $500 Minimum if broke
+        // REWARD LOGIC: $500 Minimum
         let reward = game.money * 0.25;
         if(reward < 500) reward = 500; 
 
@@ -258,29 +263,28 @@ function spawnGoldenBill() {
     };
 }
 
-// --- MAIN LOOP ---
+// --- MAIN GAME LOOP ---
 function gameLoop(currentTime) {
     let dt = (currentTime - lastTick) / 1000;
     if (dt > 86400) dt = 86400; if (dt < 0) dt = 0;
     lastTick = currentTime;
 
-    // 1. BUTTON PHYSICS (Spring System)
-    // Target scale is 1.0 normally, 1.05 if hovering
+    // 1. UPDATE BUTTON PHYSICS (Spring System)
     let targetScale = isHovering ? 1.05 : 1.0;
-    // Spring stiffness (tension) and damping (friction)
-    let tension = 0.15; 
-    let damping = 0.75; 
+    let tension = 0.2; // Stiffness
+    let damping = 0.6; // Bounciness
     
-    // Physics Math
     let force = (targetScale - btnScale) * tension;
     btnVelocity += force;
     btnVelocity *= damping;
     btnScale += btnVelocity;
 
-    // Apply Transform directly to DOM element
+    // Safety check to prevent disappearance
+    if (isNaN(btnScale) || btnScale < 0.1) { btnScale = 1; btnVelocity = 0; }
+
     btnEl.style.transform = `rotateX(${btnTiltX}deg) rotateY(${btnTiltY}deg) scale(${btnScale})`;
 
-    // 2. Game Income
+    // 2. INCOME
     let rate = calculateIncome();
     if (rate > 0) {
         let amount = rate * dt;
@@ -288,6 +292,7 @@ function gameLoop(currentTime) {
         game.lifetimeEarnings += amount;
     }
 
+    // 3. MANIA
     if (maniaMode) {
         maniaTimer -= dt;
         if(Math.random() > 0.85) createParticle(0,0,'','confetti');
@@ -296,6 +301,7 @@ function gameLoop(currentTime) {
         hype = Math.max(0, hype - (5 * dt));
     }
 
+    // 4. TICKER
     tickerTimer += dt;
     if(tickerTimer > 25) {
         let item = newsHeadlines[Math.floor(Math.random() * newsHeadlines.length)];
@@ -306,20 +312,22 @@ function gameLoop(currentTime) {
         tickerTimer = 0;
     }
 
+    // 5. GOLDEN BILL SPAWNER
     goldenBillTimer -= dt * 1000;
     if (goldenBillTimer <= 0) {
         spawnGoldenBill();
         goldenBillTimer = Math.random() * 30000 + 15000;
     }
 
-    // 3. Animate Golden Bills
+    // 6. ANIMATE GOLDEN BILLS
     activeBills = activeBills.filter(b => {
         if(b.dead) return false;
-        b.x += b.vx;
+
+        b.x += b.vx; // Move right
         b.time += 1;
         
         let bob = Math.sin(b.time * b.frequency) * b.amplitude;
-        let rot = Math.sin(b.time * 0.02) * 15; // Gentle sway
+        let rot = Math.sin(b.time * 0.05 + b.rotationOffset) * 15;
 
         b.el.style.transform = `translate(${b.x}px, ${bob}px) rotate(${rot}deg)`;
 
@@ -330,13 +338,14 @@ function gameLoop(currentTime) {
         return true;
     });
 
-    // 4. Particles
+    // 7. PARTICLES
     ctx.clearRect(0, 0, width, height);
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i]; p.update(); p.draw();
         if (p.life <= 0) particles.splice(i, 1);
     }
 
+    // 8. UI
     updateUI(rate);
     autoSaveTimer += dt;
     if(autoSaveTimer > 5) { saveLocal(); autoSaveTimer = 0; }
