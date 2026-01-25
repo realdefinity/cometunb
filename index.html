@@ -56,7 +56,13 @@
 
             <div class="input-group" id="sd-config" style="display:none; animation: fadeIn 0.5s;">
                 <span class="input-label">Time Limit (Seconds)</span>
-                <input type="number" id="sd-time-in" class="lobby-input" value="30" min="10" max="300">
+                <div class="number-wrapper">
+                    <input type="number" id="sd-time-in" class="lobby-input" value="30" min="10" max="300" readonly>
+                    <div class="custom-arrows">
+                        <div class="arrow-btn up" onclick="adjustTime(10)"></div>
+                        <div class="arrow-btn down" onclick="adjustTime(-10)"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="input-group">
