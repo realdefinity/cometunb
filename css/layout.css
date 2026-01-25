@@ -1,3 +1,5 @@
+/* --- LAYOUT FIXES --- */
+
 .blob-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .blob {
     position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.5;
@@ -93,13 +95,29 @@ header.active { display: flex; }
 .crumb span { color: var(--text-sub); }
 .crumb.active { color: var(--accent); opacity: 1; font-weight: 700; background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent); }
 
+/* --- FIXED SCREEN LOGIC --- */
 .screen {
-    position: absolute; inset: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px; transition: 0.8s var(--ease-fluid);
+    position: fixed; /* Changed from absolute to fixed */
+    inset: 0; 
+    z-index: 5000; /* massively increased z-index */
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    padding: 20px; 
+    transition: 0.8s var(--ease-fluid);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(0,0,0,0.4); /* slight tint to ensure visibility */
 }
-.screen.hidden { opacity: 0; pointer-events: none; transform: scale(1.1) translateY(-20px); filter: blur(30px); }
+
+/* Ensure hidden state overrides everything */
+.screen.hidden { 
+    opacity: 0; 
+    pointer-events: none; 
+    transform: scale(1.1) translateY(-20px); 
+    filter: blur(30px);
+    visibility: hidden; /* Added visibility toggle for performance */
+}
 
 .loader { position: absolute; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(20px); z-index: 60; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.4s; }
 .loader.active { opacity: 1; pointer-events: all; }
