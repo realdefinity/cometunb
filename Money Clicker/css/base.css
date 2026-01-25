@@ -1,48 +1,47 @@
 :root {
-    --bg: #050505;
+    /* --- FINTECH DARK PALETTE --- */
+    --bg: #0a0a0a;
+    --panel-bg: #111111;
+    --panel-border: #222222;
     
-    /* GLASS THEME */
-    --glass-surface: rgba(20, 20, 25, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-blur: 40px;
-
-    /* COLORS */
+    /* MONEY COLORS */
+    --green: #22c55e;        /* Profit Green */
+    --green-dim: #15803d;
+    --green-glow: rgba(34, 197, 94, 0.4);
+    
+    --gold: #eab308;         /* Luxury Gold */
+    --gold-dim: #a16207;
+    
     --text-main: #ffffff;
-    --text-dim: #94a3b8;
-    --accent: #10b981; /* Emerald */
-    --accent-glow: rgba(16, 185, 129, 0.5);
-    --purple: #d946ef;
-    --gold: #fbbf24;
+    --text-sec: #888888;
+    
+    /* LAYOUT VARS */
+    --radius: 12px;
 }
 
 * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
 
 body {
     margin: 0; padding: 0;
-    background: var(--bg);
+    background-color: var(--bg);
+    /* Subtle Grid Background for that "Graph" feel */
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    
     color: var(--text-main);
     font-family: 'Outfit', sans-serif;
     
-    /* FIXED LAYOUT LOCK */
-    position: fixed; inset: 0;
-    overflow: hidden;
-    
-    /* Prevents numbers from wiggling when they change */
+    /* LOCK SCREEN */
+    position: fixed; inset: 0; overflow: hidden;
     font-variant-numeric: tabular-nums;
 }
 
-/* BACKGROUND */
-.bg-blobs { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(circle, #111 0%, #000 100%); }
-.blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4; animation: float 20s infinite alternate; }
-.blob-1 { width: 60vh; height: 60vh; background: #064e3b; top: -10%; left: -10%; }
-.blob-2 { width: 50vh; height: 50vh; background: #312e81; bottom: -10%; right: -10%; }
-@keyframes float { from { transform: translate(0,0); } to { transform: translate(40px, 20px); } }
-
-/* --- THE ANIMATION FIX --- */
-/* Puts the canvas on top of the UI, but invisible to mouse clicks */
-#game-canvas { 
-    position: absolute; inset: 0; 
-    z-index: 100; 
-    pointer-events: none; 
-}
+/* --- LAYERS --- */
+/* Canvas Top (Sparks), Events Top, UI Bottom */
+#game-canvas { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
 #event-layer { position: absolute; inset: 0; z-index: 101; pointer-events: none; }
+
+/* Remove old blobs */
+.bg-blobs { display: none; }

@@ -98,11 +98,9 @@ function renderShop() {
         div.className = 'upgrade';
         div.id = `upg-${i}`;
         div.onclick = () => buy(i);
-        // Staggered animation for list loading
-        div.style.animation = `slide-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) ${i * 0.03}s forwards`;
-        div.style.opacity = '0'; // Start hidden for animation
         
-        // NEW HTML STRUCTURE FOR CSS ALIGNMENT
+        // Removed complex animation delay to ensure visibility
+        
         div.innerHTML = `
             <div class="upg-info">
                 <h4>${u.name}</h4>
