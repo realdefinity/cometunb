@@ -28,12 +28,18 @@
 body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; /* Fallback to system fonts */
-    height: 100vh;
+    font-family: 'Outfit', sans-serif;
+    
+    /* CRITICAL FIXES: */
     width: 100vw;
-    overflow: hidden;
+    height: 100vh;
+    overflow: hidden; /* No scrolling on the body */
+    margin: 0; padding: 0;
+    
+    /* Center layout */
     display: flex;
-    font-size: 14px;
+    align-items: center;
+    justify-content: center;
 }
 
 /* --- BACKGROUND (Subtle & Fluid) --- */

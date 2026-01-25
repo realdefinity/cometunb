@@ -2,134 +2,84 @@
 
 /* --- THE ORB (Main Button) --- */
 .big-button-container {
-    perspective: 1200px;
-    width: 320px; height: 320px;
+    perspective: 1000px;
+    /* Use relative sizing so it fits anywhere */
+    width: 100%;
+    height: 100%;
+    max-height: 50vh; 
     display: flex; align-items: center; justify-content: center;
 }
 
 .big-button {
-    width: 260px; height: 260px; 
-    border-radius: 50%;
+    /* Responsive Size: 45% of whichever is smaller (width or height) */
+    width: 40vmin; 
+    height: 40vmin;
+    min-width: 200px; min-height: 200px;
+    max-width: 350px; max-height: 350px;
     
-    /* Deep Physical Look */
-    background: radial-gradient(circle at 30% 30%, #2a2a2a, #000);
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #2a2a2a, #050505);
     box-shadow: 
-        0 30px 60px rgba(0,0,0,0.5), /* Drop Shadow */
-        inset 0 10px 20px rgba(255,255,255,0.1), /* Top Reflection */
-        inset 0 -10px 30px rgba(0,0,0,0.8); /* Bottom Shadow */
+        0 25px 50px rgba(0,0,0,0.6), 
+        inset 0 10px 20px rgba(255,255,255,0.08),
+        inset 0 -10px 30px rgba(0,0,0,0.9);
         
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
     cursor: pointer; position: relative; 
     display: flex; align-items: center; justify-content: center; 
-    transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s;
+    transition: transform 0.05s, box-shadow 0.2s; /* Faster click response */
+    touch-action: manipulation; /* Fix mobile double-tap zoom */
 }
 
+/* Responsive Text */
 .big-button::before { 
-    content: '$'; font-family: 'Outfit', sans-serif; font-size: 8rem; font-weight: 700; 
-    color: rgba(255,255,255,0.08); 
+    content: '$'; 
+    font-family: 'Outfit', sans-serif; 
+    font-size: 12vmin; /* Text scales with button */
+    font-weight: 800; 
+    color: rgba(255,255,255,0.05); 
     transition: color 0.3s;
 }
 
-/* Hover State */
 .big-button:hover { 
     transform: scale(1.02); 
-    box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 0 0 2px rgba(255,255,255,0.1);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.1);
 }
-.big-button:active { transform: scale(0.95); }
-.big-button:hover::before { color: var(--accent); text-shadow: 0 0 30px var(--accent-glow); }
+.big-button:active { transform: scale(0.96); }
+.big-button:hover::before { color: var(--accent); text-shadow: 0 0 40px var(--accent-glow); }
 
 
-/* --- SHOP CARDS (Widgets) --- */
+/* --- SHOP CARDS (More compact) --- */
 .upgrade { 
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid transparent; 
-    padding: 20px; 
-    margin-bottom: 12px; 
-    cursor: pointer; 
-    border-radius: 20px; /* Modern radius */
-    display: flex; justify-content: space-between; align-items: center;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    position: relative; overflow: hidden;
-}
-
-/* Hover Effect */
-.upgrade:hover { 
-    background: rgba(255, 255, 255, 0.06); 
-    transform: translateY(-2px); 
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-
-/* Affordability States */
-.upgrade.locked { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
-
-.upgrade.affordable { border-color: rgba(46, 204, 113, 0.3); } 
-.upgrade.affordable::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background: var(--accent); box-shadow: 0 0 15px var(--accent);
-}
-
-/* Text Styling */
-.upg-info h4 { font-size: 1rem; color: #fff; margin-bottom: 4px; font-weight: 600; }
-.upg-info p { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
-.rate-boost { color: var(--accent); font-weight: 600; background: rgba(46, 204, 113, 0.1); padding: 2px 6px; border-radius: 6px; }
-
-/* Cost Badge */
-.count-badge { 
-    background: #000; 
-    padding: 6px 12px; 
-    border-radius: 12px; 
-    color: #fff; font-size: 0.85rem; font-weight: 700;
-    border: 1px solid var(--glass-border);
-    min-width: 40px; text-align: center;
-}
-
-
-/* --- STATS & PRESTIGE --- */
-.balance { 
-    font-size: 3.5rem; font-weight: 800; color: #fff; 
-    letter-spacing: -1.5px;
-    margin-bottom: 20px;
-    background: linear-gradient(180deg, #fff 20%, #ccc 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-
-.prestige-container { 
-    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-    border: 1px solid var(--glass-border); 
-    padding: 24px; border-radius: 24px; 
-}
-.prestige-rank { font-size: 1.1rem; color: var(--purple); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;}
-
-/* Progress Bar */
-.next-rank-bar { 
-    width: 100%; height: 6px; background: rgba(0,0,0,0.3); 
-    border-radius: 10px; overflow: hidden; margin-top: 12px; 
-}
-.next-rank-fill { 
-    height: 100%; background: var(--purple); 
-    box-shadow: 0 0 20px var(--purple-glow); 
-    transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); 
-}
-
-/* --- BUTTONS --- */
-.opt-btn { 
-    background: rgba(255,255,255,0.05); 
-    border: none;
-    color: var(--text-muted); 
     padding: 16px; 
-    cursor: pointer; font-weight: 600; font-size: 0.8rem; 
+    margin-bottom: 10px; 
+    cursor: pointer; 
     border-radius: 16px;
-    width: 100%; transition: 0.2s;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: all 0.2s;
 }
-.opt-btn:hover { background: rgba(255,255,255,0.1); color: #fff; transform: scale(1.02); }
 
-/* --- BUY CONTROL TOGGLES --- */
-.buy-controls { 
-    display: flex; background: rgba(0,0,0,0.3); padding: 4px; 
-    border-radius: 14px; margin-top: 8px; 
+.upgrade:hover { background: rgba(255, 255, 255, 0.07); transform: translateX(5px); }
+
+/* Compact Text for small screens */
+.upg-info h4 { font-size: 0.95rem; color: #fff; margin-bottom: 2px; font-weight: 600; }
+.upg-info p { font-size: 0.75rem; color: var(--text-muted); }
+
+.count-badge { 
+    background: rgba(0,0,0,0.3); 
+    padding: 4px 10px; 
+    border-radius: 8px; 
+    color: #fff; font-size: 0.8rem; font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.1);
+    min-width: 35px; text-align: center;
 }
-.buy-amt { 
-    flex: 1; background: transparent; border: none; color: #666; padding: 6px 0; 
-    font-size: 0.75rem; font-weight: 700; cursor: pointer; border-radius: 10px; transition: 0.2s; 
+
+/* --- STATS --- */
+.balance { 
+    font-size: 2.5rem; /* Slightly smaller to fit */
+    font-weight: 800; color: #fff; 
+    margin-bottom: 20px;
+    white-space: nowrap; /* Never wrap money */
 }
-.buy-amt.active { background: rgba(255,255,255,0.15); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
