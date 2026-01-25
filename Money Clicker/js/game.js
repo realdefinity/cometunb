@@ -182,26 +182,54 @@ function endMania() {
     document.getElementById('mania-text').style.color = "#fff";
 }
 
+// --- FIXED GOLDEN BILL LOGIC ---
 function spawnGoldenBill() {
     let bill = document.createElement('div');
     bill.className = 'golden-bill';
     bill.innerText = "$$$";
-    let startY = Math.random() * (height - 150) + 50;
+    
+    // 1. Set Random Vertical Start (Avoid very top/bottom)
+    let startY = Math.random() * (window.innerHeight - 200) + 100;
     bill.style.top = startY + "px";
     
+    // 2. Start Off-screen Left
+    let currentX = -150;
+    bill.style.left = currentX + "px";
+
+    // 3. Random Speed (Faster = Harder)
+    // Between 4 and 10 pixels per frame (approx 240px/s to 600px/s)
+    let speed = Math.random() * 6 + 4; 
+
     let startTime = Date.now();
+    
+    // 4. Movement Loop
     let billInterval = setInterval(() => {
         if(!bill.parentNode) { clearInterval(billInterval); return; }
+        
+        // Move Right
+        currentX += speed;
+        bill.style.left = currentX + "px";
+
+        // Bob up and down (Faster bobbing for difficulty)
         let elapsed = (Date.now() - startTime) / 1000;
-        bill.style.marginTop = (Math.sin(elapsed * 5) * 20) + "px";
-    }, 16);
+        bill.style.marginTop = (Math.sin(elapsed * 10) * 30) + "px";
+
+        // Despawn if off-screen Right
+        if (currentX > window.innerWidth) {
+            bill.remove();
+            clearInterval(billInterval);
+        }
+    }, 16); // ~60fps
 
     bill.onclick = (e) => {
         e.stopPropagation();
+        clearInterval(billInterval); // Stop moving immediately
+        
         let reward = game.money * 0.25;
         if(reward === 0) reward = 10000;
         game.money += reward;
         game.lifetimeEarnings += reward;
+        
         for(let i=0; i<15; i++) createParticle(e.clientX, e.clientY, '', 'spark');
         createParticle(e.clientX, e.clientY, "+"+formatNumber(reward), 'text');
         
@@ -212,8 +240,8 @@ function spawnGoldenBill() {
         playSound('crit');
         bill.remove();
     };
+    
     document.getElementById('event-layer').appendChild(bill);
-    setTimeout(() => { if(bill.parentNode) bill.remove(); }, 8000);
 }
 
 function getCost(id, count) {
