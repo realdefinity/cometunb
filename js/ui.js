@@ -72,14 +72,27 @@ function showToast(msg) {
 // --- THEMES ---
 function renderThemes() {
     const list = document.getElementById('theme-panel');
+    const current = localStorage.getItem('wiki_theme') || 'Classic';
+    
+    list.innerHTML = ''; // Clear existing list to prevent duplicates
+
     themes.forEach(t => {
         const d = document.createElement('div');
         d.className = 't-opt';
         d.textContent = t;
+        
+        if (t === current) d.classList.add('active');
+
         d.onclick = () => {
             document.documentElement.setAttribute('data-theme', t.toLowerCase());
             localStorage.setItem('wiki_theme', t);
-            list.classList.remove('visible');
+            
+            // Visual Update
+            document.querySelectorAll('.t-opt').forEach(el => el.classList.remove('active'));
+            d.classList.add('active');
+            
+            // Optional: Close panel on click? 
+            // list.classList.remove('visible'); 
         };
         list.appendChild(d);
     });
