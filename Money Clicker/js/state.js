@@ -1,4 +1,3 @@
-// --- UPGRADES DATA ---
 const upgrades = [
     { name: "Piggy Bank", baseCost: 15, baseRate: 1 },
     { name: "Vending Machine", baseCost: 100, baseRate: 4 },
@@ -18,7 +17,6 @@ const upgrades = [
     { name: "Galactic Treasury", baseCost: 1e21, baseRate: 800e9 }
 ];
 
-// --- RANK SYSTEM (Tiered Milestones) ---
 const rankData = [
     { name: "Intern", req: 0 },
     { name: "Freelancer", req: 10 },
@@ -42,7 +40,8 @@ window.game = {
     money: 0, 
     lifetimeEarnings: 0, 
     influence: 0, 
-    counts: Array(upgrades.length).fill(0), 
+    counts: Array(upgrades.length).fill(0),
+    levels: Array(upgrades.length).fill(1), // Added: Level 1 is the default
     startTime: Date.now() 
 };
 
@@ -55,25 +54,26 @@ window.goldenBillTimer = 2000;
 window.autoSaveTimer = 0;
 window.tickerTimer = 15;
 
-// Headlines
 const newsHeadlines = [
     "Market rallying to new heights...", "Tech stocks surging...",
-    "Crypto regulation talks stall...", "Global merger announced...",
-    "Interest rates holding steady...", "Bulls taking over the market...",
-    "Secure terminal connection established...", "Assets liquidating smoothly..."
+    "Asset optimization protocols online...", "Portfolio diversification recommended...",
+    "Bulls taking over the market...", "Secure terminal connection established..."
 ];
 
-function saveLocal() { localStorage.setItem('mintV7_money_save', JSON.stringify(game)); }
+function saveLocal() { localStorage.setItem('mintV7_money_save', JSON.js.stringify(game)); }
 
 function loadLocal() {
     let s = localStorage.getItem('mintV7_money_save');
     if(s) {
         try {
             let d = JSON.parse(s);
+            // Patch missing levels if loading an old save
+            if (!d.levels) d.levels = Array(upgrades.length).fill(1);
             game = { ...game, ...d };
-            while(game.counts.length < upgrades.length) game.counts.push(0);
+            while(game.counts.length < upgrades.length) {
+                game.counts.push(0);
+                game.levels.push(1);
+            }
         } catch(e) { console.error(e); }
     }
 }
-
-async function checkSecureCode(input) { return false; }
