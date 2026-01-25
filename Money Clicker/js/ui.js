@@ -12,17 +12,16 @@ function formatNumber(num) {
     return num.toExponential(2).replace('+', '');
 }
 
-// --- UI UPDATE LOOP ---
+// --- MAIN UI LOOP ---
 function updateUI(rate) {
-    // 1. Core Values
+    // 1. Core
     document.title = `$${formatNumber(game.money)} - THE MINT`;
     document.getElementById('ui-money').innerText = formatNumber(game.money);
     
     const elRate = document.getElementById('ui-rate');
     if(elRate) elRate.innerText = formatNumber(rate);
     
-    // 2. Rank & Influence Logic
-    // Find current rank based on influence threshold
+    // 2. Rank & Prestige Logic
     let currentRankIndex = 0;
     for(let i = 0; i < rankData.length; i++) {
         if(game.influence >= rankData[i].req) {
@@ -35,45 +34,53 @@ function updateUI(rate) {
     let currentRank = rankData[currentRankIndex];
     let nextRank = rankData[currentRankIndex + 1];
     
-    // Display Current Info
+    // Update Prestige Card
     document.getElementById('rank-name').innerText = currentRank.name;
     document.getElementById('ui-influence').innerText = formatNumber(game.influence);
+    document.getElementById('ui-bonus').innerText = formatNumber(game.influence * 10);
     
-    // Calculate Rank Progress
+    // Rank Progress Bar
     let rankProgress = 0;
-    let nextGoalText = "MAX RANK";
+    let nextGoalText = "MAX RANK ACHIEVED";
     
     if (nextRank) {
-        // Linear progress between current tier requirement and next tier requirement
         let range = nextRank.req - currentRank.req;
         let currentInTier = game.influence - currentRank.req;
         rankProgress = Math.max(0, Math.min(100, (currentInTier / range) * 100));
-        nextGoalText = `${formatNumber(nextRank.req - game.influence)} Inf. to ${nextRank.name}`;
+        let missingInf = nextRank.req - game.influence;
+        nextGoalText = `${formatNumber(missingInf)} INF TO ${nextRank.name.toUpperCase()}`;
     } else {
         rankProgress = 100;
     }
     
-    // Update Prestige Card UI
     const bar = document.getElementById('influence-bar');
     if(bar) bar.style.width = rankProgress + "%";
     
     const nextText = document.getElementById('next-rank-text');
     if(nextText) nextText.innerText = nextGoalText;
-    
-    // Bonus Display (1 Influence = +10% Speed)
-    document.getElementById('ui-bonus').innerText = formatNumber(game.influence * 10);
 
-    // 3. Prestige Button State
-    // Calculate cost for NEXT point of influence (Standard Scaling)
+    // 3. Prestige Button State (The "What you need" feature)
+    // Formula: To get 'n' total influence, you need 'n^2 * 1,000,000' lifetime earnings.
+    // We want the NEXT point of influence (current + 1).
+    let nextPointTotal = game.influence + 1;
+    let costForNextPoint = Math.pow(nextPointTotal, 2) * 1000000;
+    
+    // Current Potential based on actual earnings
     let potential = Math.floor(Math.pow(game.lifetimeEarnings / 1000000, 0.5));
     let btn = document.getElementById('btn-open-prestige');
     
     if (potential > game.influence) {
+        // Ready to liquidate
+        let gain = potential - game.influence;
         btn.classList.add('ready');
-        btn.innerHTML = `LIQUIDATE <span style="font-size:0.7em; opacity:0.8;">(+${formatNumber(potential - game.influence)} Inf)</span>`;
+        btn.innerHTML = `LIQUIDATE ASSETS <span style="font-size:0.8em; opacity:0.9; margin-left:5px;">(+${formatNumber(gain)} Inf)</span>`;
     } else {
+        // Not ready - Show requirement
+        let missingCash = costForNextPoint - game.lifetimeEarnings;
+        if(missingCash < 0) missingCash = 0; // Just in case
+        
         btn.classList.remove('ready');
-        btn.innerHTML = `LIQUIDATE <span style="font-size:0.7em; opacity:0.5;">(Not Ready)</span>`;
+        btn.innerHTML = `NEED $${formatNumber(missingCash)} MORE VALUE`;
     }
 
     // 4. Hype
@@ -83,7 +90,7 @@ function updateUI(rate) {
     if(hypeText) hypeText.innerText = Math.floor(hype) + '%';
     
     // 5. Shop
-    updateShopUI(influenceMult = 1 + (game.influence * 0.10));
+    updateShopUI(1 + (game.influence * 0.10));
 }
 
 function updateShopUI(influenceMult) {
@@ -102,7 +109,7 @@ function updateShopUI(influenceMult) {
         el.querySelector('.count-badge').innerText = game.counts[i];
         
         let buyAmountText = (buyMode === 'MAX' && max > 0) ? `+${max}` : (buyMode !== 1 && buyMode !== 'MAX' ? `+${amt}` : '');
-        el.querySelector('h4').innerHTML = `${u.name} <span style="font-size:0.7em; opacity:0.6; margin-left:4px;">${buyAmountText}</span>`;
+        el.querySelector('h4').innerHTML = `${u.name} <span style="font-size:0.7em; opacity:0.5; margin-left:4px;">${buyAmountText}</span>`;
         
         let boostRate = u.baseRate * influenceMult * (maniaMode ? 2 : 1);
         el.querySelector('.rate-boost').innerText = `+$${formatNumber(boostRate)}/s`;
@@ -116,7 +123,6 @@ function updateShopUI(influenceMult) {
     });
 }
 
-// --- RENDER SHOP ---
 function renderShop() {
     const container = document.getElementById('shop-container');
     container.innerHTML = '';
@@ -142,7 +148,6 @@ function renderShop() {
     });
 }
 
-// --- CONTROLS ---
 function setBuyMode(mode, btn) {
     buyMode = mode;
     document.querySelectorAll('.buy-amt').forEach(b => b.classList.remove('active', 'active-max'));
@@ -150,7 +155,6 @@ function setBuyMode(mode, btn) {
     updateUI(0);
 }
 
-// --- MODALS ---
 function openModal(id) {
     const modal = document.getElementById(id);
     modal.style.display = 'flex';
@@ -198,7 +202,6 @@ function hardReset() {
     }
 }
 
-// Audio Toggle
 let audioEnabled = true;
 function toggleAudio() {
     audioEnabled = !audioEnabled;
