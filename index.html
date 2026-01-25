@@ -18,6 +18,7 @@
     </div>
 
     <div id="toast">Message</div>
+    
     <div id="link-preview">
         <img id="lp-img" src="" alt="">
         <h4 id="lp-title">Title</h4>
@@ -81,7 +82,20 @@
                 <button class="btn-primary" onclick="initGame()" style="flex: 2; margin: 0;">Start Race</button>
                 <button class="btn-primary" onclick="showStats()" style="flex: 1; margin: 0; background: rgba(255,255,255,0.1); box-shadow:none;">📊</button>
             </div>
-            <button class="btn-primary" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text); margin-top:0px; box-shadow:none;" onclick="randomize()">🎲 Randomize</button>
+            
+            <div class="random-bar">
+                <div class="diff-select-wrapper">
+                    <select id="diff-select" class="diff-select">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                    <div class="diff-arrow">▼</div>
+                </div>
+                <button class="btn-primary rand-btn" onclick="randomize()">
+                    🎲 Randomize
+                </button>
+            </div>
         </div>
     </div>
 
@@ -97,14 +111,17 @@
             </div>
 
             <div style="font-size:4.5rem; font-weight:800; margin-bottom:15px; font-family:var(--font-ui); color:var(--text); text-shadow:0 10px 30px rgba(0,0,0,0.3);" id="win-time">0:00</div>
+            
             <div style="display:flex; justify-content:center; gap:30px; margin-bottom:40px; opacity:0.9; font-size:1.1rem;">
                 <span>Clicks: <b id="win-clicks" style="color:var(--accent);">0</b></span>
                 <span>Penalties: <b id="win-penalties" style="color:var(--danger);">0s</b></span>
             </div>
+
             <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; margin-bottom:25px; text-align:left; max-height:150px; overflow-y:auto; font-size:0.9rem; border:1px solid rgba(255,255,255,0.05);">
                 <strong style="color:var(--accent); display:block; margin-bottom:5px; font-size:0.75rem; text-transform:uppercase;">Traversed Path</strong> 
                 <span id="win-path" style="opacity:0.8; line-height:1.6;"></span>
             </div>
+
             <button class="btn-primary" onclick="returnToLobby()">Back to Lobby</button>
         </div>
     </div>

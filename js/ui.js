@@ -412,3 +412,34 @@ function showStats() {
 function closeStats() {
     document.getElementById('stats-screen').classList.add('hidden');
 }
+
+// --- TEXT DECODER ANIMATION ---
+function animateText(elementId, finalText) {
+    const el = document.getElementById(elementId);
+    if(!el) return;
+
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let iterations = 0;
+    const maxIterations = 15; // How long it scrambles
+    
+    // Clear previous interval if exists (attach to element to track it)
+    if(el.dataset.animInterval) clearInterval(parseInt(el.dataset.animInterval));
+
+    const interval = setInterval(() => {
+        el.value = finalText.split("").map((letter, index) => {
+            if(index < iterations) {
+                return finalText[index]; // Lock in correct char
+            }
+            return chars[Math.floor(Math.random() * chars.length)]; // Scramble
+        }).join("");
+
+        if(iterations >= finalText.length) {
+            clearInterval(interval);
+            el.value = finalText; // Ensure final fidelity
+        }
+
+        iterations += 1 / 2; // Speed of decoding
+    }, 30);
+
+    el.dataset.animInterval = interval;
+}

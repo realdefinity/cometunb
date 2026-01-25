@@ -724,3 +724,68 @@ input[type=number] {
     color: var(--success);
     text-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
 }
+
+/* --- RANDOMIZER & DIFFICULTY --- */
+.random-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.rand-btn {
+    flex: 2;
+    margin: 0;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text);
+    box-shadow: none;
+}
+.rand-btn:hover {
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.05);
+}
+
+.diff-select-wrapper {
+    flex: 1;
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    transition: 0.3s;
+}
+
+.diff-select-wrapper:hover {
+    border-color: var(--accent);
+}
+
+.diff-select {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-sub);
+    padding: 0 15px;
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.diff-select option {
+    background: #111;
+    color: white;
+    padding: 10px;
+}
+
+.diff-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    color: var(--accent);
+    pointer-events: none;
+}
