@@ -1,60 +1,59 @@
 :root {
-    /* --- CORE PALETTE (Clean & Deep) --- */
-    --bg: #000000;
+    /* --- COLOR PALETTE (Dark Glass) --- */
+    --bg: #050505;
     
-    /* The "Apple" Glass Effect */
-    --glass-surface: rgba(20, 20, 25, 0.6);
-    --glass-highlight: rgba(255, 255, 255, 0.08);
+    /* Surface Colors */
+    --glass-surface: rgba(20, 20, 25, 0.7);
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-blur: 40px;
 
+    /* Text Colors */
+    --text-main: #ffffff;
+    --text-dim: #94a3b8;
+    
     /* Accents */
-    --accent: #2ecc71; /* Soft Emerald */
-    --accent-glow: rgba(46, 204, 113, 0.4);
+    --green: #10b981;
+    --green-glow: rgba(16, 185, 129, 0.4);
     
-    --purple: #9b59b6; /* Soft Amethyst */
-    --purple-glow: rgba(155, 89, 182, 0.4);
+    --purple: #a855f7;
+    --purple-glow: rgba(168, 85, 247, 0.4);
     
-    --gold: #f1c40f;
-    
-    /* Typography */
-    --text: #ffffff;
-    --text-muted: #8e8e93; /* iOS grey */
+    --gold: #fbbf24;
+    --red: #f43f5e;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; outline: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+/* Reset Defaults */
+* { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 
 body {
+    margin: 0; padding: 0;
     background: var(--bg);
-    color: var(--text);
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
     
-    /* LOCK THE SCREEN */
-    position: fixed; /* Stops the elastic scroll bounce */
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* CRITICAL: Lock the screen size */
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    overflow: hidden; /* No scrolling the body */
 }
 
-/* --- BACKGROUND BLOBS --- */
+/* --- BACKGROUND FX --- */
 .bg-blobs {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
+    position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
     background: radial-gradient(circle at center, #111 0%, #000 100%);
-    overflow: hidden;
 }
+
 .blob {
     position: absolute; border-radius: 50%;
-    filter: blur(100px); opacity: 0.5;
-    animation: float-blob 30s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+    filter: blur(90px); opacity: 0.4;
+    animation: float 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
-.blob-1 { width: 800px; height: 800px; background: #1a0b2e; top: -200px; left: -200px; }
-.blob-2 { width: 600px; height: 600px; background: #0b1a15; bottom: -100px; right: -100px; }
+.blob-1 { width: 60vh; height: 60vh; background: #1e1b4b; top: -10%; left: -10%; }
+.blob-2 { width: 50vh; height: 50vh; background: #064e3b; bottom: -10%; right: -10%; animation-delay: -5s; }
+.blob-3 { width: 40vh; height: 40vh; background: #312e81; top: 40%; left: 40%; animation-delay: -10s; }
 
-@keyframes float-blob { 0% { transform: translate(0, 0); } 100% { transform: translate(40px, 20px); } }
+@keyframes float { 0% { transform: translate(0, 0); } 100% { transform: translate(30px, 20px); } }
 
-/* --- CANVAS LAYERS --- */
-#game-canvas, #event-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
-#event-layer { z-index: 60; }
+/* Layers */
+#game-canvas { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+#event-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }

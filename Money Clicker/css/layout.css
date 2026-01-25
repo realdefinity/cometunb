@@ -1,104 +1,89 @@
-/* --- NUCLEAR SCREEN LOCK --- */
-/* This forces the layout to touch all 4 corners of the screen exactly */
-.layout { 
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    
-    display: flex; 
-    z-index: 10; 
-    padding: 20px; 
-    gap: 20px;
-    
-    /* Ensure nothing ever spills out */
-    overflow: hidden;
+/* --- MAIN CONTAINER --- */
+.layout {
+    position: absolute; inset: 0; /* Snap to all 4 corners */
+    z-index: 10;
+    display: flex;
+    padding: 24px;
+    gap: 24px;
+    overflow: hidden; /* Prevent spillover */
 }
 
-/* --- THE GLASS PANELS --- */
+/* --- PANELS SHARED STYLES --- */
 .panel-left, .panel-right {
+    display: flex; flex-direction: column;
     background: var(--glass-surface);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     border-radius: 24px;
-    display: flex; 
-    flex-direction: column; 
-    z-index: 20;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     
-    /* CRITICAL: Allow these to shrink if screen is short */
+    /* HEIGHT LOCK */
     height: 100%; 
-    min-height: 0; 
+    min-height: 0; /* Allows children to scroll */
 }
 
-/* Left Panel (Stats) */
-.panel-left { 
-    width: 320px; 
-    padding: 24px; 
-    overflow-y: auto; /* Internal scroll if screen is tiny */
+/* --- LEFT PANEL (Stats) --- */
+.panel-left {
+    width: 320px;
+    flex-shrink: 0;
+    padding: 24px;
+    overflow-y: auto; /* Internal scrolling if screen is short */
 }
-.panel-left::-webkit-scrollbar { width: 0px; } /* Hide scrollbar */
+.panel-left::-webkit-scrollbar { width: 0; } /* Invisible scrollbar */
 
-/* Right Panel (Shop) */
-.panel-right { 
-    width: 420px; 
-    min-width: 300px;
-}
-
-/* --- CENTER STAGE --- */
-.panel-center {
-    flex: 1; /* Takes remaining width */
-    height: 100%; /* Match height of neighbors */
-    min-height: 0; /* Allow shrinking */
-    
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center;
-    position: relative; 
+/* --- RIGHT PANEL (Shop) --- */
+.panel-right {
+    width: 400px;
+    flex-shrink: 0;
 }
 
-/* --- SHOP SCROLLING FIX --- */
 .shop-header {
+    flex-shrink: 0; /* Header stays fixed */
     padding: 20px 24px;
     border-bottom: 1px solid var(--glass-border);
     background: rgba(255,255,255,0.02);
-    flex-shrink: 0; /* Lock header height */
 }
 
-.shop-list { 
-    flex: 1; /* Fill remaining vertical space */
-    overflow-y: auto; /* Scroll ONLY inside this box */
+.shop-list {
+    flex: 1; /* Fills remaining height */
+    overflow-y: auto; /* Scrolls internally */
     padding: 16px;
-    overscroll-behavior: contain; /* Stop parent scroll */
 }
-
-/* Custom Scrollbar */
-.shop-list::-webkit-scrollbar { width: 5px; }
-.shop-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+/* Shop Scrollbar Styling */
+.shop-list::-webkit-scrollbar { width: 6px; }
+.shop-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 .shop-list::-webkit-scrollbar-track { background: transparent; }
 
+/* --- CENTER PANEL (Game) --- */
+.panel-center {
+    flex: 1; /* Takes remaining width */
+    height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    min-width: 0;
+}
 
-/* --- MOBILE / TABLET OVERRIDE --- */
-/* Trigger this if screen is narrow OR if height is very short */
-@media (max-width: 1000px), (max-height: 600px) {
+/* --- RESPONSIVE / MOBILE --- */
+@media (max-width: 1100px) {
     .layout {
-        position: fixed; /* Lock to window */
+        position: relative; /* Unlock inset */
+        height: auto; min-height: 100vh;
         flex-direction: column;
-        padding: 10px;
-        gap: 10px;
-        overflow-y: auto; /* Allow scrolling the whole page on mobile */
+        overflow-y: auto; /* Allow full page scroll */
+        padding: 16px;
     }
-    
-    /* Unlock heights for scrolling */
+
     .panel-left, .panel-right, .panel-center {
         width: 100%;
-        height: auto; 
+        height: auto;
         min-height: auto;
-        flex: none; /* Stop flexing */
+        flex: none;
     }
 
-    /* Mobile Order */
-    .panel-center { order: 1; margin-bottom: 20px; margin-top: 40px; }
-    .panel-left { order: 2; margin-bottom: 10px; }
-    .panel-right { order: 3; height: 500px; } /* Fixed height for shop on mobile */
+    /* Mobile Order: Game Top -> Stats -> Shop Bottom */
+    .panel-center { order: 1; height: 50vh; min-height: 400px; margin-bottom: 20px; }
+    .panel-left { order: 2; margin-bottom: 20px; }
+    .panel-right { order: 3; height: 600px; } /* Fixed height for shop scroll */
 }

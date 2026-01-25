@@ -1,127 +1,173 @@
-/* --- THE ORB (Main Button) --- */
+/* --- MAIN BUTTON --- */
 .big-button-container {
     perspective: 1000px;
     width: 100%; height: 100%;
-    /* Limits the container so it doesn't push UI off screen */
-    max-height: 60vh; 
+    max-height: 60vh;
     display: flex; align-items: center; justify-content: center;
 }
 
 .big-button {
-    /* Responsive Sizing: 45% of viewport min dimension */
-    width: 45vmin; 
-    height: 45vmin;
-    
-    /* Caps to prevent it getting absurdly huge/small */
-    min-width: 220px; min-height: 220px;
-    max-width: 400px; max-height: 400px;
+    /* Responsive sizing logic */
+    width: 40vmin; height: 40vmin;
+    min-width: 240px; min-height: 240px;
+    max-width: 450px; max-height: 450px;
     
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #2a2a2a, #050505);
+    background: radial-gradient(circle at 30% 30%, #222, #000);
+    border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 
-        0 30px 60px rgba(0,0,0,0.6), 
-        inset 0 10px 20px rgba(255,255,255,0.08),
-        inset 0 -10px 30px rgba(0,0,0,0.9);
-        
-    border: 1px solid rgba(255,255,255,0.08);
-    cursor: pointer; position: relative; 
-    display: flex; align-items: center; justify-content: center; 
-    transition: transform 0.08s, box-shadow 0.2s;
-    touch-action: manipulation;
+        0 40px 80px rgba(0,0,0,0.6), 
+        inset 0 10px 30px rgba(255,255,255,0.05);
+    
+    cursor: pointer; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.1s, box-shadow 0.2s;
 }
 
-.big-button::before { 
-    content: '$'; 
-    font-family: 'Outfit', sans-serif; 
-    font-size: 14vmin; 
-    font-weight: 800; 
-    color: rgba(255,255,255,0.06); 
-    transition: color 0.3s;
+.big-button::before {
+    content: '$';
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800; color: rgba(255,255,255,0.05);
+    font-size: 15vmin; transition: color 0.3s;
 }
 
-.big-button:hover { 
-    transform: scale(1.02); 
-    box-shadow: 0 50px 100px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.1);
-}
-.big-button:active { transform: scale(0.96); }
-.big-button:hover::before { color: var(--accent); text-shadow: 0 0 50px var(--accent-glow); }
+.big-button:hover { transform: scale(1.02); border-color: rgba(255,255,255,0.2); }
+.big-button:active { transform: scale(0.97); }
+.big-button:hover::before { color: var(--green); text-shadow: 0 0 40px var(--green-glow); }
 
-
-/* --- SHOP CARDS (Widgets) --- */
-.upgrade { 
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid transparent; 
-    padding: 16px 20px; 
-    margin-bottom: 12px; 
-    cursor: pointer; 
-    border-radius: 16px;
-    display: flex; justify-content: space-between; align-items: center;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+/* Mania Text */
+#mania-text {
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 30px;
+    pointer-events: none;
 }
 
-.upgrade:hover { 
-    background: rgba(255, 255, 255, 0.08); 
-    transform: translateX(4px); 
-}
-
-.upgrade.locked { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
-.upgrade.affordable { border-left: 3px solid var(--accent); background: rgba(46, 204, 113, 0.05); }
-
-.upg-info h4 { font-size: 0.95rem; color: #fff; margin-bottom: 4px; font-weight: 600; }
-.upg-info p { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 8px; }
-
-.count-badge { 
-    background: rgba(0,0,0,0.4); 
-    padding: 6px 12px; 
-    border-radius: 10px; 
-    color: #fff; font-size: 0.8rem; font-weight: 700;
+/* --- NEWS BAR --- */
+.news-bar {
+    position: absolute; bottom: 20px; 
+    width: 90%; max-width: 600px; height: 36px;
+    background: rgba(0,0,0,0.6);
     border: 1px solid var(--glass-border);
-    min-width: 40px; text-align: center;
+    border-radius: 20px;
+    overflow: hidden; display: flex; align-items: center;
+    backdrop-filter: blur(10px);
+}
+.news-content {
+    white-space: nowrap; padding-left: 100%;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim);
+    animation: ticker 20s linear infinite;
+}
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-200%); } }
+
+
+/* --- SHOP ITEMS (Cards) --- */
+.upgrade {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    padding: 16px 20px; margin-bottom: 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: 0.2s;
 }
 
-/* --- STATS & UI ELEMENTS --- */
-.balance { 
-    font-size: 2.8rem; font-weight: 800; color: #fff; 
-    margin-bottom: 20px; white-space: nowrap; 
-    background: linear-gradient(180deg, #fff 20%, #ccc 100%);
+.upgrade:hover { background: rgba(255,255,255,0.06); transform: translateX(4px); }
+.upgrade.locked { opacity: 0.3; filter: grayscale(1); pointer-events: none; }
+.upgrade.affordable { border-left: 3px solid var(--green); background: rgba(16, 185, 129, 0.05); }
+.upgrade.affordable-max { border-left: 3px solid var(--gold); }
+
+.upg-info h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; color: #fff; }
+.upg-info p { font-size: 0.75rem; color: var(--text-dim); display: flex; gap: 8px; }
+
+.count-badge {
+    background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border);
+    padding: 4px 10px; border-radius: 8px;
+    font-size: 0.8rem; font-weight: 700; color: #fff;
+    min-width: 35px; text-align: center;
+}
+
+/* --- STATS & UI --- */
+.header-title {
+    font-size: 0.7rem; color: var(--text-dim); font-weight: 700; 
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+}
+
+.balance {
+    font-size: 2.8rem; font-weight: 800; color: #fff; margin-bottom: 24px;
+    background: linear-gradient(180deg, #fff 20%, #94a3b8 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
-.header-title { 
-    font-size: 0.7rem; color: var(--text-muted); 
-    font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; 
-    margin-bottom: 12px;
+/* Prestige Box */
+.prestige-container {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);
+    padding: 16px; border-radius: 16px; margin-bottom: 24px;
 }
+.prestige-rank { color: var(--purple); font-weight: 800; font-size: 1rem; margin-bottom: 8px; }
+.prestige-sub { font-size: 0.75rem; display: flex; gap: 10px; color: var(--text-dim); }
 
-/* Standard Buttons */
-.opt-btn { 
-    background: rgba(255,255,255,0.05); 
-    border: 1px solid transparent;
-    color: var(--text-muted); 
-    padding: 14px; 
-    cursor: pointer; font-weight: 600; font-size: 0.75rem; 
-    border-radius: 12px; width: 100%; transition: 0.2s;
+.next-rank-bar {
+    width: 100%; height: 6px; background: rgba(0,0,0,0.3);
+    border-radius: 10px; margin-top: 12px; overflow: hidden;
 }
-.opt-btn:hover { background: rgba(255,255,255,0.1); color: #fff; transform: scale(1.02); }
-
-/* Prestige Bar */
-.prestige-container { 
-    background: rgba(255,255,255,0.02); 
-    border: 1px solid var(--glass-border); 
-    padding: 20px; border-radius: 20px; margin-bottom: 24px;
-}
-.next-rank-bar { width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-top: 10px; }
 .next-rank-fill { height: 100%; background: var(--purple); box-shadow: 0 0 15px var(--purple-glow); transition: width 0.5s; }
 
-/* Buy Controls */
-.buy-controls { 
-    display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 4px; 
-    border-radius: 12px; margin-top: 10px; 
+/* Rate Display */
+.rate-display {
+    display: flex; justify-content: space-between; padding: 16px;
+    background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 16px; margin-bottom: 24px;
 }
-.buy-amt { 
-    flex: 1; background: transparent; border: none; color: #666; padding: 8px 0; 
-    font-size: 0.75rem; font-weight: 700; cursor: pointer; border-radius: 8px; transition: 0.2s; 
+
+/* Hype Bar */
+.hype-container { margin-top: auto; }
+.hype-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-dim); font-weight: 700; margin-bottom: 6px; }
+.hype-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+.hype-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4); width: 0%; transition: width 0.1s; }
+
+/* --- CONTROLS --- */
+.options-area { display: flex; flex-direction: column; gap: 10px; margin-top: 24px;}
+.opt-btn {
+    background: rgba(255,255,255,0.05); border: none; color: var(--text-dim);
+    padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    font-size: 0.75rem; letter-spacing: 0.5px;
 }
-.buy-amt:hover { color: #fff; }
+.opt-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.buy-controls { display: flex; gap: 5px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; }
+.buy-amt {
+    flex: 1; background: transparent; border: none; color: #666; padding: 6px;
+    font-weight: 700; font-size: 0.75rem; cursor: pointer; border-radius: 8px; transition: 0.2s;
+}
 .buy-amt.active { background: rgba(255,255,255,0.15); color: #fff; }
 .buy-amt.active-max { background: var(--gold); color: #000; }
+
+/* --- MODALS --- */
+.modal {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+    align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s;
+}
+.modal.open { opacity: 1; }
+
+.modal-content {
+    background: #0a0a0a; border: 1px solid var(--glass-border);
+    padding: 32px; width: 90%; max-width: 500px;
+    border-radius: 24px; text-align: center;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    transform: scale(0.95); transition: transform 0.3s;
+}
+.modal.open .modal-content { transform: scale(1); }
+
+.close-modal { position: absolute; top: 20px; right: 20px; font-size: 24px; color: #666; cursor: pointer; }
+.close-modal:hover { color: #fff; }
+.save-textarea { width: 100%; height: 120px; background: #111; border: 1px solid #333; color: var(--green); padding: 12px; border-radius: 12px; margin: 20px 0; resize: none; font-family: monospace; }
+
+/* --- MUTE BTN --- */
+.mute-btn {
+    position: fixed; top: 24px; left: 24px; z-index: 100;
+    font-size: 20px; color: rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s;
+}
+.mute-btn:hover { color: #fff; }
+.mute-btn.active { color: var(--green); }
