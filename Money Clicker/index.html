@@ -18,10 +18,10 @@
     <!-- BACKGROUND LAYERS -->
     <div class="bg-blobs"></div> 
     
-    <!-- MAIN GRID -->
+    <!-- MAIN UI GRID -->
     <div class="layout">
         
-        <!-- PANEL 1: LEFT (Stats) -->
+        <!-- PANEL 1: LEFT (Stats & Control) -->
         <div class="panel-left">
             <div class="panel-left-content">
                 <!-- Balance Block -->
@@ -29,10 +29,10 @@
                     <div class="header-title"><span>Net Asset Value</span> <span>USD</span></div>
                     <div class="balance" id="balance-el">$<span id="ui-money">0</span></div>
                     
-                    <!-- Prestige Card (UPDATED) -->
+                    <!-- Prestige Card -->
                     <div class="prestige-container">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div class="prestige-rank" id="rank-name">NOVICE</div>
+                            <div class="prestige-rank" id="rank-name">INTERN</div>
                             <div class="prestige-pill">★ <span id="ui-influence">0</span></div>
                         </div>
                         
@@ -43,9 +43,9 @@
                         <!-- Progress Bar -->
                         <div class="next-rank-bar"><div class="next-rank-fill" id="influence-bar"></div></div>
                         
-                        <!-- Explicit Requirement Text -->
+                        <!-- Milestone Requirement Text -->
                         <div style="display:flex; justify-content:flex-end; margin-top:6px;">
-                            <span id="next-rank-text" style="font-size:0.65rem; color:#666; font-weight:700; font-family:'JetBrains Mono';">LOADING RANK DATA...</span>
+                            <span id="next-rank-text" style="font-size:0.65rem; color:#666; font-weight:700; font-family:'JetBrains Mono';">CALCULATING...</span>
                         </div>
                     </div>
 
@@ -65,19 +65,26 @@
                     </div>
                 </div>
 
-                <!-- Options -->
+                <!-- Options & Analytics Area -->
                 <div class="options-area" style="margin-top:auto;">
+                    <!-- New Analytics Trigger -->
+                    <button class="opt-btn" onclick="openAnalytics()" style="border-color: rgba(34, 197, 94, 0.2); color: var(--green); margin-bottom: 8px;">
+                        VIEW MARKET ANALYTICS
+                    </button>
+
                     <button class="opt-btn prestige-btn" id="btn-open-prestige" onclick="openPrestige()">LIQUIDATE ASSETS</button>
+                    
                     <div style="display:flex; gap:8px;">
                         <button class="opt-btn" onclick="openExport()">BACKUP</button>
                         <button class="opt-btn" onclick="openImport()">RESTORE</button>
                     </div>
+                    
                     <button class="opt-btn" style="border:1px solid rgba(239, 68, 68, 0.2); color:#ef4444;" onclick="hardReset()">FACTORY RESET</button>
                 </div>
             </div>
         </div>
 
-        <!-- PANEL 2: CENTER (Interaction) -->
+        <!-- PANEL 2: CENTER (Interaction Terminal) -->
         <div class="panel-center">
             <div class="big-button-container">
                 <div class="big-button" id="main-btn"></div>
@@ -86,15 +93,15 @@
             <div id="mania-text" class="status-label">SECURE TERMINAL ACTIVE</div>
             
             <div class="news-bar">
-                <div class="news-content" id="news-content">INITIALIZING MARKET DATA STREAM...</div>
+                <div class="news-content" id="news-content">ESTABLISHING DATA STREAM...</div>
             </div>
         </div>
 
-        <!-- PANEL 3: RIGHT (Shop) -->
+        <!-- PANEL 3: RIGHT (Asset Markets) -->
         <div class="panel-right">
             <div class="shop-header">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div class="header-title" style="margin:0;">ASSETS</div>
+                    <div class="header-title" style="margin:0;">ASSET MARKETS</div>
                     <div style="font-size:0.65rem; color:#444; font-weight:700;">QTY</div>
                 </div>
                 <div class="buy-controls">
@@ -108,27 +115,31 @@
         </div>
     </div>
 
-    <!-- OVERLAYS -->
+    <!-- CANVAS LAYERS (Managed by Game Engine) -->
     <canvas id="game-canvas"></canvas>
     <div id="event-layer"></div>
+    
+    <!-- GLOBAL CONTROLS -->
     <div id="mute-toggle" class="mute-btn" onclick="toggleAudio()">&#128266;</div>
 
-    <!-- MODALS -->
+    <!-- MODALS (Handled by UI Logic) -->
+    
+    <!-- Prestige Modal -->
     <div id="prestige-modal" class="modal">
         <div class="modal-content">
             <div class="close-modal" onclick="closeModal('prestige-modal')">&times;</div>
             <h2 style="color:var(--gold); margin-bottom:12px; font-weight:900; letter-spacing:1px;">LIQUIDATION</h2>
-            <p style="color:#666; font-size:0.8rem; margin-bottom:24px;">Sell company for Reputation Points.</p>
+            <p style="color:#666; font-size:0.8rem; margin-bottom:24px;">Sell current operations to increase permanent Reputation.</p>
             
-            <div class="prestige-val" style="font-size:3.5rem; color:var(--gold); font-weight:900; margin:24px 0;">+<span id="claimable-influence">0</span></div>
+            <div class="prestige-val">+<span id="claimable-influence">0</span></div>
             
             <div class="modal-info-box">
                 <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span style="color:#666;">Current Multiplier:</span>
+                    <span style="color:#666;">Current Bonus:</span>
                     <span id="current-bonus-modal" style="color:#fff; font-weight:700;">0%</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; color:var(--green);">
-                    <span>Post-Liquidation:</span>
+                    <span>Projected Bonus:</span>
                     <span id="new-bonus-modal" style="font-weight:700;">0%</span>
                 </div>
             </div>
@@ -136,16 +147,17 @@
         </div>
     </div>
 
+    <!-- Data Modal -->
     <div id="save-modal" class="modal">
         <div class="modal-content">
             <div class="close-modal" onclick="closeModal('save-modal')">&times;</div>
             <h2 style="font-weight:900; margin-bottom:12px;">DATA I/O</h2>
-            <textarea id="save-data-input" class="save-textarea" placeholder="Paste data here..."></textarea>
+            <textarea id="save-data-input" class="save-textarea" placeholder="Paste data string..."></textarea>
             <button class="opt-btn" id="modal-action-btn" style="background:#fff; color:#000;">EXECUTE</button>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- SCRIPTS (Core Logic) -->
     <script src="js/state.js"></script>
     <script src="js/audio.js"></script>
     <script src="js/game.js"></script>
