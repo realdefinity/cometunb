@@ -40,9 +40,9 @@
                     </div>
 
                     <!-- Flow Rate -->
-                    <div style="display:flex; justify-content:space-between; font-size:0.9rem; padding:12px 0; border-bottom:1px solid #222;">
-                        <span style="color:#666; font-weight:700;">FLOW</span>
-                        <span style="font-family:'JetBrains Mono'; font-weight:700;">+$<span id="ui-rate">0.00</span>/s</span>
+                    <div class="stat-row">
+                        <span class="stat-label">CASH FLOW</span>
+                        <span class="stat-value">+$<span id="ui-rate">0.00</span>/s</span>
                     </div>
                     
                     <!-- Hype Bar -->
@@ -73,7 +73,7 @@
                 <div class="big-button" id="main-btn"></div>
             </div>
             
-            <div style="margin-top:30px; font-family:'JetBrains Mono'; color:#333; letter-spacing:2px; font-size:0.75rem;">SECURE TERMINAL ACTIVE</div>
+            <div id="mania-text" class="status-label">SECURE TERMINAL ACTIVE</div>
             
             <div class="news-bar">
                 <div class="news-content" id="news-content">INITIALIZING MARKET DATA STREAM...</div>
@@ -87,7 +87,7 @@
                     <div class="header-title" style="margin:0;">ASSETS</div>
                     <div style="font-size:0.65rem; color:#444; font-weight:700;">QTY</div>
                 </div>
-                <div class="buy-controls" style="margin-top:12px;">
+                <div class="buy-controls">
                     <button class="buy-amt active" onclick="setBuyMode(1, this)">x1</button>
                     <button class="buy-amt" onclick="setBuyMode(10, this)">x10</button>
                     <button class="buy-amt" onclick="setBuyMode(100, this)">x100</button>
@@ -101,15 +101,27 @@
     <!-- OVERLAYS -->
     <canvas id="game-canvas"></canvas>
     <div id="event-layer"></div>
-    <div id="mute-toggle" class="mute-btn" style="position:fixed; top:20px; left:20px; font-size:20px; color:#333; cursor:pointer; z-index:500;" onclick="toggleAudio()">&#128266;</div>
+    <div id="mute-toggle" class="mute-btn" onclick="toggleAudio()">&#128266;</div>
 
     <!-- MODALS -->
     <div id="prestige-modal" class="modal">
         <div class="modal-content">
             <div class="close-modal" onclick="closeModal('prestige-modal')">&times;</div>
-            <h2 style="color:var(--gold); margin-bottom:10px; font-weight:900; letter-spacing:1px;">LIQUIDATION</h2>
-            <p style="color:#666; font-size:0.8rem;">Sell company for Reputation Points.</p>
-            <div class="prestige-val" style="font-size:3rem; color:var(--gold); font-weight:900; margin:20px 0;">+<span id="claimable-influence">0</span></div>
+            <h2 style="color:var(--gold); margin-bottom:12px; font-weight:900; letter-spacing:1px;">LIQUIDATION</h2>
+            <p style="color:#666; font-size:0.8rem; margin-bottom:24px;">Sell company for Reputation Points.</p>
+            
+            <div class="prestige-val" style="font-size:3.5rem; color:var(--gold); font-weight:900; margin:24px 0;">+<span id="claimable-influence">0</span></div>
+            
+            <div class="modal-info-box">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#666;">Current Multiplier:</span>
+                    <span id="current-bonus-modal" style="color:#fff; font-weight:700;">0%</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--green);">
+                    <span>Post-Liquidation:</span>
+                    <span id="new-bonus-modal" style="font-weight:700;">0%</span>
+                </div>
+            </div>
             <button class="opt-btn prestige-btn ready" onclick="confirmPrestige()" style="background:var(--gold); color:#000;">CONFIRM TRANSACTION</button>
         </div>
     </div>
@@ -117,7 +129,7 @@
     <div id="save-modal" class="modal">
         <div class="modal-content">
             <div class="close-modal" onclick="closeModal('save-modal')">&times;</div>
-            <h2 style="font-weight:900;">DATA I/O</h2>
+            <h2 style="font-weight:900; margin-bottom:12px;">DATA I/O</h2>
             <textarea id="save-data-input" class="save-textarea" placeholder="Paste data here..."></textarea>
             <button class="opt-btn" id="modal-action-btn" style="background:#fff; color:#000;">EXECUTE</button>
         </div>
