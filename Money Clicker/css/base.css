@@ -1,47 +1,72 @@
 :root {
-    /* --- FINTECH DARK PALETTE --- */
-    --bg: #0a0a0a;
-    --panel-bg: #111111;
-    --panel-border: #222222;
+    /* --- FINTECH DARK THEME --- */
+    --bg: #000000;
+    --panel-bg: rgba(15, 15, 15, 0.7);
+    --panel-border: rgba(255, 255, 255, 0.08);
     
-    /* MONEY COLORS */
+    /* ACCENTS */
     --green: #22c55e;        /* Profit Green */
-    --green-dim: #15803d;
     --green-glow: rgba(34, 197, 94, 0.4);
     
-    --gold: #eab308;         /* Luxury Gold */
-    --gold-dim: #a16207;
+    --gold: #eab308;         /* Premium Gold */
+    --gold-glow: rgba(234, 179, 8, 0.4);
     
+    --purple: #d946ef;       /* Mania/Prestige */
+    
+    /* TEXT */
     --text-main: #ffffff;
-    --text-sec: #888888;
+    --text-muted: #888888;
     
-    /* LAYOUT VARS */
-    --radius: 12px;
+    /* UI VARS */
+    --radius: 16px;
+    --font-main: 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
 }
 
-* { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
+/* GLOBAL RESETS */
+* { 
+    box-sizing: border-box; 
+    outline: none; 
+    user-select: none; 
+    -webkit-tap-highlight-color: transparent; 
+}
 
 body {
     margin: 0; padding: 0;
     background-color: var(--bg);
-    /* Subtle Grid Background for that "Graph" feel */
+    color: var(--text-main);
+    font-family: var(--font-main);
+    
+    /* SUBTLE TRADING GRID BACKGROUND */
     background-image: 
         linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
+    background-size: 50px 50px;
     
-    color: var(--text-main);
-    font-family: 'Outfit', sans-serif;
-    
-    /* LOCK SCREEN */
+    /* NUCLEAR LOCK: Prevents scrolling the whole page */
     position: fixed; inset: 0; overflow: hidden;
+    
+    /* Ensures numbers don't jitter when changing width */
     font-variant-numeric: tabular-nums;
 }
 
-/* --- LAYERS --- */
-/* Canvas Top (Sparks), Events Top, UI Bottom */
-#game-canvas { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
-#event-layer { position: absolute; inset: 0; z-index: 101; pointer-events: none; }
+/* --- Z-INDEX LAYERING SYSTEM --- */
+/* Level 1: Background (0)
+   Level 2: UI Layout (10)
+   Level 3: Game Canvas/Particles (100) - CLICKS PASS THROUGH
+   Level 4: Modals (10000)
+*/
 
-/* Remove old blobs */
-.bg-blobs { display: none; }
+.bg-blobs { display: none; } /* Removing the blobs for cleaner look */
+
+#game-canvas { 
+    position: absolute; inset: 0; 
+    z-index: 100; /* On top of buttons */
+    pointer-events: none; /* Crucial: Lets you click things under it */
+}
+
+#event-layer {
+    position: absolute; inset: 0; 
+    z-index: 101; 
+    pointer-events: none; /* Children (Golden Bill) will re-enable events */
+}
