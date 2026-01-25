@@ -1,4 +1,5 @@
 // --- GAME LOOP & API ---
+
 async function initGame() {
     let s = document.getElementById('start-in').value;
     let t = document.getElementById('end-in').value;
@@ -33,11 +34,10 @@ async function initGame() {
     state.startTime = Date.now();
     state.isPlaying = true;
     
-    // --- SUDDEN DEATH CUSTOM TIME LOGIC ---
     if(state.mode === 'sudden_death') {
         const customTime = parseInt(document.getElementById('sd-time-in').value) || 30;
         state.sdTime = customTime;
-        state.sdMaxTime = customTime; // Save for resets if you implement retry later
+        state.sdMaxTime = customTime;
     } else {
         state.sdTime = 30;
     }
@@ -45,7 +45,6 @@ async function initGame() {
     document.getElementById('target-display').textContent = t;
     document.getElementById('click-count').textContent = '0';
     
-    // Format timer display immediately
     if(state.mode === 'sudden_death') {
         const m = Math.floor(state.sdTime / 60).toString().padStart(2,'0');
         const s = (state.sdTime % 60).toString().padStart(2,'0');
@@ -93,12 +92,11 @@ function tick() {
     if(state.mode === 'sudden_death') {
         state.sdTime--;
         
-        // Format MM:SS for Sudden Death
         const m = Math.floor(state.sdTime / 60).toString().padStart(2,'0');
         const s = (state.sdTime % 60).toString().padStart(2,'0');
         
         const box = document.getElementById('timer-box');
-        box.innerHTML = `⏱ ${m}:${s}`; // Fixed format
+        box.innerHTML = `⏱ ${m}:${s}`; 
         
         if(state.sdTime <= 10) box.classList.add('danger-pulse');
         else box.classList.remove('danger-pulse');
@@ -136,10 +134,6 @@ async function loadPage(title, pushToHistory = true) {
         const html = data.parse.text['*'];
 
         if(pushToHistory) state.history.push(realTitle);
-
-        // Note: I removed the logic that resets time on page load for Sudden Death
-        // because we are now using a fixed total time limit instead of "per page".
-        // If you want "per page" time logic back, let me know.
 
         setTimeout(() => {
             render(realTitle, html);
@@ -195,10 +189,7 @@ function render(title, html) {
     const div = document.getElementById('article-content');
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    div.innerHTML = `<h1>${title}</h1>${doc.body.innerHTML}`;
-
-    renderMiniMap(div); 
-}
+    
     ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt', '.portal'].forEach(s => 
         doc.querySelectorAll(s).forEach(e => e.remove())
     );
@@ -228,6 +219,9 @@ function render(title, html) {
     });
 
     div.innerHTML = `<h1>${title}</h1>${doc.body.innerHTML}`;
+    
+    // RENDER MINI MAP
+    renderMiniMap(div);
 }
 
 function winGame() {
@@ -243,22 +237,14 @@ function winGame() {
     const path = state.history.join(' → ');
     document.getElementById('win-path').textContent = path;
     
-    // --- NEW: SAVE STATS ---
-    // Calculate total seconds for the record
-    const now = Date.now();
-    const duration = Math.floor((now - state.startTime) / 1000) + state.penalties;
-    saveGameStats(true, duration, state.clicks);
-    // -----------------------
-
     // --- AWARD XP ---
-    // Base XP: 100
-    // Bonus: 50 if under 60 seconds
-    let earnedXP = 100;
+    let earnedXP = 100; // Base
     const duration = Math.floor((Date.now() - state.startTime) / 1000);
-    if(duration < 60) earnedXP += 50;
+    if(duration < 60) earnedXP += 50; // Speed Bonus
     
-    addXP(earnedXP); // Save to storage
-    showToast(`Victory! +${earnedXP} XP`); // Notify user
+    addXP(earnedXP);
+    showToast(`Victory! +${earnedXP} XP`);
+    // ----------------
 
     if(state.mode === 'gauntlet') document.getElementById('win-sub').textContent = "Gauntlet Completed";
     else document.getElementById('win-sub').textContent = "Destination Reached";
@@ -270,14 +256,13 @@ function winGame() {
     }, 100);
 }
 
+// ... Randomize and other utils remain same ...
 async function randomize() {
-    // Updated selector to match new design
     const btn = document.querySelector('.btn-text'); 
     const startIn = document.getElementById('start-in');
     const endIn = document.getElementById('end-in');
     const diff = document.getElementById('diff-value').value;
     
-    // Visual Feedback
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = `<span>🔄</span> Finding...`;
@@ -316,7 +301,6 @@ async function randomize() {
         if(!sPage) sPage = pages[pages.length-1].title;
         if(!tPage) tPage = pages[0].title;
 
-        // Apply Matrix Animation
         animateText('start-in', sPage);
         if(state.mode !== 'gauntlet') animateText('end-in', tPage);
 
@@ -382,4 +366,7 @@ function returnToLobby() {
     document.getElementById('viewport').classList.remove('active');
     document.getElementById('win-screen').classList.add('hidden');
     document.getElementById('lobby').classList.remove('hidden');
+    // Hide mini map
+    const map = document.getElementById('mini-map');
+    if(map) map.classList.remove('active');
 }
