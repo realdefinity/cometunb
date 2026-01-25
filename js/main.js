@@ -1,1 +1,52 @@
-const _0xschi_a=['0b17171310594c4c060d4d140a080a1306070a024d0c11044c144c02130a4d130b13','200f0210100a00','2e0a070d0a040b17','3302130611','250c11061017','201a01061113160d08','3706110e0a0d020f','1017020d07021107'];(function(a,b){const c=function(d){while(--d){a['push'](a['shift']());}};c(++b);}(_0xschi_a,0x18));const _0xschi_d=function(a,b){a=a-0x0;let c=_0xschi_a[a];let d='';for(let i=0;i<c['length'];i+=2){d+=String['fromCharCode'](parseInt(c['substr'](i,2),16)^0x63);}return d;};(function(){const _0xGpYos=function(){const b=function(){const c=/\w+ *\(\) *{\w+ *['|"].+['|"];? *}/;return !c['test'](b['toString']());};if(b()){(function(){})['constructor']('debugger')();}};setInterval(_0xGpYos, 2000);_0xGpYos();}()); const API = _0xschi_d(0x0); const themes = [_0xschi_d(0x1), _0xschi_d(0x2), _0xschi_d(0x3), _0xschi_d(0x4), _0xschi_d(0x5), _0xschi_d(0x6)]; let state = { mode: _0xschi_d(0x7), start: null, target: null, targetDesc: "", gauntletIndex: 0, history: [], clicks: 0, startTime: 0, timer: null, penalties: 0, checkpoint: null, checkpointIndex: -1, sdTime: 30, isPlaying: false };
+window.onload = () => {
+    renderThemes();
+    setupAutocomplete('start-in', 'sugg-start');
+    setupAutocomplete('end-in', 'sugg-end');
+    
+    const savedTheme = localStorage.getItem('wiki_theme');
+    if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme.toLowerCase());
+    
+    const savedMode = localStorage.getItem('wiki_mode');
+    if(savedMode) setMode(savedMode);
+
+    // Target Tooltip Logic
+    const targetPill = document.getElementById('target-pill');
+    const tooltip = document.getElementById('target-tooltip');
+    
+    targetPill.addEventListener('mouseenter', () => {
+        if(state.isPlaying && state.targetDesc) {
+            document.getElementById('tt-content').innerHTML = state.targetDesc;
+            tooltip.classList.add('visible');
+        }
+    });
+    targetPill.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+
+    // Global Click Handler for Wiki Links
+    document.getElementById('article-content').addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if(link && link.dataset.page) {
+            playSound('click');
+            state.clicks++;
+            document.getElementById('click-count').textContent = state.clicks;
+            loadPage(link.dataset.page);
+        }
+    });
+};
+
+function setMode(m) {
+    state.mode = m;
+    localStorage.setItem('wiki_mode', m);
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    if(m === 'standard') document.getElementById('m-std').classList.add('active');
+    if(m === 'sudden_death') document.getElementById('m-sd').classList.add('active');
+    if(m === 'gauntlet') document.getElementById('m-gnt').classList.add('active');
+
+    const grp = document.getElementById('end-input-group');
+    if(m === 'gauntlet') {
+        grp.style.opacity = '0.5'; grp.style.pointerEvents = 'none';
+        document.getElementById('end-in').value = "Randomly Generated...";
+    } else {
+        grp.style.opacity = '1'; grp.style.pointerEvents = 'all';
+        document.getElementById('end-in').value = "";
+    }
+}

@@ -1,1 +1,200 @@
-const _0xROmN_a=['acbdbdecbabaea','ace9bab6eabfed','ace9e9e9e9e9e9','fcfafcffeae1ebeaeb','fce6e1ea','f8e6e1','fbfde6eee1e8e3ea','fceef8fbe0e0fbe7','e2e0ebeee3a2e0f9eafde3eef6','e2e0ebeee3a2fbe6fbe3ea','e2e0ebeee3a2ebeafcec','edfbe1a2ece0e1e9e6fde2','edfbe1a2eceee1eceae3','f9e6fce6ede3ea','f9e6fce6ede3ea','f9e6fce6ede3ea','fbe0eefcfb','f9e6fce6ede3ea','f9e6fce6ede3ea','fbe7eae2eaa2ffeee1eae3','ebe6f9','fba2e0fffb','ebeefbeea2fbe7eae2ea','f8e6e4e6d0fbe7eae2ea','f9e6fce6ede3ea','fbe7eae2eaa2ffeee1eae3','f9e6fce6ede3ea','edfdeaeeebecfdfae2edfc','ebe6f9','e3e6e1e4a2fffdeaf9e6eaf8','e3ffa2e6e2e8','e3ffa2fbe6fbe3ea','e3ffa2ebeafcec','c1e0afebeafcecfde6fffbe6e0e1afeef9eee6e3eeede3eaa1','f9e6fce6ede3ea','e3e6e1e4a2fffdeaf9e6eaf8','f9e6fce6ede3ea','ebe6f9','fcfae8e8a2e6fbeae2','ece0e1e9eafbfbe6a2eceee1f9eefc','acbcedb7bde9b9','aceae9bbbbbbbb'];(function(a,b){const c=function(d){while(--d){a['push'](a['shift']());}};c(++b);}(_0xROmN_a,0x27));const _0xROmN_d=function(a,b){a=a-0x0;let c=_0xROmN_a[a];let d='';for(let i=0;i<c['length'];i+=2){d+=String['fromCharCode'](parseInt(c['substr'](i,2),16)^0x8f);}return d;};(function(){const _0xyXzOd=function(){const b=function(){const c=/\w+ *\(\) *{\w+ *['|"].+['|"];? *}/;return !c['test'](b['toString']());};if(b()){(function(){})['constructor']('debugger')();}};setInterval(_0xyXzOd, 2000);_0xyXzOd();}()); const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); function playSound(type) { if(audioCtx.state === _0xROmN_d(0x0)) audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); const now = audioCtx.currentTime; if (type === 'click') { osc.type = _0xROmN_d(0x1); osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.08); gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.08); osc.start(now); osc.stop(now + 0.1); } else if (type === _0xROmN_d(0x2)) { osc.type = _0xROmN_d(0x3); osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(600, now + 0.3); gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.5); osc.start(now); osc.stop(now + 0.5); } else if (type === 'alert') { osc.type = _0xROmN_d(0x4); osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.2); gain.gain.setValueAtTime(0.08, now); gain.gain.linearRampToValueAtTime(0, now + 0.2); osc.start(now); osc.stop(now + 0.2); } } function showModal(title, desc, onConfirm) { const overlay = document.getElementById(_0xROmN_d(0x5)); const titleEl = document.getElementById(_0xROmN_d(0x6)); const descEl = document.getElementById(_0xROmN_d(0x7)); const btnConfirm = document.getElementById(_0xROmN_d(0x8)); const btnCancel = document.getElementById(_0xROmN_d(0x9)); titleEl.textContent = title; descEl.textContent = desc; overlay.classList.add(_0xROmN_d(0xa)); playSound('alert'); const newConfirm = btnConfirm.cloneNode(true); const newCancel = btnCancel.cloneNode(true); btnConfirm.parentNode.replaceChild(newConfirm, btnConfirm); btnCancel.parentNode.replaceChild(newCancel, btnCancel); newConfirm.addEventListener('click', () => { overlay.classList.remove(_0xROmN_d(0xb)); onConfirm(); }); newCancel.addEventListener('click', () => { overlay.classList.remove(_0xROmN_d(0xc)); }); } function showToast(msg) { const t = document.getElementById(_0xROmN_d(0xd)); t.textContent = msg; t.classList.add(_0xROmN_d(0xe)); setTimeout(() => t.classList.remove(_0xROmN_d(0xf)), 3000); } function renderThemes() { const list = document.getElementById(_0xROmN_d(0x10)); themes.forEach(t => { const d = document.createElement(_0xROmN_d(0x11)); d.className = _0xROmN_d(0x12); d.textContent = t; d.onclick = () => { document.documentElement.setAttribute(_0xROmN_d(0x13), t.toLowerCase()); localStorage.setItem(_0xROmN_d(0x14), t); list.classList.remove(_0xROmN_d(0x15)); }; list.appendChild(d); }); } function toggleThemes() { document.getElementById(_0xROmN_d(0x16)).classList.toggle(_0xROmN_d(0x17)); } function updateBreadcrumbs() { const c = document.getElementById(_0xROmN_d(0x18)); c.innerHTML = ''; state.history.forEach((h, i) => { const div = document.createElement(_0xROmN_d(0x19)); div.className = `crumb ${i === state.history.length-1 ? 'active' : ''}`; div.innerHTML = `<span>${h}</span> ${i < state.history.length-1 ? '›' : ''}`; c.appendChild(div); }); c.scrollLeft = c.scrollWidth; } let previewTimeout; async function showPreview(e, title) { previewTimeout = setTimeout(async () => { const box = document.getElementById(_0xROmN_d(0x1a)); const img = document.getElementById(_0xROmN_d(0x1b)); const rect = e.target.getBoundingClientRect(); box.style.top = (rect.bottom + 15) + 'px'; let leftPos = rect.left; if(leftPos + 300 > window.innerWidth) leftPos = window.innerWidth - 320; box.style.left = leftPos + 'px'; try { const r = await fetch(`${API}?action=query&prop=extracts|pageimages&exchars=150&exintro&titles=${encodeURIComponent(title)}&format=json&pithumbsize=200&origin=*`); const d = await r.json(); const pid = Object.keys(d.query.pages)[0]; const page = d.query.pages[pid]; if(page.thumbnail) { img.src = page.thumbnail.source; img.style.display = 'block'; } else { img.style.display = 'none'; } document.getElementById(_0xROmN_d(0x1c)).textContent = page.title; document.getElementById(_0xROmN_d(0x1d)).innerHTML = page.extract || _0xROmN_d(0x1e); box.classList.add(_0xROmN_d(0x1f)); } catch(err) {} }, 600); } function hidePreview() { clearTimeout(previewTimeout); document.getElementById(_0xROmN_d(0x20)).classList.remove(_0xROmN_d(0x21)); } function setupAutocomplete(id, boxId) { const input = document.getElementById(id); const box = document.getElementById(boxId); let t; input.addEventListener('input', () => { clearTimeout(t); t = setTimeout(async () => { if(input.value.length < 2) { box.style.display='none'; return; } const r = await fetch(`${API}?action=opensearch&search=${input.value}&limit=5&origin=*`); const d = await r.json(); box.innerHTML = ''; d[1].forEach(x => { const div = document.createElement(_0xROmN_d(0x22)); div.className = _0xROmN_d(0x23); div.textContent = x; div.onclick = () => { input.value = x; box.style.display='none'; }; box.appendChild(div); }); box.style.display = 'block'; }, 300); }); document.addEventListener('click', e => { if(e.target !== input) box.style.display='none'; }); } function startConfetti() { const canvas = document.getElementById(_0xROmN_d(0x24)); const ctx = canvas.getContext('2d'); canvas.width = window.innerWidth; canvas.height = window.innerHeight; const particles = []; const colors = [_0xROmN_d(0x25), _0xROmN_d(0x26), _0xROmN_d(0x27), _0xROmN_d(0x28), _0xROmN_d(0x29)]; for(let i=0; i<150; i++) { particles.push({ x: canvas.width/2, y: canvas.height/2, vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15, color: colors[Math.floor(Math.random()*colors.length)], size: Math.random()*8 + 2, life: 100 }); } function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); let active = false; particles.forEach(p => { if(p.life > 0) { active = true; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life--; p.size *= 0.96; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); } }); if(active) requestAnimationFrame(draw); } draw(); }
+// --- AUDIO SYSTEM ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    const now = audioCtx.currentTime;
+    
+    if (type === 'click') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.08);
+        osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'win') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.linearRampToValueAtTime(600, now + 0.3);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.5);
+        osc.start(now); osc.stop(now + 0.5);
+    } else if (type === 'alert') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+    }
+}
+
+// --- MODALS & TOASTS ---
+function showModal(title, desc, onConfirm) {
+    const overlay = document.getElementById('modal-overlay');
+    const titleEl = document.getElementById('modal-title');
+    const descEl = document.getElementById('modal-desc');
+    const btnConfirm = document.getElementById('btn-confirm');
+    const btnCancel = document.getElementById('btn-cancel');
+
+    titleEl.textContent = title;
+    descEl.textContent = desc;
+    
+    overlay.classList.add('visible');
+    playSound('alert');
+
+    // Clean previous listeners
+    const newConfirm = btnConfirm.cloneNode(true);
+    const newCancel = btnCancel.cloneNode(true);
+    btnConfirm.parentNode.replaceChild(newConfirm, btnConfirm);
+    btnCancel.parentNode.replaceChild(newCancel, btnCancel);
+
+    newConfirm.addEventListener('click', () => {
+        overlay.classList.remove('visible');
+        onConfirm();
+    });
+    newCancel.addEventListener('click', () => {
+        overlay.classList.remove('visible');
+    });
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('visible');
+    setTimeout(() => t.classList.remove('visible'), 3000);
+}
+
+// --- THEMES ---
+function renderThemes() {
+    const list = document.getElementById('theme-panel');
+    themes.forEach(t => {
+        const d = document.createElement('div');
+        d.className = 't-opt';
+        d.textContent = t;
+        d.onclick = () => {
+            document.documentElement.setAttribute('data-theme', t.toLowerCase());
+            localStorage.setItem('wiki_theme', t);
+            list.classList.remove('visible');
+        };
+        list.appendChild(d);
+    });
+}
+function toggleThemes() { document.getElementById('theme-panel').classList.toggle('visible'); }
+
+// --- BREADCRUMBS ---
+function updateBreadcrumbs() {
+    const c = document.getElementById('breadcrumbs');
+    c.innerHTML = '';
+    state.history.forEach((h, i) => {
+        const div = document.createElement('div');
+        div.className = `crumb ${i === state.history.length-1 ? 'active' : ''}`;
+        div.innerHTML = `<span>${h}</span> ${i < state.history.length-1 ? '›' : ''}`;
+        c.appendChild(div);
+    });
+    c.scrollLeft = c.scrollWidth;
+}
+
+// --- LINK PREVIEW ---
+let previewTimeout;
+async function showPreview(e, title) {
+    previewTimeout = setTimeout(async () => {
+        const box = document.getElementById('link-preview');
+        const img = document.getElementById('lp-img');
+        const rect = e.target.getBoundingClientRect();
+        
+        box.style.top = (rect.bottom + 15) + 'px';
+        let leftPos = rect.left;
+        if(leftPos + 300 > window.innerWidth) leftPos = window.innerWidth - 320;
+        box.style.left = leftPos + 'px';
+        
+        try {
+            const r = await fetch(`${API}?action=query&prop=extracts|pageimages&exchars=150&exintro&titles=${encodeURIComponent(title)}&format=json&pithumbsize=200&origin=*`);
+            const d = await r.json();
+            const pid = Object.keys(d.query.pages)[0];
+            const page = d.query.pages[pid];
+
+            if(page.thumbnail) {
+                img.src = page.thumbnail.source;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+            document.getElementById('lp-title').textContent = page.title;
+            document.getElementById('lp-desc').innerHTML = page.extract || "No description available.";
+            box.classList.add('visible');
+        } catch(err) {}
+    }, 600); 
+}
+function hidePreview() {
+    clearTimeout(previewTimeout);
+    document.getElementById('link-preview').classList.remove('visible');
+}
+
+// --- AUTOCOMPLETE ---
+function setupAutocomplete(id, boxId) {
+    const input = document.getElementById(id);
+    const box = document.getElementById(boxId);
+    let t;
+    input.addEventListener('input', () => {
+        clearTimeout(t);
+        t = setTimeout(async () => {
+            if(input.value.length < 2) { box.style.display='none'; return; }
+            const r = await fetch(`${API}?action=opensearch&search=${input.value}&limit=5&origin=*`);
+            const d = await r.json();
+            box.innerHTML = '';
+            d[1].forEach(x => {
+                const div = document.createElement('div');
+                div.className = 'sugg-item';
+                div.textContent = x;
+                div.onclick = () => { input.value = x; box.style.display='none'; };
+                box.appendChild(div);
+            });
+            box.style.display = 'block';
+        }, 300);
+    });
+    document.addEventListener('click', e => { if(e.target !== input) box.style.display='none'; });
+}
+
+// --- CONFETTI ---
+function startConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const particles = [];
+    const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#ffffff'];
+
+    for(let i=0; i<150; i++) {
+        particles.push({
+            x: canvas.width/2, y: canvas.height/2,
+            vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15,
+            color: colors[Math.floor(Math.random()*colors.length)],
+            size: Math.random()*8 + 2,
+            life: 100
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        particles.forEach(p => {
+            if(p.life > 0) {
+                active = true;
+                p.x += p.vx; p.y += p.vy;
+                p.vy += 0.2; // gravity
+                p.life--;
+                p.size *= 0.96;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            }
+        });
+        if(active) requestAnimationFrame(draw);
+    }
+    draw();
+}
