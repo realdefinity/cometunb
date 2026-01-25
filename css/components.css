@@ -1118,3 +1118,37 @@ input[type=number] {
     color: rgba(255,255,255,0.5);
 }
 .c-arrow:hover { color: white; }
+
+/* --- BLACKOUT MODE STYLES --- */
+
+/* When active, redact all text elements */
+.blackout-active p,
+.blackout-active li,
+.blackout-active h1, 
+.blackout-active h2, 
+.blackout-active h3,
+.blackout-active h4, 
+.blackout-active h5, 
+.blackout-active h6,
+.blackout-active dd,
+.blackout-active dt,
+.blackout-active span:not([class]) { /* Only target plain spans */
+    color: transparent !important;
+    background-color: #111; /* The Redaction Bar color */
+    border-radius: 4px;
+    text-shadow: none !important;
+    user-select: none; /* Prevent cheating by highlighting */
+}
+
+/* Make links visible and popping */
+.blackout-active a[data-page] {
+    color: #60a5fa !important; /* Bright Blue */
+    background-color: transparent !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    font-weight: 700;
+}
+
+/* Hide images in blackout mode for extra difficulty? Optional. */
+/* .blackout-active img { filter: brightness(0); opacity: 0.1; } */

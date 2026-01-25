@@ -3,7 +3,14 @@
 async function initGame() {
     let s = document.getElementById('start-in').value;
     let t = document.getElementById('end-in').value;
+    let s = document.getElementById('start-in').value;
+    let t = document.getElementById('end-in').value;
     
+    // VALIDATION: Blackout works like Standard (needs Start + End)
+    const needsTwo = (state.mode === 'standard' || state.mode === 'sudden_death' || state.mode === 'blackout');
+    
+    if(needsTwo && (!s || !t)) return showToast("Please enter both pages");
+    if(!needsTwo && !s) return showToast("Please enter start page");
     // VALIDATION
     if((state.mode !== 'gauntlet' && state.mode !== 'survival') && (!s || !t)) return showToast("Please enter both pages");
     if((state.mode === 'gauntlet' || state.mode === 'survival') && !s) return showToast("Please enter start page");
@@ -76,6 +83,8 @@ async function initGame() {
     document.getElementById('lobby').classList.add('hidden');
     document.getElementById('game-header').classList.add('active');
     document.getElementById('viewport').classList.add('active');
+
+    document.getElementById('article-content').classList.remove('blackout-active');
 
     loadPage(s);
     state.timer = setInterval(tick, 1000);
@@ -176,6 +185,16 @@ function render(title, html) {
     ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt'].forEach(s => 
         doc.querySelectorAll(s).forEach(e => e.remove())
     );
+
+// TOGGLE BLACKOUT MODE
+    if(state.mode === 'blackout') {
+        div.classList.add('blackout-active');
+    } else {
+        div.classList.remove('blackout-active');
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
 
     doc.querySelectorAll('a').forEach(a => {
         const href = a.getAttribute('href');

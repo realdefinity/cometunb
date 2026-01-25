@@ -49,6 +49,7 @@ function setMode(m) {
     if(m === 'sudden_death') document.getElementById('m-sd').classList.add('active');
     if(m === 'gauntlet') document.getElementById('m-gnt').classList.add('active');
     if(m === 'survival') document.getElementById('m-surv').classList.add('active');
+    if(m === 'blackout') document.getElementById('m-black').classList.add('active'); // NEW
 
     // 2. Toggle Inputs
     const endInput = document.getElementById('end-in');
@@ -56,7 +57,7 @@ function setMode(m) {
     const diffSelector = document.getElementById('diff-selector');
     const label = document.getElementById('setting-label');
 
-    // Reset defaults
+    // Default State
     endInput.disabled = false;
     endInput.style.opacity = '1';
     sdConfig.style.display = 'none';
@@ -69,7 +70,6 @@ function setMode(m) {
         endInput.style.opacity = '0.5';
     } 
     else if (m === 'survival') {
-        // SURVIVAL SETTINGS
         endInput.value = "Infinite Chain...";
         endInput.disabled = true;
         endInput.style.opacity = '0.5';
@@ -80,7 +80,11 @@ function setMode(m) {
         sdConfig.style.display = 'flex';
         diffSelector.style.display = 'none';
         label.textContent = "Time Limit";
-    } 
+    }
+    else if (m === 'blackout') { // NEW LOGIC
+        endInput.value = "";
+        // Blackout behaves like Standard input-wise
+    }
     else {
         endInput.value = "";
     }
