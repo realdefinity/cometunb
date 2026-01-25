@@ -1,47 +1,56 @@
+/* css/base.css */
 :root {
-    --bg: #050505;
-    --glass: rgba(255, 255, 255, 0.03);
-    --glass-hover: rgba(255, 255, 255, 0.08);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --green: #00ffaa;
-    --green-glow: rgba(0, 255, 170, 0.5);
-    --gold: #ffcc00;
-    --purple: #bf00ff;
-    --purple-glow: rgba(191, 0, 255, 0.6);
+    /* --- CORE PALETTE (Clean & Deep) --- */
+    --bg: #000000;
+    
+    /* The "Apple" Glass Effect */
+    --glass-surface: rgba(30, 30, 35, 0.65);
+    --glass-highlight: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --glass-blur: 40px;
+
+    /* Accents (Softer, Neon-free) */
+    --accent: #2ecc71; /* Soft Emerald */
+    --accent-glow: rgba(46, 204, 113, 0.4);
+    
+    --purple: #9b59b6; /* Soft Amethyst */
+    --purple-glow: rgba(155, 89, 182, 0.4);
+    
+    --gold: #f1c40f;
+    
+    /* Typography */
     --text: #ffffff;
-    --text-dim: #999;
+    --text-muted: #8e8e93; /* iOS grey */
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; outline: none; user-select: none; -webkit-user-select: none; }
+* { margin: 0; padding: 0; box-sizing: border-box; outline: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 
 body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; /* Fallback to system fonts */
     height: 100vh;
+    width: 100vw;
     overflow: hidden;
     display: flex;
-    position: relative;
+    font-size: 14px;
 }
 
-/* --- BACKGROUND BLOBS --- */
+/* --- BACKGROUND (Subtle & Fluid) --- */
 .bg-blobs {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
-    overflow: hidden;
-    background: radial-gradient(circle at 50% 50%, #0a0a0f 0%, #000 100%);
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
 }
 .blob {
     position: absolute; border-radius: 50%;
-    filter: blur(80px); opacity: 0.6;
-    animation: float-blob 20s infinite alternate ease-in-out;
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.27);
+    filter: blur(120px); /* Increased blur for smoothness */
+    opacity: 0.4;
+    animation: float-blob 30s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
-.blob-1 { width: 600px; height: 600px; background: #2a004d; top: -100px; left: -100px; animation-duration: 25s; }
-.blob-2 { width: 500px; height: 500px; background: #002a22; bottom: -50px; right: -50px; animation-duration: 30s; }
-.blob-3 { width: 300px; height: 300px; background: #1a1a40; top: 40%; left: 40%; animation-duration: 20s; }
+.blob-1 { width: 800px; height: 800px; background: #1a0b2e; top: -200px; left: -200px; }
+.blob-2 { width: 600px; height: 600px; background: #0b1a15; bottom: -100px; right: -100px; }
 
-@keyframes float-blob { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 30px) scale(1.1); } }
+@keyframes float-blob { 0% { transform: translate(0, 0); } 100% { transform: translate(40px, 20px); } }
 
-/* --- CANVAS --- */
-#game-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; pointer-events: none; }
-#event-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 60; pointer-events: none; }
+#game-canvas, #event-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+#event-layer { z-index: 60; }
