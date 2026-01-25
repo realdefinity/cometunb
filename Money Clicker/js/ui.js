@@ -225,7 +225,13 @@ function updateShopUI(influenceMult) {
         el.querySelector('.count-badge').innerText = game.counts[i];
         
         let buyAmountText = (buyMode === 'MAX' && max > 0) ? `+${max}` : (buyMode !== 1 && buyMode !== 'MAX' ? `+${amt}` : '');
-        el.querySelector('h4').innerHTML = `${u.name} <span style="font-size:0.7em; opacity:0.5; margin-left:4px;">${buyAmountText}</span>`;
+        
+        // --- NEW: DISCOUNT TAG ---
+        let discountHtml = '';
+        if (amt >= 100) discountHtml = `<span style='color:#22c55e; font-weight:800; font-size:0.7em; margin-left:6px; letter-spacing:0.5px;'>SALE -20%</span>`;
+        else if (amt >= 10) discountHtml = `<span style='color:#22c55e; font-weight:800; font-size:0.7em; margin-left:6px; letter-spacing:0.5px;'>SALE -10%</span>`;
+
+        el.querySelector('h4').innerHTML = `${u.name} <span style="font-size:0.7em; opacity:0.5; margin-left:4px;">${buyAmountText}</span>${discountHtml}`;
         
         let boostRate = u.baseRate * influenceMult * (maniaMode ? 2 : 1);
         el.querySelector('.rate-boost').innerText = `+$${formatNumber(boostRate)}/s`;

@@ -253,7 +253,13 @@ function getCost(id, count) {
     
     // Geometric series sum for bulk buying
     let r = 1.15;
-    return currentCost * (Math.pow(r, count) - 1) / (r - 1);
+    let total = currentCost * (Math.pow(r, count) - 1) / (r - 1);
+    
+    // BULK DISCOUNTS (REALISM UPDATE)
+    if (count >= 100) total *= 0.8; // 20% Off for 100x
+    else if (count >= 10) total *= 0.9; // 10% Off for 10x
+    
+    return total;
 }
 
 function getMaxBuy(id) {
