@@ -1,3 +1,4 @@
+// --- UPGRADES DATA ---
 const upgrades = [
     { name: "Piggy Bank", baseCost: 15, baseRate: 1 },
     { name: "Vending Machine", baseCost: 100, baseRate: 4 },
@@ -17,21 +18,35 @@ const upgrades = [
     { name: "Galactic Treasury", baseCost: 1e21, baseRate: 800e9 }
 ];
 
-const ranks = [
-    "Broke", "Saver", "Investor", "Broker", "Banker", 
-    "CEO", "Tycoon", "Magnate", "Oligarch", "Trillionaire", 
-    "World Bank", "Economy Lord", "Master of Coin", "Infinite"
+// --- RANK SYSTEM (Tiered Milestones) ---
+const rankData = [
+    { name: "Intern", req: 0 },
+    { name: "Freelancer", req: 10 },
+    { name: "Trader", req: 25 },
+    { name: "Broker", req: 50 },
+    { name: "Manager", req: 100 },
+    { name: "Executive", req: 250 },
+    { name: "Director", req: 500 },
+    { name: "VP", req: 1000 },
+    { name: "President", req: 2500 },
+    { name: "CEO", req: 5000 },
+    { name: "Chairman", req: 10000 },
+    { name: "Tycoon", req: 25000 },
+    { name: "Oligarch", req: 50000 },
+    { name: "World Banker", req: 100000 },
+    { name: "Illuminati", req: 1000000 }
 ];
 
-const newsHeadlines = [
-    "Stocks hit all-time high...", "Inflation concerns rise...",
-    "Local laundromat reports record profits...", "Gold prices stabilizing...",
-    "Hedge Funds buying up everything...", "New currency announced...",
-    "Market volatility decreasing...", "Money printer goes BRRRRR..."
-];
+// --- GAME STATE ---
+window.game = { 
+    money: 0, 
+    lifetimeEarnings: 0, 
+    influence: 0, 
+    counts: Array(upgrades.length).fill(0), 
+    startTime: Date.now() 
+};
 
-// Global Game State
-window.game = { money: 0, lifetimeEarnings: 0, influence: 0, counts: Array(upgrades.length).fill(0), startTime: Date.now() };
+// Global Configs
 window.buyMode = 1;
 window.hype = 0;
 window.maniaMode = false;
@@ -39,6 +54,14 @@ window.maniaTimer = 0;
 window.goldenBillTimer = 2000;
 window.autoSaveTimer = 0;
 window.tickerTimer = 15;
+
+// Headlines
+const newsHeadlines = [
+    "Market rallying to new heights...", "Tech stocks surging...",
+    "Crypto regulation talks stall...", "Global merger announced...",
+    "Interest rates holding steady...", "Bulls taking over the market...",
+    "Secure terminal connection established...", "Assets liquidating smoothly..."
+];
 
 function saveLocal() { localStorage.setItem('mintV7_money_save', JSON.stringify(game)); }
 
@@ -53,7 +76,4 @@ function loadLocal() {
     }
 }
 
-async function checkSecureCode(input) {
-    // Simple hash check for dev backdoor
-    return false; 
-}
+async function checkSecureCode(input) { return false; }

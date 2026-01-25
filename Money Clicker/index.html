@@ -29,14 +29,24 @@
                     <div class="header-title"><span>Net Asset Value</span> <span>USD</span></div>
                     <div class="balance" id="balance-el">$<span id="ui-money">0</span></div>
                     
-                    <!-- Prestige Card -->
+                    <!-- Prestige Card (UPDATED) -->
                     <div class="prestige-container">
-                        <div class="prestige-rank" id="rank-name">NOVICE</div>
-                        <div class="prestige-sub">
-                            <span class="prestige-pill">★ <span id="ui-influence">0</span></span>
-                            <span style="color:var(--green); font-weight:700;">+<span id="ui-bonus">0</span>% PROFIT</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="prestige-rank" id="rank-name">NOVICE</div>
+                            <div class="prestige-pill">★ <span id="ui-influence">0</span></div>
                         </div>
+                        
+                        <div class="prestige-sub" style="margin-top:4px; margin-bottom:12px;">
+                            <span style="color:var(--green); font-weight:700;">+<span id="ui-bonus">0</span>% PROFIT SPEED</span>
+                        </div>
+                        
+                        <!-- Progress Bar -->
                         <div class="next-rank-bar"><div class="next-rank-fill" id="influence-bar"></div></div>
+                        
+                        <!-- Explicit Requirement Text -->
+                        <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                            <span id="next-rank-text" style="font-size:0.65rem; color:#666; font-weight:700; font-family:'JetBrains Mono';">LOADING RANK DATA...</span>
+                        </div>
                     </div>
 
                     <!-- Flow Rate -->
