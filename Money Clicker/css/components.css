@@ -1,23 +1,19 @@
-/* --- THE MINT BUTTON (3D COIN) --- */
+/* --- BIG BUTTON --- */
 .big-button-container {
     perspective: 1200px;
     width: 340px; height: 340px;
     display: flex; align-items: center; justify-content: center;
-    position: relative; z-index: 60;
+    /* No Z-Index here, handled by Layout */
 }
 
 .big-button {
     width: 300px; height: 300px; border-radius: 50%; 
-    /* Luxurious Gold Gradient */
     background: radial-gradient(circle at 30% 30%, #444444, #1a1a1a);
     border: 1px solid rgba(255,255,255,0.1);
-    
-    /* Deep realistic shadows */
     box-shadow: 
         0 30px 60px rgba(0,0,0,0.6), 
-        inset 0 0 0 8px rgba(30, 30, 30, 1), /* The Rim */
-        inset 0 0 0 10px rgba(255,255,255,0.1); /* The Bevel */
-        
+        inset 0 0 0 8px rgba(30, 30, 30, 1),
+        inset 0 0 0 10px rgba(255,255,255,0.1);
     cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; 
     -webkit-tap-highlight-color: transparent; 
     user-select: none;
@@ -25,7 +21,6 @@
     will-change: transform;
 }
 
-/* The Dollar Symbol - Engraved look */
 .big-button::before { 
     content: '$'; font-family: 'Outfit', sans-serif; font-size: 10rem; font-weight: 800; 
     color: transparent;
@@ -34,12 +29,6 @@
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
     transition: 0.2s; 
     transform: translateZ(20px);
-}
-
-/* Metallic Sheen */
-.big-button::after {
-    content: ''; position: absolute; inset: 0; border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.4) 100%);
     pointer-events: none;
 }
 
@@ -47,12 +36,8 @@
     background: radial-gradient(circle at 30% 30%, #555, #222);
     box-shadow: 0 40px 80px rgba(0,0,0,0.7), inset 0 0 0 8px #2a2a2a;
 }
-.big-button:hover::before { 
-    background: linear-gradient(135deg, #fff 0%, #aaa 100%);
-    -webkit-background-clip: text;
-}
 
-/* MANIA MODE: GOLD RUSH */
+/* --- MANIA --- */
 body.mania-mode .big-button { 
     border-color: var(--gold);
     box-shadow: 0 0 80px var(--gold-glow), inset 0 0 0 8px #4a3b00;
@@ -65,7 +50,6 @@ body.mania-mode .big-button::before {
 /* --- GOLDEN BILL --- */
 .golden-bill {
     position: absolute; width: 140px; height: 75px; 
-    /* Crisp Banknote Look */
     background: #f0fdf4;
     background-image: linear-gradient(135deg, #f0fdf4 25%, #dcfce7 25%, #dcfce7 50%, #f0fdf4 50%, #f0fdf4 75%, #dcfce7 75%, #dcfce7 100%);
     background-size: 20px 20px;
@@ -76,25 +60,20 @@ body.mania-mode .big-button::before {
     display: flex; align-items: center; justify-content: center;
     font-weight: 900; color: var(--green); font-size: 32px; letter-spacing: -2px;
     user-select: none;
-    transform: rotate(-5deg);
 }
-.golden-bill::after {
-    content:''; position: absolute; inset: 4px; border: 2px dashed var(--green); border-radius: 2px;
-}
-.golden-bill:hover { filter: brightness(1.1); transform: scale(1.1) rotate(0deg); transition: 0.1s; }
+.golden-bill:hover { filter: brightness(1.1); transform: scale(1.1); }
 
 /* --- BALANCE UI --- */
 .balance { 
     font-size: 3.5rem; font-weight: 800; color: #fff; 
     margin-bottom: 20px; white-space: nowrap; letter-spacing: -1.5px;
-    /* Clean white-to-grey gradient */
     background: linear-gradient(180deg, #fff 20%, #ccc 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     transition: transform 0.1s;
 }
 .balance.pulse { transform: scale(1.05); }
 
-/* --- PRESTIGE CARD --- */
+/* --- PRESTIGE --- */
 .prestige-container { 
     margin-bottom: 30px; 
     background: rgba(255,255,255,0.03); 
@@ -108,18 +87,24 @@ body.mania-mode .big-button::before {
     background: rgba(252, 211, 77, 0.1); padding: 6px 12px; 
     border-radius: 8px; color: var(--gold); font-weight: 600; font-size: 0.75rem; border: 1px solid rgba(252, 211, 77, 0.2);
 }
-
 .next-rank-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; }
 .next-rank-fill { height: 100%; width: 0%; background: var(--gold); box-shadow: 0 0 10px var(--gold-glow); transition: width 0.5s ease; }
-.next-rank-text { font-size: 0.7rem; color: #666; margin-top: 8px; text-align: right; font-family: var(--font-mono); }
+.next-rank-text { font-size: 0.7rem; color: #666; margin-top: 8px; text-align: right; font-family: 'JetBrains Mono', monospace; }
 
-/* --- HYPE BAR --- */
+/* --- OTHER --- */
+.rate-display {
+    font-family: 'JetBrains Mono', monospace; color: #fff; font-size: 1.1rem; padding: 18px;
+    background: rgba(0, 255, 170, 0.05); border-radius: 16px; 
+    border: 1px solid rgba(0, 255, 170, 0.1); margin-bottom: 25px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.rate-display span:last-child { color: var(--green); text-shadow: 0 0 10px var(--green-glow); }
+
 .hype-container { margin-top: auto; margin-bottom: 0; }
 .hype-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: #888; margin-bottom: 8px; font-weight: 700; letter-spacing: 1px; }
 .hype-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
 .hype-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.1s linear; }
 
-/* --- NEWS BAR --- */
 .news-bar {
     position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); 
     width: 600px; height: 36px; 
@@ -130,17 +115,16 @@ body.mania-mode .big-button::before {
 }
 .news-content {
     display: inline-block; padding-left: 100%; animation: ticker 25s linear infinite;
-    color: var(--text-dim); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.5px;
+    color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.5px;
 }
 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-200%); } }
 
-/* --- BUTTONS --- */
 .options-area { display: flex; flex-direction: column; gap: 10px; }
 .opt-btn { 
     background: rgba(255,255,255,0.03); 
     border: 1px solid var(--glass-border); 
     color: #eee; padding: 16px; 
-    cursor: pointer; font-family: var(--font-main); font-weight: 600; font-size: 0.8rem; 
+    cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.8rem; 
     text-transform: uppercase; transition: 0.2s; width: 100%; border-radius: 16px;
 }
 .opt-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
@@ -149,14 +133,13 @@ body.mania-mode .big-button::before {
     color: var(--gold); border-color: var(--gold); 
 }
 
-/* --- UPGRADES (STOCK LIST STYLE) --- */
 .buy-controls { 
     display: flex; gap: 6px; background: rgba(255,255,255,0.03); padding: 4px; 
     border-radius: 12px; margin-top: 15px; border: 1px solid var(--glass-border);
 }
 .buy-amt { 
     flex: 1; background: transparent; border: none; color: #666; padding: 8px 0; 
-    font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600;
     cursor: pointer; border-radius: 8px; transition: 0.2s; 
 }
 .buy-amt.active { background: #fff; color: #000; box-shadow: 0 2px 10px rgba(255,255,255,0.2); }
@@ -177,16 +160,19 @@ body.mania-mode .big-button::before {
 .upgrade.affordable .cost-text { color: var(--green); }
 
 .upg-info h4 { font-size: 0.9rem; color: #fff; margin-bottom: 4px; font-weight: 600; }
-.upg-info p { font-size: 0.75rem; color: #666; font-family: var(--font-mono); display: flex; gap: 8px;}
+.upg-info p { font-size: 0.75rem; color: #666; font-family: 'JetBrains Mono', monospace; display: flex; gap: 8px;}
 .upg-cost { text-align: right; }
-.cost-text { color: #666; font-family: var(--font-mono); font-weight: 600; font-size: 0.85rem; }
+.cost-text { color: #666; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.85rem; }
 .count-badge { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #fff; font-size: 0.7rem; margin-top: 4px; display: inline-block; }
 
-/* --- MODALS --- */
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(15px); opacity: 0; transition: opacity 0.3s; }
+.modal.open { opacity: 1; }
 .modal-content { 
     background: #141416; border: 1px solid var(--glass-border); 
     padding: 40px; width: 500px; text-align: center; border-radius: 32px; 
     box-shadow: 0 40px 80px rgba(0,0,0,0.8); 
 }
-.prestige-val { color: var(--gold); text-shadow: 0 0 30px var(--gold-glow); }
-.save-textarea { background: #0a0a0a; border: 1px solid #333; color: var(--green); }
+.prestige-val { color: var(--gold); text-shadow: 0 0 30px var(--gold-glow); font-size: 3.5rem; font-weight: 900; margin: 20px 0; }
+.save-textarea { width: 100%; height: 100px; background: #0a0a0a; border: 1px solid #333; color: var(--green); font-family: monospace; padding: 15px; margin: 20px 0; resize: none; border-radius: 12px; }
+.close-modal { position: absolute; top: 20px; right: 25px; color: #666; cursor: pointer; font-size: 1.5rem; transition: 0.2s;}
+.close-modal:hover { color: #fff; }
