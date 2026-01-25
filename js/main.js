@@ -43,45 +43,46 @@ function setMode(m) {
     state.mode = m;
     localStorage.setItem('wiki_mode', m);
     
-    // 1. CLEAR 'active' from all mode buttons
+    // 1. Update Buttons
     document.querySelectorAll('.seg-opt').forEach(b => b.classList.remove('active'));
-    
-    // 2. SET 'active' on the current one
     if(m === 'standard') document.getElementById('m-std').classList.add('active');
     if(m === 'sudden_death') document.getElementById('m-sd').classList.add('active');
     if(m === 'gauntlet') document.getElementById('m-gnt').classList.add('active');
+    if(m === 'survival') document.getElementById('m-surv').classList.add('active');
 
-    // 3. Toggle Inputs based on mode
-    const inputsStack = document.querySelector('.inputs-stack');
+    // 2. Toggle Inputs
     const endInput = document.getElementById('end-in');
     const sdConfig = document.getElementById('sd-config');
     const diffSelector = document.getElementById('diff-selector');
     const label = document.getElementById('setting-label');
 
+    // Reset defaults
+    endInput.disabled = false;
+    endInput.style.opacity = '1';
+    sdConfig.style.display = 'none';
+    diffSelector.style.display = 'flex';
+    label.textContent = "Difficulty";
+
     if(m === 'gauntlet') {
         endInput.value = "Randomly Generated...";
         endInput.disabled = true;
         endInput.style.opacity = '0.5';
-        
-        sdConfig.style.display = 'none';
-        diffSelector.style.display = 'flex';
-        label.textContent = "Difficulty";
-    } else if (m === 'sudden_death') {
+    } 
+    else if (m === 'survival') {
+        // SURVIVAL SETTINGS
+        endInput.value = "Infinite Chain...";
+        endInput.disabled = true;
+        endInput.style.opacity = '0.5';
+        label.textContent = "Start Difficulty"; 
+    }
+    else if (m === 'sudden_death') {
         endInput.value = "";
-        endInput.disabled = false;
-        endInput.style.opacity = '1';
-
         sdConfig.style.display = 'flex';
         diffSelector.style.display = 'none';
         label.textContent = "Time Limit";
-    } else {
+    } 
+    else {
         endInput.value = "";
-        endInput.disabled = false;
-        endInput.style.opacity = '1';
-
-        sdConfig.style.display = 'none';
-        diffSelector.style.display = 'flex';
-        label.textContent = "Difficulty";
     }
 }
 
