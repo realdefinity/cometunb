@@ -1,5 +1,14 @@
 const API = "https://en.wikipedia.org/w/api.php";
-const themes = ["Classic", "Midnight", "Paper", "Forest", "Cyberpunk", "Terminal"];
+
+// Updated list with all 36 themes
+const themes = [
+    "Classic", "Midnight", "Paper", "Forest", "Cyberpunk", "Terminal",
+    "Amoled", "Nord", "Dracula", "Synthwave", "Matrix", "Slate",
+    "Obsidian", "Monokai", "Mint", "Lavender", "Cherry", "Sepia",
+    "Cloud", "Lemonade", "Bubblegum", "Ocean", "Sunset", "Coffee",
+    "Neptune", "Mars", "Glacier", "Royal", "Toxic", "Coral",
+    "Gold", "Blueprint", "Halloween", "Winter", "Vintage", "Candy", "Nightshade"
+];
 
 let state = {
     mode: 'standard',
