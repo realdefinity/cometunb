@@ -4,16 +4,15 @@ async function initGame() {
     let s = document.getElementById('start-in').value;
     let t = document.getElementById('end-in').value;
     
-    // VALIDATION: Blackout works like Standard (needs Start + End)
+    // 1. VALIDATION LOGIC
+    // Standard, Sudden Death, and Blackout need Start + End
     const needsTwo = (state.mode === 'standard' || state.mode === 'sudden_death' || state.mode === 'blackout');
     
     if(needsTwo && (!s || !t)) return showToast("Please enter both pages");
+    // Gauntlet and Survival only need Start
     if(!needsTwo && !s) return showToast("Please enter start page");
-    // VALIDATION
-    if((state.mode !== 'gauntlet' && state.mode !== 'survival') && (!s || !t)) return showToast("Please enter both pages");
-    if((state.mode === 'gauntlet' || state.mode === 'survival') && !s) return showToast("Please enter start page");
 
-    // SETUP TARGETS
+    // 2. SETUP TARGETS
     if(state.mode === 'gauntlet') {
         showToast("Generating Gauntlet...");
         try {
@@ -26,7 +25,6 @@ async function initGame() {
         } catch(e) { return showToast("Error generating targets"); }
     } 
     else if (state.mode === 'survival') {
-        // SURVIVAL SETUP
         showToast("Initializing Survival...");
         try {
             const r = await fetch(`${API}?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*`);
@@ -40,6 +38,7 @@ async function initGame() {
         state.target = t;
     }
     
+    // 3. RESET STATE
     state.start = s;
     state.targetDesc = "Loading definition..."; 
     fetchTargetDesc(t);
@@ -52,7 +51,7 @@ async function initGame() {
     state.startTime = Date.now();
     state.isPlaying = true;
 
-    // TIME SETUP
+    // 4. TIME SETUP
     if(state.mode === 'sudden_death') {
         state.sdTime = parseInt(document.getElementById('sd-time-in').value) || 30;
     } else if (state.mode === 'survival') {
@@ -61,7 +60,7 @@ async function initGame() {
         state.sdTime = 0;
     }
 
-    // UI UPDATES
+    // 5. UI UPDATES
     document.getElementById('target-display').textContent = t;
     document.getElementById('click-count').textContent = '0';
     
@@ -73,15 +72,16 @@ async function initGame() {
 
     document.getElementById('btn-load-cp').disabled = true;
     
-    // HUD Elements
+    // HUD Toggles
     document.getElementById('gauntlet-bar').classList.toggle('active', state.mode === 'gauntlet');
     document.getElementById('surv-round-box').style.display = state.mode === 'survival' ? 'flex' : 'none';
-    document.getElementById('surv-round').textContent = "1";
+    if(state.mode === 'survival') document.getElementById('surv-round').textContent = "1";
 
     document.getElementById('lobby').classList.add('hidden');
     document.getElementById('game-header').classList.add('active');
     document.getElementById('viewport').classList.add('active');
 
+    // IMPORTANT: Reset Blackout class just in case
     document.getElementById('article-content').classList.remove('blackout-active');
 
     loadPage(s);
@@ -178,21 +178,20 @@ async function loadPage(title, pushToHistory = true) {
 
 function render(title, html) {
     const div = document.getElementById('article-content');
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt'].forEach(s => 
-        doc.querySelectorAll(s).forEach(e => e.remove())
-    );
-
-// TOGGLE BLACKOUT MODE
+    
+    // --- BLACKOUT MODE LOGIC ---
     if(state.mode === 'blackout') {
         div.classList.add('blackout-active');
     } else {
         div.classList.remove('blackout-active');
     }
+    // ---------------------------
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
+    ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt'].forEach(s => 
+        doc.querySelectorAll(s).forEach(e => e.remove())
+    );
 
     doc.querySelectorAll('a').forEach(a => {
         const href = a.getAttribute('href');
@@ -220,6 +219,7 @@ function render(title, html) {
 function checkWinCondition(currentTitle) {
     const current = currentTitle.toLowerCase();
     
+    // Gauntlet Logic
     if(state.mode === 'gauntlet') {
         const target = state.target[state.gauntletIndex].toLowerCase();
         if(current === target) {
@@ -234,11 +234,13 @@ function checkWinCondition(currentTitle) {
             }
         }
     } 
+    // Survival Logic
     else if (state.mode === 'survival') {
         if(current === state.target.toLowerCase()) {
             nextSurvivalRound(currentTitle);
         }
     }
+    // Standard / Sudden Death / Blackout Logic
     else {
         if(current === state.target.toLowerCase()) winGame();
     }
@@ -281,7 +283,6 @@ function endSurvivalGame() {
     const title = screen.querySelector('h1');
     const sub = document.getElementById('win-sub');
     
-    // Custom "Game Over" Text
     title.textContent = "Game Over";
     title.style.color = "var(--danger)";
     sub.innerHTML = `You survived <b style="color:#fff; font-size:1.2rem;">${state.survivalRound}</b> Rounds`;
@@ -300,7 +301,7 @@ function winGame() {
     startConfetti();
     saveGameStats(true, Math.floor((Date.now() - state.startTime)/1000), state.clicks);
     
-    // Reset text just in case Survival changed it
+    // Reset text (in case Survival changed it previously)
     const screen = document.getElementById('win-screen');
     screen.querySelector('h1').textContent = "Victory!";
     screen.querySelector('h1').style.color = "var(--success)";
@@ -328,6 +329,7 @@ async function randomize() {
     btn.innerHTML = `<span>🔄</span> Finding...`;
     
     startIn.value = "Scanning...";
+    // Clear End Input only if we are in a mode that uses it
     if(state.mode !== 'gauntlet' && state.mode !== 'survival') endIn.value = "Calculating...";
 
     try {
@@ -362,6 +364,7 @@ async function randomize() {
         if(!tPage) tPage = pages[0].title;
 
         animateText('start-in', sPage);
+        // Only fill end input if mode requires it
         if(state.mode !== 'gauntlet' && state.mode !== 'survival') animateText('end-in', tPage);
 
     } catch(e) {
@@ -383,8 +386,11 @@ async function getRandSimple() {
 
 function askBacktrack() {
     if(state.history.length <= 1) return showToast("Start of history");
+    
+    // Survival and Sudden Death have no penalty on backtrack (time is the penalty)
     let penalty = (state.mode === 'sudden_death' || state.mode === 'survival') ? 0 : 10;
-    showModal("Backtrack?", `Return to previous page. Penalty: ${state.mode === 'survival' ? 'None' : '+10s'}`, () => {
+    
+    showModal("Backtrack?", `Return to previous page. Penalty: ${penalty > 0 ? '+' + penalty + 's' : 'None'}`, () => {
         state.penalties += penalty;
         state.history.pop(); 
         const prev = state.history[state.history.length - 1];
@@ -424,4 +430,6 @@ function returnToLobby() {
     document.getElementById('viewport').classList.remove('active');
     document.getElementById('win-screen').classList.add('hidden');
     document.getElementById('lobby').classList.remove('hidden');
+    // Ensure blackout is removed
+    document.getElementById('article-content').classList.remove('blackout-active');
 }
