@@ -4,7 +4,7 @@ let width, height;
 let lastTick = performance.now();
 let particles = [];
 
-// --- BUTTON PHYSICS VARS ---
+// --- BUTTON PHYSICS ---
 const btnEl = document.getElementById('main-btn');
 let btnTiltX = 0;
 let btnTiltY = 0;
@@ -21,13 +21,9 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// --- MOUSE TRACKING ---
+// --- INPUT HANDLING ---
 btnEl.addEventListener('mouseenter', () => isHovering = true);
-btnEl.addEventListener('mouseleave', () => {
-    isHovering = false;
-    btnTiltX = 0;
-    btnTiltY = 0;
-});
+btnEl.addEventListener('mouseleave', () => { isHovering = false; btnTiltX = 0; btnTiltY = 0; });
 btnEl.addEventListener('mousemove', (e) => {
     const rect = btnEl.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
@@ -36,15 +32,18 @@ btnEl.addEventListener('mousemove', (e) => {
     btnTiltY = x / 8;
 });
 
-// --- CLICK HANDLER ---
+// UNIVERSAL CLICK HANDLER
 function triggerClick(e) {
-    if (e.type === 'touchstart') e.preventDefault();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    // Stop browser zooming/scrolling on touch
+    if(e.cancelable) e.preventDefault(); 
+    
+    // Audio Safety Check
+    try { if (audioCtx.state === 'suspended') audioCtx.resume(); } catch(err){}
 
-    // Physics Kick
-    btnVelocity = -0.25; 
+    // 1. PHYSICS KICK
+    btnVelocity = -0.3; // Harder kick for more bounce
 
-    // Income Logic
+    // 2. INCOME LOGIC
     let baseRate = 0;
     game.counts.forEach((c, i) => { if(upgrades[i]) baseRate += c * upgrades[i].baseRate; });
     
@@ -65,8 +64,9 @@ function triggerClick(e) {
         if (hype >= 100) startMania();
     }
 
-    // Particles
+    // 3. PARTICLES
     const rect = btnEl.getBoundingClientRect();
+    // Use pointer coordinates or fallback to center
     const clientX = e.clientX || rect.left + rect.width/2;
     const clientY = e.clientY || rect.top + rect.height/2;
 
@@ -75,8 +75,8 @@ function triggerClick(e) {
     if(isCrit) createParticle(clientX, clientY, '', 'spark');
 }
 
-btnEl.addEventListener('mousedown', triggerClick);
-btnEl.addEventListener('touchstart', triggerClick);
+// Use pointerdown for fastest response on all devices
+btnEl.addEventListener('pointerdown', triggerClick);
 
 
 // --- PARTICLE SYSTEM ---
@@ -201,7 +201,7 @@ function endMania() {
     document.getElementById('mania-text').style.color = "#fff";
 }
 
-// --- GOLDEN BILL LOGIC (FIXED) ---
+// --- GOLDEN BILL LOGIC ---
 let activeBills = [];
 
 function spawnGoldenBill() {
@@ -209,50 +209,39 @@ function spawnGoldenBill() {
     bill.className = 'golden-bill';
     bill.innerText = "$$$";
     
-    // 1. Setup Position (Ensure it stays within readable vertical area)
-    let startY = Math.random() * (window.innerHeight - 200) + 100;
+    let startY = Math.random() * (window.innerHeight - 300) + 150;
     bill.style.top = startY + "px";
-    bill.style.left = "-150px"; // Start off-screen left
-    
+    bill.style.left = "-150px"; 
     document.getElementById('event-layer').appendChild(bill);
 
-    // 2. Setup Physics State
-    // Use an object to track exact float values for smoothness
     let state = {
         el: bill,
         x: -150,
         y: startY,
-        vx: Math.random() * 2 + 3, // Speed between 3 and 5
+        vx: Math.random() * 2 + 3,
         time: 0,
         amplitude: Math.random() * 40 + 20,
         frequency: Math.random() * 0.04 + 0.02,
         rotationOffset: Math.random() * 360,
         dead: false
     };
-
     activeBills.push(state);
 
-    // 3. Interaction - USE MOUSEDOWN for instant response on moving targets
-    const collectBill = (e) => {
-        if(state.dead) return; // Prevent double clicks
+    // Interaction
+    const collect = (e) => {
         e.stopPropagation();
-        e.preventDefault(); // Stop touch scrolling
-        
         state.dead = true; 
         bill.remove();
 
-        // REWARD LOGIC: Min $500
         let reward = game.money * 0.25;
         if(reward < 500) reward = 500; 
 
         game.money += reward;
         game.lifetimeEarnings += reward;
         
-        // Visuals
-        let rect = bill.getBoundingClientRect();
-        // Use click coords or fallback to bill center
-        let ex = e.clientX || (rect.left + rect.width/2);
-        let ey = e.clientY || (rect.top + rect.height/2);
+        // Use client coordinates or fallback to element position
+        let ex = e.clientX || (bill.getBoundingClientRect().left + 60);
+        let ey = e.clientY || (bill.getBoundingClientRect().top + 35);
 
         for(let i=0; i<15; i++) createParticle(ex, ey, '', 'spark');
         createParticle(ex, ey, "+"+formatNumber(reward), 'text');
@@ -263,9 +252,8 @@ function spawnGoldenBill() {
         
         playSound('crit');
     };
-
-    bill.addEventListener('mousedown', collectBill);
-    bill.addEventListener('touchstart', collectBill);
+    
+    bill.addEventListener('pointerdown', collect);
 }
 
 // --- MAIN LOOP ---
@@ -274,17 +262,19 @@ function gameLoop(currentTime) {
     if (dt > 86400) dt = 86400; if (dt < 0) dt = 0;
     lastTick = currentTime;
 
-    // 1. BUTTON PHYSICS
+    // 1. BUTTON PHYSICS (Spring System)
     let targetScale = isHovering ? 1.05 : 1.0;
     let tension = 0.2; 
     let damping = 0.6; 
+    
     let force = (targetScale - btnScale) * tension;
     btnVelocity += force;
     btnVelocity *= damping;
     btnScale += btnVelocity;
-    
-    // Safety
-    if(isNaN(btnScale)) btnScale = 1;
+
+    // Safety reset
+    if (isNaN(btnScale) || btnScale < 0.1) { btnScale = 1; btnVelocity = 0; }
+
     btnEl.style.transform = `rotateX(${btnTiltX}deg) rotateY(${btnTiltY}deg) scale(${btnScale})`;
 
     // 2. INCOME
@@ -295,7 +285,6 @@ function gameLoop(currentTime) {
         game.lifetimeEarnings += amount;
     }
 
-    // 3. MANIA
     if (maniaMode) {
         maniaTimer -= dt;
         if(Math.random() > 0.85) createParticle(0,0,'','confetti');
@@ -304,7 +293,6 @@ function gameLoop(currentTime) {
         hype = Math.max(0, hype - (5 * dt));
     }
 
-    // 4. TICKER
     tickerTimer += dt;
     if(tickerTimer > 25) {
         let item = newsHeadlines[Math.floor(Math.random() * newsHeadlines.length)];
@@ -315,42 +303,34 @@ function gameLoop(currentTime) {
         tickerTimer = 0;
     }
 
-    // 5. GOLDEN BILL SPAWNER
     goldenBillTimer -= dt * 1000;
     if (goldenBillTimer <= 0) {
         spawnGoldenBill();
         goldenBillTimer = Math.random() * 30000 + 15000;
     }
 
-    // 6. ANIMATE GOLDEN BILLS
+    // 3. ANIMATE BILLS
     activeBills = activeBills.filter(b => {
         if(b.dead) return false;
-
-        b.x += b.vx; // Move right
+        b.x += b.vx;
         b.time += 1;
-        
         let bob = Math.sin(b.time * b.frequency) * b.amplitude;
         let rot = Math.sin(b.time * 0.05 + b.rotationOffset) * 15;
-
-        // Apply transform via JS
         b.el.style.transform = `translate(${b.x}px, ${bob}px) rotate(${rot}deg)`;
-
-        // Despawn if off screen
-        if(b.x > window.innerWidth + 200) {
+        if(b.x > window.innerWidth + 150) {
             b.el.remove();
             return false;
         }
         return true;
     });
 
-    // 7. PARTICLES
+    // 4. PARTICLES
     ctx.clearRect(0, 0, width, height);
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i]; p.update(); p.draw();
         if (p.life <= 0) particles.splice(i, 1);
     }
 
-    // 8. UI
     updateUI(rate);
     autoSaveTimer += dt;
     if(autoSaveTimer > 5) { saveLocal(); autoSaveTimer = 0; }

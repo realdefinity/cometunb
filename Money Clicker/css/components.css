@@ -3,6 +3,8 @@
     perspective: 1200px;
     width: 320px; height: 320px;
     display: flex; align-items: center; justify-content: center;
+    position: relative;
+    z-index: 60; /* FIXED: Now sits above the canvas */
 }
 
 .big-button {
@@ -14,11 +16,9 @@
         inset 10px 10px 40px rgba(255,255,255,0.05),
         inset -10px -10px 60px rgba(0,0,0,1);
     cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; 
-    z-index: 30; 
-    -webkit-tap-highlight-color: transparent; 
-    user-select: none; /* Crucial for spam clicking */
     
-    /* NO TRANSITION: JS Handles Physics */
+    -webkit-tap-highlight-color: transparent; 
+    user-select: none;
     transform-style: preserve-3d;
     will-change: transform;
 }
@@ -27,7 +27,7 @@
     content: '$'; font-family: 'Outfit', sans-serif; font-size: 11rem; font-weight: 800; 
     color: rgba(255,255,255,0.05); 
     text-shadow: 2px 4px 10px rgba(0,0,0,0.5);
-    transition: color 0.2s, text-shadow 0.2s; 
+    transition: color 0.1s, text-shadow 0.1s; 
     transform: translateZ(30px);
     pointer-events: none;
 }
@@ -44,6 +44,7 @@
 
 .big-button:hover { border-color: rgba(255,255,255,0.4); }
 .big-button:hover::before { color: var(--green); text-shadow: 0 0 60px var(--green-glow); }
+.big-button:active::before { transform: translateZ(10px); } /* Visual press depth */
 
 @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
