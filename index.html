@@ -92,6 +92,15 @@
                 <span>Clicks: <b id="win-clicks" style="color:var(--accent);">0</b></span>
                 <span>Penalties: <b id="win-penalties" style="color:var(--danger);">0s</b></span>
             </div>
+            <h1 style="color:var(--success); font-size:3rem; margin-bottom:10px;">Victory!</h1>
+            <p class="subtitle" id="win-sub">Destination Reached</p>
+
+            <div id="galaxy-view">
+                <canvas id="galaxy-canvas"></canvas>
+                <div id="galaxy-overlay">Hover to inspect path</div>
+            </div>
+
+<div style="font-size:4.5rem; font-weight:800; margin-bottom:15px; font-family:var(--font-ui); color:var(--text); text-shadow:0 10px 30px rgba(0,0,0,0.3);" id="win-time">0:00</div>
             <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; margin-bottom:25px; text-align:left; max-height:150px; overflow-y:auto; font-size:0.9rem; border:1px solid rgba(255,255,255,0.05);">
                 <strong style="color:var(--accent); display:block; margin-bottom:5px; font-size:0.75rem; text-transform:uppercase;">Traversed Path</strong> 
                 <span id="win-path" style="opacity:0.8; line-height:1.6;"></span>

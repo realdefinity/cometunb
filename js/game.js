@@ -244,6 +244,12 @@ function winGame() {
     else document.getElementById('win-sub').textContent = "Destination Reached";
 
     document.getElementById('win-screen').classList.remove('hidden');
+    
+    // --- TRIGGER GALAXY ---
+    // Slight delay to allow the modal to appear before calculating canvas size
+    setTimeout(() => {
+        renderGalaxy(state.history);
+    }, 100);
 }
 
 async function randomize() {

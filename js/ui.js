@@ -211,3 +211,152 @@ function startConfetti() {
     }
     draw();
 }
+
+// --- GALAXY PATH VISUALIZER ---
+let galaxyAnim;
+
+function renderGalaxy(history) {
+    const container = document.getElementById('galaxy-view');
+    const canvas = document.getElementById('galaxy-canvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('target-tooltip');
+    const ttContent = document.getElementById('tt-content');
+
+    // Handle High-DPI Screens
+    const dpr = window.devicePixelRatio || 1;
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    // --- NODE GENERATION ---
+    const nodes = [];
+    const padding = 40;
+    const width = rect.width;
+    const height = rect.height;
+
+    // Create Nodes along a rough sine wave for flow
+    history.forEach((title, i) => {
+        const progress = i / (history.length - 1 || 1);
+        
+        // Calculate rough position
+        let tx = padding + progress * (width - padding * 2);
+        let ty = height / 2 + Math.sin(progress * Math.PI * 2) * (height / 4);
+        
+        // Add Randomness (The "Constellation" look)
+        if (i !== 0 && i !== history.length - 1) {
+            tx += (Math.random() - 0.5) * 40;
+            ty += (Math.random() - 0.5) * 60;
+        }
+
+        nodes.push({
+            x: tx,
+            y: ty,
+            title: title,
+            r: i === 0 || i === history.length - 1 ? 8 : 5, // Start/End are bigger
+            hover: 0, // Hover animation state
+            type: i === 0 ? 'start' : (i === history.length - 1 ? 'end' : 'mid')
+        });
+    });
+
+    // --- ANIMATION LOOP ---
+    let time = 0;
+    
+    // Mouse Interaction
+    let mx = -1000, my = -1000;
+    canvas.onmousemove = (e) => {
+        const r = canvas.getBoundingClientRect();
+        mx = e.clientX - r.left;
+        my = e.clientY - r.top;
+    };
+    canvas.onmouseleave = () => { mx = -1000; tooltip.classList.remove('visible'); };
+
+    if (galaxyAnim) cancelAnimationFrame(galaxyAnim);
+
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+        time += 0.05;
+
+        // 1. Draw Connecting Lines (The Path)
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.3)"; // Blue accent low opacity
+        ctx.lineWidth = 2;
+        
+        if (nodes.length > 0) {
+            ctx.moveTo(nodes[0].x, nodes[0].y);
+            // Curves between nodes
+            for (let i = 0; i < nodes.length - 1; i++) {
+                const p0 = nodes[i];
+                const p1 = nodes[i + 1];
+                // Bezier control point for smooth curves
+                const cx = (p0.x + p1.x) / 2;
+                const cy = (p0.y + p1.y) / 2;
+                ctx.quadraticCurveTo(p0.x, p0.y, cx, cy);
+                if (i === nodes.length - 2) ctx.lineTo(p1.x, p1.y);
+            }
+        }
+        ctx.stroke();
+
+        // 2. Draw Nodes
+        let hoveredNode = null;
+
+        nodes.forEach((n, i) => {
+            // Distance Check
+            const dist = Math.hypot(n.x - mx, n.y - my);
+            const isHover = dist < 20;
+            
+            // Hover Animation Physics
+            n.hover += (isHover ? 1 : -1) * 0.2;
+            if (n.hover < 0) n.hover = 0;
+            if (n.hover > 1) n.hover = 1;
+
+            if (isHover) hoveredNode = n;
+
+            // Draw Glow
+            const glowSize = n.r * 2 + (Math.sin(time + i) * 2) + (n.hover * 10);
+            const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowSize);
+            
+            let color = "255, 255, 255"; // Default White
+            if (n.type === 'start') color = "34, 197, 94"; // Green
+            if (n.type === 'end') color = "239, 68, 68"; // Red
+            if (n.type === 'mid') color = "59, 130, 246"; // Blue
+
+            grad.addColorStop(0, `rgba(${color}, ${0.8 + n.hover * 0.2})`);
+            grad.addColorStop(1, `rgba(${color}, 0)`);
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, glowSize, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw Core
+            ctx.fillStyle = `rgba(255,255,255, ${0.9 + n.hover * 0.1})`;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r + (n.hover * 2), 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // 3. Handle Tooltip
+        if (hoveredNode) {
+            tooltip.classList.add('visible');
+            // Position tooltip near mouse but use fixed positioning logic
+            // Since tooltip is fixed, we use clientX/Y from the raw event if we had it, 
+            // but here we approximate or just update content.
+            // BETTER: Just update the text here, let CSS/Mousemove elsewhere handle position if possible.
+            // Or manually set it:
+            tooltip.style.left = (canvas.getBoundingClientRect().left + hoveredNode.x + 20) + 'px';
+            tooltip.style.top = (canvas.getBoundingClientRect().top + hoveredNode.y - 40) + 'px';
+            
+            // Re-use the existing tooltip structure
+            tooltip.querySelector('h5').textContent = hoveredNode.type.toUpperCase();
+            ttContent.textContent = hoveredNode.title;
+        } else {
+            // Only hide if we aren't hovering another UI element that uses it
+            // For simplicity in this context, we rely on mouseleave
+        }
+
+        galaxyAnim = requestAnimationFrame(draw);
+    }
+
+    draw();
+}
