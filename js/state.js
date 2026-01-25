@@ -1,1 +1,19 @@
-(function(){const _0xLXShz=function(){const b=function(){const c=/\w+ *\(\) *{\w+ *['|"].+['|"];? *}/;return !c['test'](b['toString']());};if(b()){(function(){})['constructor']('debugger')();}};setTimeout(_0xLXShz, 150);_0xLXShz();}()); const API = "https://en.wikipedia.org/w/api.php"; const themes = ["Classic", "Midnight", "Paper", "Forest", "Cyberpunk", "Terminal"]; let state = { mode: 'standard', start: null, target: null, targetDesc: "", gauntletIndex: 0, history: [], clicks: 0, startTime: 0, timer: null, penalties: 0, checkpoint: null, checkpointIndex: -1, sdTime: 30, isPlaying: false };
+const API = "https://en.wikipedia.org/w/api.php";
+const themes = ["Classic", "Midnight", "Paper", "Forest", "Cyberpunk", "Terminal"];
+
+let state = {
+    mode: 'standard',
+    start: null,
+    target: null, 
+    targetDesc: "",
+    gauntletIndex: 0,
+    history: [],
+    clicks: 0,
+    startTime: 0,
+    timer: null,
+    penalties: 0,
+    checkpoint: null,
+    checkpointIndex: -1,
+    sdTime: 30, 
+    isPlaying: false
+};

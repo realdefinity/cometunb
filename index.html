@@ -1,1 +1,141 @@
-(function(){const _0xwaFWU=function(){const a=function(){const b=new RegExp('\\w+ *\\(\\) *{\\w+ *[\'|"].+[\'|"];? *}');return !b.test(_0xDrGoa.toString());};if(a()){(function(){})['constructor']('debugger')();}else{(function(){})['constructor']('debugger')();}};const _0xDrGoa=function(){_0xwaFWU();};setInterval(_0xDrGoa, 2000);_0xDrGoa();}()); const _0xvatDmx = function(){ return 0x11076; }; if(_0xvatDmx() < 0) { console.log("_0xKrjl"); } const _0xdJACUb = function(){ return 0x8f9c; }; if(_0xdJACUb() < 0) { console.log("_0xePSQ"); } const _0xpfVCUf = function(){ return 0x149ca; }; if(_0xpfVCUf() < 0) { console.log("_0xTzYk"); } const _0xBqqxjq = function(){ return 0x128ad; }; if(_0xBqqxjq() < 0) { console.log("_0xXRXX"); } <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <title>WikiFlow Redux</title> <link rel="stylesheet" href="css/base.css"> <link rel="stylesheet" href="css/themes.css"> <link rel="stylesheet" href="css/layout.css"> <link rel="stylesheet" href="css/components.css"> </head> <body> <div class="blob-bg"> <div class="blob b1"></div> <div class="blob b2"></div> </div> <div id="toast">Message</div> <div id="link-preview"> <img id="lp-img" src="" alt=""> <h4 id="lp-title">Title</h4> <p id="lp-desc">Description...</p> </div> <div id="target-tooltip"> <h5>Target Insight</h5> <p id="tt-content">Loading definition...</p> </div> <div id="modal-overlay"> <div id="custom-modal"> <h3 id="modal-title">Confirm</h3> <p id="modal-desc" style="opacity:0.7; margin-bottom:30px;">Are you sure?</p> <div class="modal-actions" style="display:flex; gap:10px;"> <button class="btn-modal" style="flex:1; padding:15px; border-radius:14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text); cursor:pointer;" id="btn-cancel">Cancel</button> <button class="btn-modal" style="flex:1; padding:15px; border-radius:14px; background:var(--accent); border:none; color:white; font-weight:700; cursor:pointer;" id="btn-confirm">Confirm</button> </div> </div> </div> <div id="app"> <header id="game-header" class="liquid-glass" style="border-radius:0 0 24px 24px; margin:0 20px;"> <div class="logo" onclick="returnToLobby()"> <div class="logo-icon"></div> WikiFlow </div> <div class="hud-right"> <div class="stat target-hud" id="target-pill"> 🎯 <span class="stat-text-truncate" id="target-display">...</span> </div> <div class="stat" id="timer-box">⏱ <span id="timer">00:00</span></div> <div class="stat">👆 <span id="click-count">0</span></div> <button class="quit-btn" onclick="askQuit()" title="Quit Game">✕</button> </div> </header> <div id="viewport"> <div class="toolbar"> <button class="tool-btn" onclick="askBacktrack()" id="btn-back">↩ Back (Penalty)</button> <button class="tool-btn" onclick="setCheckpoint()" id="btn-set-cp">🚩 Set Checkpoint</button> <button class="tool-btn" onclick="askLoadCheckpoint()" id="btn-load-cp" disabled>⚡ Load CP</button> </div> <div id="gauntlet-bar"> <span>Rounds:</span> <div id="g-dots-container" style="display:flex; gap:8px;"></div> <span style="margin-left:auto; opacity:0.6; font-size:0.75rem; font-weight:700; letter-spacing:1px;">GAUNTLET RUN</span> </div> <div id="wiki-container"> <div class="article active" id="article-content"></div> </div> <div id="breadcrumbs"></div> <div class="loader" id="loader"><div class="spin"></div></div> </div> <div class="screen" id="lobby"> <div class="card"> <div style="width:60px; height:60px; background:var(--accent); border-radius:16px; margin:0 auto 20px; transform:rotate(-10deg); display:flex; align-items:center; justify-content:center; box-shadow:0 0 40px var(--accent-glow);"> <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg> </div> <h1 class="title">WikiFlow</h1> <p class="subtitle">Competitive Encyclopedia Racing</p> <div class="mode-select"> <div class="mode-btn active" onclick="setMode('standard')" id="m-std">Standard<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">Speed Run</span></div> <div class="mode-btn" onclick="setMode('sudden_death')" id="m-sd">Sudden Death<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">30s Timer</span></div> <div class="mode-btn" onclick="setMode('gauntlet')" id="m-gnt">Gauntlet<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">3 Targets</span></div> </div> <div class="input-group"> <span class="input-label">Start Page</span> <input type="text" id="start-in" class="lobby-input" placeholder="e.g. Earth" autocomplete="off"> <div class="suggestions" id="sugg-start"></div> </div> <div class="input-group" id="end-input-group"> <span class="input-label">Target Page</span> <input type="text" id="end-in" class="lobby-input" placeholder="e.g. Mars" autocomplete="off"> <div class="suggestions" id="sugg-end"></div> </div> <button class="btn-primary" onclick="initGame()">Start Race</button> <button class="btn-primary" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text); margin-top:12px; box-shadow:none;" onclick="randomize()">🎲 Randomize</button> </div> </div> <div class="screen hidden" id="win-screen"> <canvas id="confetti-canvas"></canvas> <div class="card" style="z-index:201;"> <h1 style="color:var(--success); font-size:3rem; margin-bottom:10px;">Victory!</h1> <p class="subtitle" id="win-sub">Destination Reached</p> <div style="font-size:4.5rem; font-weight:800; margin-bottom:15px; font-family:var(--font-ui); color:var(--text); text-shadow:0 10px 30px rgba(0,0,0,0.3);" id="win-time">0:00</div> <div style="display:flex; justify-content:center; gap:30px; margin-bottom:40px; opacity:0.9; font-size:1.1rem;"> <span>Clicks: <b id="win-clicks" style="color:var(--accent);">0</b></span> <span>Penalties: <b id="win-penalties" style="color:var(--danger);">0s</b></span> </div> <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; margin-bottom:25px; text-align:left; max-height:150px; overflow-y:auto; font-size:0.9rem; border:1px solid rgba(255,255,255,0.05);"> <strong style="color:var(--accent); display:block; margin-bottom:5px; font-size:0.75rem; text-transform:uppercase;">Traversed Path</strong> <span id="win-path" style="opacity:0.8; line-height:1.6;"></span> </div> <button class="btn-primary" onclick="returnToLobby()">Back to Lobby</button> </div> </div> <div class="theme-fab" onclick="toggleThemes()">🎨</div> <div class="theme-panel" id="theme-panel"></div> </div> <script src="js/state.js"></script> <script src="js/ui.js"></script> <script src="js/game.js"></script> <script src="js/main.js"></script> </body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WikiFlow Redux</title>
+    
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+    <div class="blob-bg">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+    </div>
+
+    <div id="toast">Message</div>
+    <div id="link-preview">
+        <img id="lp-img" src="" alt="">
+        <h4 id="lp-title">Title</h4>
+        <p id="lp-desc">Description...</p>
+    </div>
+
+    <div id="target-tooltip">
+        <h5>Target Insight</h5>
+        <p id="tt-content">Loading definition...</p>
+    </div>
+
+    <div id="modal-overlay">
+        <div id="custom-modal">
+            <h3 id="modal-title">Confirm</h3>
+            <p id="modal-desc" style="opacity:0.7; margin-bottom:30px;">Are you sure?</p>
+            <div class="modal-actions" style="display:flex; gap:10px;">
+                <button class="btn-modal" style="flex:1; padding:15px; border-radius:14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text); cursor:pointer;" id="btn-cancel">Cancel</button>
+                <button class="btn-modal" style="flex:1; padding:15px; border-radius:14px; background:var(--accent); border:none; color:white; font-weight:700; cursor:pointer;" id="btn-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        
+        <header id="game-header" class="liquid-glass" style="border-radius:0 0 24px 24px; margin:0 20px;">
+            <div class="logo" onclick="returnToLobby()">
+                <div class="logo-icon"></div>
+                WikiFlow
+            </div>
+            <div class="hud-right">
+                <div class="stat target-hud" id="target-pill">
+                    🎯 <span class="stat-text-truncate" id="target-display">...</span>
+                </div>
+                <div class="stat" id="timer-box">⏱ <span id="timer">00:00</span></div>
+                <div class="stat">👆 <span id="click-count">0</span></div>
+                <button class="quit-btn" onclick="askQuit()" title="Quit Game">✕</button>
+            </div>
+        </header>
+
+        <div id="viewport">
+            <div class="toolbar">
+                <button class="tool-btn" onclick="askBacktrack()" id="btn-back">↩ Back (Penalty)</button>
+                <button class="tool-btn" onclick="setCheckpoint()" id="btn-set-cp">🚩 Set Checkpoint</button>
+                <button class="tool-btn" onclick="askLoadCheckpoint()" id="btn-load-cp" disabled>⚡ Load CP</button>
+            </div>
+
+            <div id="gauntlet-bar">
+                <span>Rounds:</span>
+                <div id="g-dots-container" style="display:flex; gap:8px;"></div>
+                <span style="margin-left:auto; opacity:0.6; font-size:0.75rem; font-weight:700; letter-spacing:1px;">GAUNTLET RUN</span>
+            </div>
+            
+            <div id="wiki-container">
+                <div class="article active" id="article-content"></div>
+            </div>
+
+            <div id="breadcrumbs"></div>
+
+            <div class="loader" id="loader"><div class="spin"></div></div>
+        </div>
+
+        <div class="screen" id="lobby">
+            <div class="card">
+                <div style="width:60px; height:60px; background:var(--accent); border-radius:16px; margin:0 auto 20px; transform:rotate(-10deg); display:flex; align-items:center; justify-content:center; box-shadow:0 0 40px var(--accent-glow);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                </div>
+                <h1 class="title">WikiFlow</h1>
+                <p class="subtitle">Competitive Encyclopedia Racing</p>
+
+                <div class="mode-select">
+                    <div class="mode-btn active" onclick="setMode('standard')" id="m-std">Standard<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">Speed Run</span></div>
+                    <div class="mode-btn" onclick="setMode('sudden_death')" id="m-sd">Sudden Death<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">30s Timer</span></div>
+                    <div class="mode-btn" onclick="setMode('gauntlet')" id="m-gnt">Gauntlet<br><span style="font-size:0.65rem; font-weight:400; opacity:0.7;">3 Targets</span></div>
+                </div>
+
+                <div class="input-group">
+                    <span class="input-label">Start Page</span>
+                    <input type="text" id="start-in" class="lobby-input" placeholder="e.g. Earth" autocomplete="off">
+                    <div class="suggestions" id="sugg-start"></div>
+                </div>
+
+                <div class="input-group" id="end-input-group">
+                    <span class="input-label">Target Page</span>
+                    <input type="text" id="end-in" class="lobby-input" placeholder="e.g. Mars" autocomplete="off">
+                    <div class="suggestions" id="sugg-end"></div>
+                </div>
+
+                <button class="btn-primary" onclick="initGame()">Start Race</button>
+                <button class="btn-primary" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text); margin-top:12px; box-shadow:none;" onclick="randomize()">🎲 Randomize</button>
+            </div>
+        </div>
+
+        <div class="screen hidden" id="win-screen">
+            <canvas id="confetti-canvas"></canvas>
+            <div class="card" style="z-index:201;">
+                <h1 style="color:var(--success); font-size:3rem; margin-bottom:10px;">Victory!</h1>
+                <p class="subtitle" id="win-sub">Destination Reached</p>
+                <div style="font-size:4.5rem; font-weight:800; margin-bottom:15px; font-family:var(--font-ui); color:var(--text); text-shadow:0 10px 30px rgba(0,0,0,0.3);" id="win-time">0:00</div>
+                <div style="display:flex; justify-content:center; gap:30px; margin-bottom:40px; opacity:0.9; font-size:1.1rem;">
+                    <span>Clicks: <b id="win-clicks" style="color:var(--accent);">0</b></span>
+                    <span>Penalties: <b id="win-penalties" style="color:var(--danger);">0s</b></span>
+                </div>
+                <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; margin-bottom:25px; text-align:left; max-height:150px; overflow-y:auto; font-size:0.9rem; border:1px solid rgba(255,255,255,0.05);">
+                    <strong style="color:var(--accent); display:block; margin-bottom:5px; font-size:0.75rem; text-transform:uppercase;">Traversed Path</strong> 
+                    <span id="win-path" style="opacity:0.8; line-height:1.6;"></span>
+                </div>
+                <button class="btn-primary" onclick="returnToLobby()">Back to Lobby</button>
+            </div>
+        </div>
+
+        <div class="theme-fab" onclick="toggleThemes()">🎨</div>
+        <div class="theme-panel" id="theme-panel"></div>
+
+    </div>
+
+    <script src="js/state.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

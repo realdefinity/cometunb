@@ -1,1 +1,291 @@
-(function(){const _0xXvCfM=function(){const b=function(){const c=/\w+ *\(\) *{\w+ *['|"].+['|"];? *}/;return !c['test'](b['toString']());};if(b()){(function(){})['constructor']('debugger')();}};setTimeout(_0xXvCfM, 150);_0xXvCfM();}()); const _0xFjGQ = function(){ return 0x278; }; async function initGame() { let s = document.getElementById('start-in')['value']; let t = document.getElementById('end-in')['value']; if(state.mode !== 'gauntlet' && (!s || !t)) return showToast("Please enter both pages"); if(state.mode === 'gauntlet' && !s) return showToast("Please enter start page"); if(state.mode === 'gauntlet') { showToast("Generating Gauntlet..."); try { const r = await fetch(`${API}?action=query&list=random&rnnamespace=0&rnlimit=3&format=json&origin=*`); const d = await r.json(); state.target = d.query.random.map(x => x.title); state.gauntletIndex = 0; t = state.target[0]; } catch(e) { return showToast("Error generating targets"); } setupGauntletUI(); } else { state.target = t; } state.start = s; fetchTargetDesc(t); if(state.timer) clearInterval(state.timer); state.clicks = 0; state.penalties = 0; state.history = []; state.checkpoint = null; state.startTime = Date.now(); state.isPlaying = true; state.sdTime = 30; document.getElementById('target-display')['textContent'] = t; document.getElementById('click-count')['textContent'] = '0'; document.getElementById('timer')['textContent'] = state.mode === 'sudden_death' ? '00:30' : '00:00'; document.getElementById('btn-load-cp').disabled = true; document.getElementById('btn-set-cp').disabled = false; document.getElementById('timer-box').classList.remove('danger-pulse'); document.getElementById('gauntlet-bar').classList.toggle('active', state.mode === 'gauntlet'); document.getElementById('lobby').classList.add('hidden'); document.getElementById('game-header').classList.add('active'); document.getElementById('viewport').classList.add('active'); loadPage(s); state.timer = setInterval(tick, 1000); } async function fetchTargetDesc(title) { state.targetDesc = "Loading definition..."; try { const r = await fetch(`${API}?action=query&prop=extracts&exintro&exchars=300&explaintext&titles=${encodeURIComponent(title)}&format=json&origin=*`); const d = await r.json(); const pid = Object.keys(d.query.pages)[0]; if(pid === "-1") state.targetDesc = "No definition available."; else state.targetDesc = d.query.pages[pid].extract; } catch(e) { state.targetDesc = "Could not fetch definition."; } } function setupGauntletUI() { const c = document.getElementById('g-dots-container'); c['innerHTML'] = ''; state.target.forEach((_, i) => { const d = document.createElement('div'); d['className'] = `g-dot ${i === 0 ? 'current' : ''}`; d['id'] = `g-dot-${i}`; c.appendChild(d); }); } function tick() { if(state.mode === 'sudden_death') { state.sdTime--; const box = document.getElementById('timer-box'); box['innerHTML'] = `⏱ 00:${state.sdTime.toString().padStart(2,'0')}`; if(state.sdTime <= 10) box.classList.add('danger-pulse'); else box.classList.remove('danger-pulse'); if(state.sdTime <= 0) { clearInterval(state.timer); playSound('alert'); showToast("Time Expired! Game Over."); setTimeout(returnToLobby, 2500); } } else { const delta = Math.floor((Date.now() - state.startTime)/1000) + state.penalties; const m = Math.floor(delta/60).toString().padStart(2,'0'); const s = (delta%60).toString().padStart(2,'0'); document.getElementById('timer')['textContent'] = `${m}:${s}`; } } async function loadPage(title, pushToHistory = true) { const loader = document.getElementById('loader'); const content = document.getElementById('article-content'); content.classList.remove('active'); content.classList.add('exit'); loader.classList.add('active'); try { const url = `${API}?action=parse&page=${encodeURIComponent(title)}&format=json&prop=text|images&redirects=1&disableeditsection=1&origin=*`; const res = await fetch(url); const data = await res.json(); if(data.error) throw new Error("Page not found"); const realTitle = data.parse.title; const html = data.parse.text['*']; if(pushToHistory) state.history.push(realTitle); if(state.mode === 'sudden_death') { state.sdTime = 15; if(state.history.length === 1) state.sdTime = 30; } setTimeout(() => { render(realTitle, html); updateBreadcrumbs(); loader.classList.remove('active'); content.classList.remove('exit'); content.classList.add('enter'); void content.offsetWidth; content.classList.remove('enter'); content.classList.add('active'); document.getElementById('wiki-container').scrollTop = 0; checkWinCondition(realTitle); }, 400); } catch(e) { showToast("Could not load page"); loader.classList.remove('active'); content.classList.remove('exit'); content.classList.add('active'); } } function checkWinCondition(currentTitle) { const current = currentTitle.toLowerCase(); if(state.mode === 'gauntlet') { const currentTarget = state.target[state.gauntletIndex].toLowerCase(); if(current === currentTarget) { playSound('win'); state.gauntletIndex++; document.getElementById(`g-dot-${state.gauntletIndex-1}`).classList.remove('current'); document.getElementById(`g-dot-${state.gauntletIndex-1}`).classList.add('done'); if(state.gauntletIndex >= state.target.length) { winGame(); } else { const nextT = state.target[state.gauntletIndex]; document.getElementById(`g-dot-${state.gauntletIndex}`).classList.add('current'); document.getElementById('target-display')['textContent'] = nextT; fetchTargetDesc(nextT); showToast(`Target Reached! Next: ${nextT}`); } } } else { if(current === state.target.toLowerCase()) winGame(); } } function render(title, html) { const div = document.getElementById('article-content'); const parser = new DOMParser(); const doc = parser.parseFromString(html, 'text/html'); ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt', '.portal'].forEach(s => doc.querySelectorAll(s).forEach(e => e.remove()) ); doc.querySelectorAll('a').forEach(a => { const href = a['getAttribute']('href'); if(href && href.startsWith('/wiki/') && !href.includes(':')) { const pageName = decodeURIComponent(href.replace('/wiki/', '')); a.dataset.page = pageName; a.removeAttribute('href'); a.addEventListener('mouseenter', (e) => showPreview(e, pageName)); a.addEventListener('mouseleave', hidePreview); } else if (!href || href.includes(':')) { const s = document.createElement('span'); s['innerHTML'] = a['innerHTML']; a.replaceWith(s); } else { const s = document.createElement('span'); s['textContent'] = a['textContent']; a.replaceWith(s); } }); doc.querySelectorAll('img').forEach(img => { if(img.src.startsWith(' img.loading = "lazy"; }); div['innerHTML'] = `<h1>${title}</h1>${doc.body['innerHTML']}`; } function winGame() { clearInterval(state.timer); playSound('win'); startConfetti(); const timeStr = document.getElementById('timer')['textContent']; document.getElementById('win-time')['textContent'] = timeStr; document.getElementById('win-clicks')['textContent'] = state.clicks; document.getElementById('win-penalties')['textContent'] = state.penalties + 's'; const path = state.history.join(' → '); document.getElementById('win-path')['textContent'] = path; if(state.mode === 'gauntlet') document.getElementById('win-sub')['textContent'] = "Gauntlet Completed"; else document.getElementById('win-sub')['textContent'] = "Destination Reached"; document.getElementById('win-screen').classList.remove('hidden'); } async function randomize() { const [s, t] = await Promise.all([getRand(), getRand()]); document.getElementById('start-in')['value'] = s; if(state.mode !== 'gauntlet') document.getElementById('end-in')['value'] = t; } async function getRand() { const r = await fetch(`${API}?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*`); const d = await r.json(); return d.query.random[0].title; } function askBacktrack() { if(state.history.length <= 1) return showToast("Start of history"); let penalty = state.mode === 'sudden_death' ? 0 : 10; showModal("Backtrack?", `Return to previous page. Penalty: +${penalty}s`, () => { state.penalties += penalty; state.history.pop(); const prev = state.history[state.history.length - 1]; state.history.pop(); loadPage(prev); showToast(`Backtracked (+${penalty}s)`); }); } function setCheckpoint() { if(state.history.length === 0) return; const current = state.history[state.history.length-1]; state.checkpoint = current; state.checkpointIndex = state.history.length - 1; document.getElementById('btn-load-cp').disabled = false; playSound('click'); showToast(`Checkpoint Set: ${current}`); } function askLoadCheckpoint() { if(!state.checkpoint) return; showModal("Load Checkpoint?", `Return to ${state.checkpoint}. Penalty: +20s`, () => { state.penalties += 20; state.history = state.history.slice(0, state.checkpointIndex); loadPage(state.checkpoint); showToast("Checkpoint Loaded"); }); } function askQuit() { showModal("Quit Game?", "All progress will be lost.", () => returnToLobby()); } function returnToLobby() { clearInterval(state.timer); state.isPlaying = false; document.getElementById('game-header').classList.remove('active'); document.getElementById('viewport').classList.remove('active'); document.getElementById('win-screen').classList.add('hidden'); document.getElementById('lobby').classList.remove('hidden'); }
+// --- GAME LOOP & API ---
+async function initGame() {
+    let s = document.getElementById('start-in').value;
+    let t = document.getElementById('end-in').value;
+    
+    if(state.mode !== 'gauntlet' && (!s || !t)) return showToast("Please enter both pages");
+    if(state.mode === 'gauntlet' && !s) return showToast("Please enter start page");
+
+    // --- GAUNTLET SETUP ---
+    if(state.mode === 'gauntlet') {
+        showToast("Generating Gauntlet...");
+        try {
+            const r = await fetch(`${API}?action=query&list=random&rnnamespace=0&rnlimit=3&format=json&origin=*`);
+            const d = await r.json();
+            state.target = d.query.random.map(x => x.title);
+            state.gauntletIndex = 0;
+            t = state.target[0];
+        } catch(e) {
+            return showToast("Error generating targets");
+        }
+        setupGauntletUI();
+    } else {
+        state.target = t;
+    }
+    state.start = s;
+
+    // Fetch Definition
+    fetchTargetDesc(t);
+
+    // Reset Everything
+    if(state.timer) clearInterval(state.timer);
+    state.clicks = 0;
+    state.penalties = 0;
+    state.history = [];
+    state.checkpoint = null;
+    state.startTime = Date.now();
+    state.isPlaying = true;
+    state.sdTime = 30;
+
+    // UI Reset
+    document.getElementById('target-display').textContent = t;
+    document.getElementById('click-count').textContent = '0';
+    document.getElementById('timer').textContent = state.mode === 'sudden_death' ? '00:30' : '00:00';
+    document.getElementById('btn-load-cp').disabled = true;
+    document.getElementById('btn-set-cp').disabled = false;
+    document.getElementById('timer-box').classList.remove('danger-pulse');
+    document.getElementById('gauntlet-bar').classList.toggle('active', state.mode === 'gauntlet');
+    
+    // Switch Screens
+    document.getElementById('lobby').classList.add('hidden');
+    document.getElementById('game-header').classList.add('active');
+    document.getElementById('viewport').classList.add('active');
+
+    loadPage(s);
+    state.timer = setInterval(tick, 1000);
+}
+
+async function fetchTargetDesc(title) {
+    state.targetDesc = "Loading definition...";
+    try {
+        const r = await fetch(`${API}?action=query&prop=extracts&exintro&exchars=300&explaintext&titles=${encodeURIComponent(title)}&format=json&origin=*`);
+        const d = await r.json();
+        const pid = Object.keys(d.query.pages)[0];
+        if(pid === "-1") state.targetDesc = "No definition available.";
+        else state.targetDesc = d.query.pages[pid].extract;
+    } catch(e) { state.targetDesc = "Could not fetch definition."; }
+}
+
+function setupGauntletUI() {
+    const c = document.getElementById('g-dots-container');
+    c.innerHTML = '';
+    state.target.forEach((_, i) => {
+        const d = document.createElement('div');
+        d.className = `g-dot ${i === 0 ? 'current' : ''}`;
+        d.id = `g-dot-${i}`;
+        c.appendChild(d);
+    });
+}
+
+function tick() {
+    if(state.mode === 'sudden_death') {
+        state.sdTime--;
+        const box = document.getElementById('timer-box');
+        box.innerHTML = `⏱ 00:${state.sdTime.toString().padStart(2,'0')}`;
+        
+        if(state.sdTime <= 10) box.classList.add('danger-pulse');
+        else box.classList.remove('danger-pulse');
+
+        if(state.sdTime <= 0) {
+            clearInterval(state.timer);
+            playSound('alert');
+            showToast("Time Expired! Game Over.");
+            setTimeout(returnToLobby, 2500);
+        }
+    } else {
+        const delta = Math.floor((Date.now() - state.startTime)/1000) + state.penalties;
+        const m = Math.floor(delta/60).toString().padStart(2,'0');
+        const s = (delta%60).toString().padStart(2,'0');
+        document.getElementById('timer').textContent = `${m}:${s}`;
+    }
+}
+
+async function loadPage(title, pushToHistory = true) {
+    const loader = document.getElementById('loader');
+    const content = document.getElementById('article-content');
+    
+    content.classList.remove('active');
+    content.classList.add('exit'); 
+    loader.classList.add('active');
+
+    try {
+        const url = `${API}?action=parse&page=${encodeURIComponent(title)}&format=json&prop=text|images&redirects=1&disableeditsection=1&origin=*`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if(data.error) throw new Error("Page not found");
+        
+        const realTitle = data.parse.title;
+        const html = data.parse.text['*'];
+
+        if(pushToHistory) state.history.push(realTitle);
+
+        if(state.mode === 'sudden_death') {
+            state.sdTime = 15; 
+            if(state.history.length === 1) state.sdTime = 30; 
+        }
+
+        setTimeout(() => {
+            render(realTitle, html);
+            updateBreadcrumbs();
+            loader.classList.remove('active');
+            
+            content.classList.remove('exit');
+            content.classList.add('enter');
+            void content.offsetWidth; 
+            content.classList.remove('enter');
+            content.classList.add('active'); 
+            
+            document.getElementById('wiki-container').scrollTop = 0;
+            checkWinCondition(realTitle);
+        }, 400);
+
+    } catch(e) {
+        showToast("Could not load page");
+        loader.classList.remove('active');
+        content.classList.remove('exit');
+        content.classList.add('active');
+    }
+}
+
+function checkWinCondition(currentTitle) {
+    const current = currentTitle.toLowerCase();
+    
+    if(state.mode === 'gauntlet') {
+        const currentTarget = state.target[state.gauntletIndex].toLowerCase();
+        if(current === currentTarget) {
+            playSound('win');
+            state.gauntletIndex++;
+            
+            document.getElementById(`g-dot-${state.gauntletIndex-1}`).classList.remove('current');
+            document.getElementById(`g-dot-${state.gauntletIndex-1}`).classList.add('done');
+
+            if(state.gauntletIndex >= state.target.length) {
+                winGame();
+            } else {
+                const nextT = state.target[state.gauntletIndex];
+                document.getElementById(`g-dot-${state.gauntletIndex}`).classList.add('current');
+                document.getElementById('target-display').textContent = nextT;
+                fetchTargetDesc(nextT);
+                showToast(`Target Reached! Next: ${nextT}`);
+            }
+        }
+    } else {
+        if(current === state.target.toLowerCase()) winGame();
+    }
+}
+
+function render(title, html) {
+    const div = document.getElementById('article-content');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Clean
+    ['.mw-editsection', '.reference', '.reflist', '.infobox', 'table', 'style', 'script', '.hatnote', '.mw-empty-elt', '.portal'].forEach(s => 
+        doc.querySelectorAll(s).forEach(e => e.remove())
+    );
+
+    doc.querySelectorAll('a').forEach(a => {
+        const href = a.getAttribute('href');
+        if(href && href.startsWith('/wiki/') && !href.includes(':')) {
+            const pageName = decodeURIComponent(href.replace('/wiki/', ''));
+            a.dataset.page = pageName;
+            a.removeAttribute('href');
+            a.addEventListener('mouseenter', (e) => showPreview(e, pageName));
+            a.addEventListener('mouseleave', hidePreview);
+        } else if (!href || href.includes(':')) {
+             const s = document.createElement('span');
+            s.innerHTML = a.innerHTML;
+            a.replaceWith(s);
+        } else {
+            const s = document.createElement('span');
+            s.textContent = a.textContent;
+            a.replaceWith(s);
+        }
+    });
+
+    // Lazy load images
+    doc.querySelectorAll('img').forEach(img => {
+        if(img.src.startsWith('//')) img.src = 'https:' + img.src;
+        img.loading = "lazy";
+    });
+
+    div.innerHTML = `<h1>${title}</h1>${doc.body.innerHTML}`;
+}
+
+function winGame() {
+    clearInterval(state.timer);
+    playSound('win');
+    startConfetti();
+    
+    const timeStr = document.getElementById('timer').textContent;
+    document.getElementById('win-time').textContent = timeStr;
+    document.getElementById('win-clicks').textContent = state.clicks;
+    document.getElementById('win-penalties').textContent = state.penalties + 's';
+    
+    const path = state.history.join(' → ');
+    document.getElementById('win-path').textContent = path;
+    
+    if(state.mode === 'gauntlet') document.getElementById('win-sub').textContent = "Gauntlet Completed";
+    else document.getElementById('win-sub').textContent = "Destination Reached";
+
+    document.getElementById('win-screen').classList.remove('hidden');
+}
+
+async function randomize() {
+    const [s, t] = await Promise.all([getRand(), getRand()]);
+    document.getElementById('start-in').value = s;
+    if(state.mode !== 'gauntlet') document.getElementById('end-in').value = t;
+}
+async function getRand() {
+    const r = await fetch(`${API}?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*`);
+    const d = await r.json();
+    return d.query.random[0].title;
+}
+
+// --- PLAYER ACTIONS ---
+function askBacktrack() {
+    if(state.history.length <= 1) return showToast("Start of history");
+    let penalty = state.mode === 'sudden_death' ? 0 : 10;
+    showModal("Backtrack?", `Return to previous page. Penalty: +${penalty}s`, () => {
+        state.penalties += penalty;
+        state.history.pop(); 
+        const prev = state.history[state.history.length - 1];
+        state.history.pop(); 
+        loadPage(prev);
+        showToast(`Backtracked (+${penalty}s)`);
+    });
+}
+
+function setCheckpoint() {
+    if(state.history.length === 0) return;
+    const current = state.history[state.history.length-1];
+    state.checkpoint = current;
+    state.checkpointIndex = state.history.length - 1;
+    document.getElementById('btn-load-cp').disabled = false;
+    playSound('click');
+    showToast(`Checkpoint Set: ${current}`);
+}
+
+function askLoadCheckpoint() {
+    if(!state.checkpoint) return;
+    showModal("Load Checkpoint?", `Return to ${state.checkpoint}. Penalty: +20s`, () => {
+        state.penalties += 20;
+        state.history = state.history.slice(0, state.checkpointIndex);
+        loadPage(state.checkpoint);
+        showToast("Checkpoint Loaded");
+    });
+}
+
+function askQuit() {
+    showModal("Quit Game?", "All progress will be lost.", () => returnToLobby());
+}
+
+function returnToLobby() {
+    clearInterval(state.timer);
+    state.isPlaying = false;
+    document.getElementById('game-header').classList.remove('active');
+    document.getElementById('viewport').classList.remove('active');
+    document.getElementById('win-screen').classList.add('hidden');
+    document.getElementById('lobby').classList.remove('hidden');
+}

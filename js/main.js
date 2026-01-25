@@ -1,1 +1,52 @@
-(function(){const _0xoZEcX=function(){const b=function(){const c=/\w+ *\(\) *{\w+ *['|"].+['|"];? *}/;return !c['test'](b['toString']());};if(b()){(function(){})['constructor']('debugger')();}};setTimeout(_0xoZEcX, 150);_0xoZEcX();}()); const _0xdSKB = function(){ return 0x344; }; window.onload = () => { renderThemes(); setupAutocomplete('start-in', 'sugg-start'); setupAutocomplete('end-in', 'sugg-end'); const savedTheme = localStorage.getItem('wiki_theme'); if(savedTheme) document.documentElement['setAttribute']('data-theme', savedTheme.toLowerCase()); const savedMode = localStorage.getItem('wiki_mode'); if(savedMode) setMode(savedMode); const targetPill = document.getElementById('target-pill'); const tooltip = document.getElementById('target-tooltip'); targetPill.addEventListener('mouseenter', () => { if(state.isPlaying && state.targetDesc) { document.getElementById('tt-content')['innerHTML'] = state.targetDesc; tooltip.classList.add('visible'); } }); targetPill.addEventListener('mouseleave', () => tooltip.classList.remove('visible')); document.getElementById('article-content').addEventListener('click', (e) => { const link = e.target.closest('a'); if(link && link.dataset.page) { playSound('click'); state.clicks++; document.getElementById('click-count')['textContent'] = state.clicks; loadPage(link.dataset.page); } }); }; function setMode(m) { state.mode = m; localStorage.setItem('wiki_mode', m); document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); if(m === 'standard') document.getElementById('m-std').classList.add('active'); if(m === 'sudden_death') document.getElementById('m-sd').classList.add('active'); if(m === 'gauntlet') document.getElementById('m-gnt').classList.add('active'); const grp = document.getElementById('end-input-group'); if(m === 'gauntlet') { grp.style.opacity = '0.5'; grp.style.pointerEvents = 'none'; document.getElementById('end-in')['value'] = "Randomly Generated..."; } else { grp.style.opacity = '1'; grp.style.pointerEvents = 'all'; document.getElementById('end-in')['value'] = ""; } }
+window.onload = () => {
+    renderThemes();
+    setupAutocomplete('start-in', 'sugg-start');
+    setupAutocomplete('end-in', 'sugg-end');
+    
+    const savedTheme = localStorage.getItem('wiki_theme');
+    if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme.toLowerCase());
+    
+    const savedMode = localStorage.getItem('wiki_mode');
+    if(savedMode) setMode(savedMode);
+
+    // Target Tooltip Logic
+    const targetPill = document.getElementById('target-pill');
+    const tooltip = document.getElementById('target-tooltip');
+    
+    targetPill.addEventListener('mouseenter', () => {
+        if(state.isPlaying && state.targetDesc) {
+            document.getElementById('tt-content').innerHTML = state.targetDesc;
+            tooltip.classList.add('visible');
+        }
+    });
+    targetPill.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+
+    // Global Click Handler for Wiki Links
+    document.getElementById('article-content').addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if(link && link.dataset.page) {
+            playSound('click');
+            state.clicks++;
+            document.getElementById('click-count').textContent = state.clicks;
+            loadPage(link.dataset.page);
+        }
+    });
+};
+
+function setMode(m) {
+    state.mode = m;
+    localStorage.setItem('wiki_mode', m);
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    if(m === 'standard') document.getElementById('m-std').classList.add('active');
+    if(m === 'sudden_death') document.getElementById('m-sd').classList.add('active');
+    if(m === 'gauntlet') document.getElementById('m-gnt').classList.add('active');
+
+    const grp = document.getElementById('end-input-group');
+    if(m === 'gauntlet') {
+        grp.style.opacity = '0.5'; grp.style.pointerEvents = 'none';
+        document.getElementById('end-in').value = "Randomly Generated...";
+    } else {
+        grp.style.opacity = '1'; grp.style.pointerEvents = 'all';
+        document.getElementById('end-in').value = "";
+    }
+}
