@@ -40,82 +40,73 @@
         </div>
     </div>
 
-    <div class="screen" id="lobby">
-        <div class="card lobby-layout">
+<div class="screen" id="lobby">
+    <div class="card lobby-glass">
+        
+        <div class="lobby-header-minimal">
+            <div class="logo-minimal">
+                <div class="logo-icon-small"></div>
+                <span>WikiFlow</span>
+            </div>
+            <button class="icon-btn-ghost" onclick="showStats()">📊</button>
+        </div>
+
+        <div class="lobby-body">
             
-            <div class="lobby-header">
-                <div class="brand-group">
-                    <div class="logo-badge">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                    </div>
-                    <div>
-                        <h1 class="brand-title">WikiFlow</h1>
-                        <div class="brand-tag">v2.0</div>
-                    </div>
-                </div>
-                <button class="icon-btn stats-btn" onclick="showStats()">
-                    <span style="font-size:1.2rem;">📊</span>
-                </button>
+            <div class="segment-label">Game Mode</div>
+            <div class="ios-segment">
+                <div class="seg-opt active" id="m-std" onclick="setMode('standard')">Standard</div>
+                <div class="seg-opt" id="m-sd" onclick="setMode('sudden_death')">Timed</div>
+                <div class="seg-opt" id="m-gnt" onclick="setMode('gauntlet')">Gauntlet</div>
             </div>
 
-            <div class="control-grid">
+            <div class="segment-row">
+                <span class="segment-label-inline" id="setting-label">Difficulty</span>
                 
-                <div class="control-box mode-box">
-                    <span class="ctrl-label">Game Mode</span>
-                    <div class="mode-toggles">
-                        <div class="mode-opt active" id="m-std" onclick="setMode('standard')">Standard</div>
-                        <div class="mode-opt" id="m-sd" onclick="setMode('sudden_death')">Sudden Death</div>
-                        <div class="mode-opt" id="m-gnt" onclick="setMode('gauntlet')">Gauntlet</div>
-                    </div>
+                <div class="ios-segment small" id="diff-selector">
+                    <input type="hidden" id="diff-value" value="medium">
+                    <div class="seg-opt-sm" onclick="setDiff('easy', this)">Easy</div>
+                    <div class="seg-opt-sm active" onclick="setDiff('medium', this)">Med</div>
+                    <div class="seg-opt-sm" onclick="setDiff('hard', this)">Hard</div>
                 </div>
 
-                <div class="control-box setting-box">
-                    <span class="ctrl-label" id="setting-label">Difficulty</span>
-                    
-                    <div class="diff-segments" id="diff-selector">
-                        <input type="hidden" id="diff-value" value="medium">
-                        <div class="diff-seg" onclick="setDiff('easy', this)">Easy</div>
-                        <div class="diff-seg active" onclick="setDiff('medium', this)">Med</div>
-                        <div class="diff-seg" onclick="setDiff('hard', this)">Hard</div>
-                    </div>
-
-                    <div class="number-wrapper" id="sd-config" style="display:none;">
-                        <input type="number" id="sd-time-in" class="lobby-input small" value="30" min="10" max="300" readonly>
-                        <div class="custom-arrows">
-                            <div class="arrow-btn up" onclick="adjustTime(10)"></div>
-                            <div class="arrow-btn down" onclick="adjustTime(-10)"></div>
-                        </div>
+                <div class="number-wrapper-clean" id="sd-config" style="display:none;">
+                    <input type="number" id="sd-time-in" class="clean-num-input" value="30" min="10" max="300" readonly>
+                    <div class="clean-arrows">
+                        <div class="c-arrow up" onclick="adjustTime(10)">▲</div>
+                        <div class="c-arrow down" onclick="adjustTime(-10)">▼</div>
                     </div>
                 </div>
             </div>
 
-            <div class="path-container">
-                <div class="connector-line"></div>
+            <div class="path-group">
+                <div class="path-connector">
+                    <div class="p-dot start"></div>
+                    <div class="p-line"></div>
+                    <div class="p-dot end"></div>
+                </div>
                 
-                <div class="input-row">
-                    <div class="dot start"></div>
-                    <input type="text" id="start-in" class="clean-input" placeholder="Start Page" autocomplete="off">
+                <div class="inputs-stack">
+                    <input type="text" id="start-in" class="ios-input top" placeholder="Start Page" autocomplete="off">
+                    <input type="text" id="end-in" class="ios-input bottom" placeholder="Target Page" autocomplete="off">
                     <div class="suggestions" id="sugg-start"></div>
+                    <div class="suggestions" id="sugg-end" style="top: 100%;"></div>
                 </div>
-
-                <div class="input-row" id="end-input-group">
-                    <div class="dot end"></div>
-                    <input type="text" id="end-in" class="clean-input" placeholder="Target Page" autocomplete="off">
-                    <div class="suggestions" id="sugg-end"></div>
-                </div>
-            </div>
-
-            <div class="lobby-footer">
-                <button class="btn-secondary rand-btn" onclick="randomize()">
-                    <span style="font-size:1.2rem; margin-right:5px;">🎲</span> Shuffle
-                </button>
-                <button class="btn-primary hero-btn" onclick="initGame()">
-                    Start Race
-                </button>
             </div>
 
         </div>
+
+        <div class="lobby-footer-minimal">
+            <button class="btn-text" onclick="randomize()">
+                <span class="shuffle-icon">🔀</span> Shuffle
+            </button>
+            <button class="btn-ios-primary" onclick="initGame()">
+                Start Race
+            </button>
+        </div>
+
     </div>
+</div>
 
     <div class="screen hidden" id="win-screen">
         <canvas id="confetti-canvas"></canvas>
