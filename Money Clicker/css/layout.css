@@ -1,13 +1,16 @@
-/* --- MAIN LAYOUT CONTAINER --- */
+/* --- NUCLEAR SCREEN LOCK --- */
+/* This forces the layout to touch all 4 corners of the screen exactly */
 .layout { 
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    
     display: flex; 
-    width: 100%; 
-    height: 100%; 
-    position: relative; 
     z-index: 10; 
-    padding: 24px; 
-    gap: 24px;
-    overflow: hidden; /* Critical for keeping UI on screen */
+    padding: 20px; 
+    gap: 20px;
+    
+    /* Ensure nothing ever spills out */
+    overflow: hidden;
 }
 
 /* --- THE GLASS PANELS --- */
@@ -22,19 +25,20 @@
     z-index: 20;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     
-    /* RESCALING LOGIC */
-    flex-shrink: 0; 
-    max-height: 100%; 
+    /* CRITICAL: Allow these to shrink if screen is short */
+    height: 100%; 
+    min-height: 0; 
 }
 
+/* Left Panel (Stats) */
 .panel-left { 
     width: 320px; 
     padding: 24px; 
-    overflow-y: auto; /* Allow scrolling if screen is tiny */
+    overflow-y: auto; /* Internal scroll if screen is tiny */
 }
-/* Hide scrollbar on left panel */
-.panel-left::-webkit-scrollbar { width: 0px; }
+.panel-left::-webkit-scrollbar { width: 0px; } /* Hide scrollbar */
 
+/* Right Panel (Shop) */
 .panel-right { 
     width: 420px; 
     min-width: 300px;
@@ -42,55 +46,59 @@
 
 /* --- CENTER STAGE --- */
 .panel-center {
-    flex: 1; /* Takes all remaining space */
+    flex: 1; /* Takes remaining width */
+    height: 100%; /* Match height of neighbors */
+    min-height: 0; /* Allow shrinking */
+    
     display: flex; 
     flex-direction: column; 
     align-items: center; 
     justify-content: center;
     position: relative; 
-    min-width: 0; /* Prevents flexbox blowout */
 }
 
-/* --- SCROLLABLE SHOP AREA --- */
+/* --- SHOP SCROLLING FIX --- */
 .shop-header {
     padding: 20px 24px;
     border-bottom: 1px solid var(--glass-border);
     background: rgba(255,255,255,0.02);
-    flex-shrink: 0; /* Header stays fixed */
+    flex-shrink: 0; /* Lock header height */
 }
 
 .shop-list { 
-    flex: 1; /* Fills remaining height */
-    overflow-y: auto; /* Scrolls internally */
+    flex: 1; /* Fill remaining vertical space */
+    overflow-y: auto; /* Scroll ONLY inside this box */
     padding: 16px;
-    min-height: 0; /* Firefox fix */
+    overscroll-behavior: contain; /* Stop parent scroll */
 }
 
-/* Custom Scrollbar for Shop */
-.shop-list::-webkit-scrollbar { width: 6px; }
-.shop-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+/* Custom Scrollbar */
+.shop-list::-webkit-scrollbar { width: 5px; }
+.shop-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 .shop-list::-webkit-scrollbar-track { background: transparent; }
 
 
-/* --- TABLET / MOBILE MODE --- */
-@media (max-width: 1100px) {
+/* --- MOBILE / TABLET OVERRIDE --- */
+/* Trigger this if screen is narrow OR if height is very short */
+@media (max-width: 1000px), (max-height: 600px) {
     .layout {
+        position: fixed; /* Lock to window */
         flex-direction: column;
-        overflow-y: auto; /* Enable page scroll */
-        height: auto;
-        min-height: 100vh;
-        padding: 16px;
+        padding: 10px;
+        gap: 10px;
+        overflow-y: auto; /* Allow scrolling the whole page on mobile */
     }
     
+    /* Unlock heights for scrolling */
     .panel-left, .panel-right, .panel-center {
         width: 100%;
-        height: auto;
-        max-height: none;
-        flex: none;
+        height: auto; 
+        min-height: auto;
+        flex: none; /* Stop flexing */
     }
-    
-    /* Order: Game first, then Stats, then Shop */
-    .panel-center { order: 1; height: 50vh; min-height: 400px; margin-bottom: 20px;} 
-    .panel-left { order: 2; margin-bottom: 20px; }
-    .panel-right { order: 3; height: 600px; }
+
+    /* Mobile Order */
+    .panel-center { order: 1; margin-bottom: 20px; margin-top: 40px; }
+    .panel-left { order: 2; margin-bottom: 10px; }
+    .panel-right { order: 3; height: 500px; } /* Fixed height for shop on mobile */
 }

@@ -30,9 +30,10 @@ body {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
     
     /* LOCK THE SCREEN */
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden; /* Prevents scrolling on the body itself */
+    position: fixed; /* Stops the elastic scroll bounce */
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
