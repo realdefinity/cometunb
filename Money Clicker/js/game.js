@@ -118,20 +118,26 @@ function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { 
         if(upgrades[i]) {
-            // Include asset level multipliers from portfolio
+            let upgradeMult = 1;
+            // Loop through all upgrades to see if any apply to this asset (i)
+            marketUpgrades.forEach(upg => {
+                if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) {
+                    upgradeMult *= upg.mult;
+                }
+            });
+            
             const levelMult = game.levels && game.levels[i] ? game.levels[i] : 1;
-            base += count * upgrades[i].baseRate * levelMult; 
+            base += count * upgrades[i].baseRate * levelMult * upgradeMult; 
         }
     });
     
     let influenceMult = 1 + (game.influence * 0.10); 
     let maniaMult = maniaMode ? 2 : 1;
-    
-    // STAFF: Executive CEO (ID: 3) global multiplier
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
     
     return base * influenceMult * maniaMult * ceoMult;
 }
+
 
 // --- INPUT HANDLING (Clicking) ---
 function clickAction(e) {

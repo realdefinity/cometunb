@@ -42,6 +42,26 @@ const rankData = [
     { name: "Illuminati", req: 1000000 }
 ];
 
+const marketUpgrades = [
+    { id: 0, targetId: 0, name: "Premium Feed", cost: 500, mult: 2, desc: "Piggy Banks produce 2x more income." },
+    { id: 1, targetId: 1, name: "Better Springs", cost: 2500, mult: 2, desc: "Vending Machines produce 2x more income." },
+    { id: 2, targetId: 2, name: "Industrial Detergent", cost: 15000, mult: 2, desc: "Laundromats produce 2x more income." },
+    { id: 3, targetId: 3, name: "Smart Integration", cost: 150000, mult: 2, desc: "Real Estate produces 2x more income." },
+    { id: 4, targetId: 4, name: "HFT Algorithms", cost: 1.5e6, mult: 2, desc: "Stock Portfolios produce 2x more income." },
+    { id: 5, targetId: 5, name: "Series A Funding", cost: 20e6, mult: 2, desc: "Tech Startups produce 2x more income." },
+    { id: 6, targetId: 6, name: "Quant Models", cost: 300e6, mult: 2, desc: "Hedge Funds produce 2x more income." },
+    { id: 7, targetId: 7, name: "Shell Network", cost: 5e9, mult: 2, desc: "Offshore Banks produce 2x more income." },
+    { id: 8, targetId: 8, name: "Deep Vaults", cost: 75e9, mult: 2, desc: "Gold Reserves produce 2x more income." },
+    { id: 9, targetId: 9, name: "Fracking License", cost: 1e12, mult: 2, desc: "Oil Companies produce 2x more income." },
+    { id: 10, targetId: 10, name: "Quantitative Easing", cost: 15e12, mult: 2, desc: "Central Banks produce 2x more income." },
+    { id: 11, targetId: 11, name: "Reserve Status", cost: 250e12, mult: 2, desc: "Global Currencies produce 2x more income." },
+    { id: 12, targetId: 12, name: "Ion Thrusters", cost: 6e15, mult: 2, desc: "Space Mining produces 2x more income." },
+    { id: 13, targetId: 13, name: "Atomic Synthesis", cost: 1e18, mult: 2, desc: "Matter Replicators produce 2x more income." },
+    { id: 14, targetId: 14, name: "Paradox Prevention", cost: 1e21, mult: 2, desc: "Time Monopolies produce 2x more income." },
+    { id: 15, targetId: 15, name: "Reality Anchoring", cost: 1e24, mult: 2, desc: "Galactic Treasuries produce 2x more income." }
+];
+
+
 // --- GAME STATE ---
 window.game = { 
     money: 0, 
@@ -50,7 +70,8 @@ window.game = {
     counts: Array(upgrades.length).fill(0),
     levels: Array(upgrades.length).fill(1),
     staff: [], // Array of owned staff IDs
-    startTime: Date.now() 
+    startTime: Date.now(),
+    upgradesOwned: []
 };
 
 // Global Configs

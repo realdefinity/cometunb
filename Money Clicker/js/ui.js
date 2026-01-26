@@ -259,21 +259,30 @@ window.openAnalytics = openAnalytics;
 // --- 4. TABS, PORTFOLIO & STAFF ---
 function setShopTab(tab) {
     currentShopTab = tab;
+    // 1. Grab all buttons
     const marketBtn = document.getElementById('btn-tab-markets');
     const portfolioBtn = document.getElementById('btn-tab-portfolio');
     const staffBtn = document.getElementById('btn-tab-staff');
+    const upgradesBtn = document.getElementById('btn-tab-upgrades'); // NEW
     
+    // 2. Grab all control headers
     const marketControls = document.getElementById('market-controls');
     const portfolioControls = document.getElementById('portfolio-controls');
     const staffControls = document.getElementById('staff-controls');
     
+    // 3. Grab all containers
     const shopContainer = document.getElementById('shop-container');
     const portfolioContainer = document.getElementById('portfolio-container');
     const staffContainer = document.getElementById('staff-container');
+    const upgradesContainer = document.getElementById('upgrades-container'); // NEW
 
-    [marketBtn, portfolioBtn, staffBtn].forEach(b => b?.classList.remove('active'));
-    [marketControls, portfolioControls, staffControls, shopContainer, portfolioContainer, staffContainer].forEach(c => c ? c.style.display = 'none' : null);
+    // 4. Reset all buttons (Remove 'active' class)
+    [marketBtn, portfolioBtn, staffBtn, upgradesBtn].forEach(b => b?.classList.remove('active'));
 
+    // 5. Reset all containers (Set display to 'none')
+    [marketControls, portfolioControls, staffControls, shopContainer, portfolioContainer, staffContainer, upgradesContainer].forEach(c => c ? c.style.display = 'none' : null);
+
+    // 6. Show the selected tab
     if (tab === 'markets') {
         marketBtn.classList.add('active');
         marketControls.style.display = 'block';
@@ -288,8 +297,14 @@ function setShopTab(tab) {
         staffControls.style.display = 'block';
         staffContainer.style.display = 'block';
         renderStaff();
+    } else if (tab === 'upgrades') {
+        upgradesBtn.classList.add('active');
+        // Upgrades don't have a special header, so we just show the container
+        upgradesContainer.style.display = 'block';
+        renderUpgrades();
     }
 }
+
 window.setShopTab = setShopTab;
 
 function renderPortfolio() {
@@ -539,5 +554,41 @@ function toggleAudio() {
     } else {
         if(btn) { btn.classList.remove('active'); btn.innerHTML = "&#128263;"; }
         showToast("Audio Muted", "info");
+    }
+}
+
+function renderUpgrades() {
+    const container = document.getElementById('upgrades-container');
+    if (!container) return;
+    let html = '';
+    marketUpgrades.forEach(u => {
+        const isOwned = game.upgradesOwned.includes(u.id);
+        if (!isOwned) {
+            const canAfford = game.money >= u.cost;
+            html += `
+                <div class="upgrade ${canAfford ? 'affordable' : ''}" onclick="buyUpgrade(${u.id})">
+                    <div class="upg-info">
+                        <h4>${u.name}</h4>
+                        <p>${u.desc}</p>
+                    </div>
+                    <div class="upg-cost">
+                        <div class="cost-text">$${formatNumber(u.cost)}</div>
+                    </div>
+                </div>`;
+        }
+    });
+    container.innerHTML = html || '<div class="portfolio-empty">ALL UPGRADES PURCHASED.</div>';
+}
+
+function buyUpgrade(id) {
+    const u = marketUpgrades[id];
+    if (game.money >= u.cost) {
+        game.money -= u.cost;
+        game.upgradesOwned.push(id);
+        playSound('buy');
+        showToast(`Unlocked: ${u.name}`, 'success');
+        renderUpgrades();
+    } else {
+        showToast("Insufficient capital.", "error");
     }
 }
