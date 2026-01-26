@@ -296,3 +296,25 @@ body.mania-mode .big-button:hover::before { color: var(--gold); text-shadow: 0 0
 .save-textarea { width: 100%; height: 120px; background: #000; border: 1px solid #222; color: var(--green); font-family: var(--font-mono); padding: 16px; margin: 24px 0; border-radius: 10px; resize: none; }
 .close-modal { position: absolute; top: 20px; right: 24px; font-size: 28px; color: #444; cursor: pointer; }
 .close-modal:hover { color: #fff; }
+
+.lvl-up-btn {
+    background: rgba(234, 179, 8, 0.1);
+    border: 1px solid rgba(234, 179, 8, 0.2);
+    color: var(--gold);
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-top: 8px;
+    display: inline-block;
+    transition: all 0.2s;
+    font-family: var(--font-mono);
+}
+.lvl-up-btn.ready { 
+    background: var(--gold); 
+    color: #000; 
+    border-color: var(--gold); 
+    box-shadow: 0 0 10px var(--gold-glow); 
+    cursor: pointer;
+}
+.lvl-up-btn:active { transform: scale(0.9); }

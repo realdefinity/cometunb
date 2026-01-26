@@ -118,16 +118,9 @@ function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { 
         if(upgrades[i]) {
-            let upgradeMult = 1;
-            // Loop through all upgrades to see if any apply to this asset (i)
-            marketUpgrades.forEach(upg => {
-                if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) {
-                    upgradeMult *= upg.mult;
-                }
-            });
-            
-            const levelMult = game.levels && game.levels[i] ? game.levels[i] : 1;
-            base += count * upgrades[i].baseRate * levelMult * upgradeMult; 
+            // Level Mastery: +25% yield per level (+0.25)
+            let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
+            base += count * upgrades[i].baseRate * levelMult; 
         }
     });
     
@@ -156,7 +149,7 @@ function clickAction(e) {
     let baseRate = 0;
     game.counts.forEach((c, i) => { 
         if(upgrades[i]) {
-            const levelMult = game.levels && game.levels[i] ? game.levels[i] : 1;
+            let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
             baseRate += c * upgrades[i].baseRate * levelMult; 
         }
     });
