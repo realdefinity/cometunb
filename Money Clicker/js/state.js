@@ -1,4 +1,3 @@
-// --- UPGRADES DATA ---
 const upgrades = [
     { name: "Piggy Bank", baseCost: 15, baseRate: 1 },
     { name: "Vending Machine", baseCost: 100, baseRate: 4 },
@@ -18,7 +17,13 @@ const upgrades = [
     { name: "Galactic Treasury", baseCost: 1e21, baseRate: 800e9 }
 ];
 
-// --- RANK SYSTEM (Tiered Milestones) ---
+const staffMembers = [
+    { id: 0, name: "Junior Intern", cost: 2.5e6, desc: "Automates Golden Bill collection.", type: "Utility" },
+    { id: 1, name: "Quant Analyst", cost: 75e6, desc: "+10% Critical Hit chance.", type: "Tactical" },
+    { id: 2, name: "High-Stakes Lobbyist", cost: 2e9, desc: "+50% Influence from Liquidation.", type: "Strategic" },
+    { id: 3, name: "Executive CEO", cost: 500e12, desc: "Global 1.5x Profit Multiplier.", type: "Leadership" }
+];
+
 const rankData = [
     { name: "Intern", req: 0 },
     { name: "Freelancer", req: 10 },
@@ -42,7 +47,9 @@ window.game = {
     money: 0, 
     lifetimeEarnings: 0, 
     influence: 0, 
-    counts: Array(upgrades.length).fill(0), 
+    counts: Array(upgrades.length).fill(0),
+    levels: Array(upgrades.length).fill(1),
+    staff: [], // Array of owned staff IDs
     startTime: Date.now() 
 };
 
@@ -55,12 +62,10 @@ window.goldenBillTimer = 2000;
 window.autoSaveTimer = 0;
 window.tickerTimer = 15;
 
-// Headlines
 const newsHeadlines = [
     "Market rallying to new heights...", "Tech stocks surging...",
-    "Crypto regulation talks stall...", "Global merger announced...",
-    "Interest rates holding steady...", "Bulls taking over the market...",
-    "Secure terminal connection established...", "Assets liquidating smoothly..."
+    "Asset optimization protocols online...", "Portfolio diversification recommended...",
+    "Bulls taking over the market...", "Secure terminal connection established..."
 ];
 
 function saveLocal() { localStorage.setItem('mintV7_money_save', JSON.stringify(game)); }
@@ -70,12 +75,13 @@ function loadLocal() {
     if(s) {
         try {
             let d = JSON.parse(s);
+            if (!d.levels) d.levels = Array(upgrades.length).fill(1);
+            if (!d.staff) d.staff = [];
             game = { ...game, ...d };
-            while(game.counts.length < upgrades.length) game.counts.push(0);
+            while(game.counts.length < upgrades.length) {
+                game.counts.push(0);
+                game.levels.push(1);
+            }
         } catch(e) { console.error(e); }
     }
 }
-
-async function checkSecureCode(input) { return false; }
-
-window.game_heartbeat = true;

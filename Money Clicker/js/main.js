@@ -2,7 +2,7 @@
 // =========================================
 // MAIN ENTRY POINT
 // =========================================
-window.__MINT_ENGINE__ = true;
+window.MINT_READY = true;
 
 // 1. Bind Click Events (Touch & Mouse)
 const mainBtn = document.getElementById('main-btn');
