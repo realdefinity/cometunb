@@ -313,6 +313,15 @@ function renderPortfolio() {
     let ownedAny = false;
     let html = '';
     upgrades.forEach((u, i) => {
+        const masterBtn = el.querySelector('.lvl-up-btn');
+        if (masterBtn) {
+            const upgCost = getUpgradeCost(i);
+            const canMaster = game.money >= upgCost && game.counts[i] > 0;
+            masterBtn.innerText = `LEVEL UP: $${formatNumber(upgCost)}`;
+            // Add the 'ready' class if affordable so it turns gold
+            masterBtn.className = `lvl-up-btn ${canMaster ? 'ready' : ''}`;
+        }
+
         if (game.counts[i] > 0) {
             ownedAny = true;
             let level = game.levels && game.levels[i] ? game.levels[i] : 1;
@@ -472,21 +481,26 @@ function renderShop() {
         let div = document.createElement('div');
         div.className = 'upgrade';
         div.id = `upg-${i}`;
-        div.onclick = () => {
-            let prevCount = game.counts[i];
-            buy(i);
-            if (game.counts[i] > prevCount) {
-                pushNews(`MARKET ALERT: ACQUIRED ${u.name.toUpperCase()}.`);
-                showToast(`Bought ${u.name}`, 'success');
-            } else showToast(`Insufficient Funds`, 'error');
-        };
+        div.onclick = () => buy(i);
         div.onmouseenter = (e) => showTooltip(e, i);
         div.onmousemove = (e) => moveTooltip(e);
         div.onmouseleave = hideTooltip;
-        div.innerHTML = `<div class="upg-info"><h4>${u.name}</h4><p><span class="rate-boost">+$0/s</span><span style="opacity:0.5">| Base: $${formatNumber(u.baseRate)}</span></p></div><div class="upg-cost"><div class="cost-text">...</div><div class="count-badge">0</div></div>`;
+        
+        // NEW: This includes the Level Up button inside the card
+        div.innerHTML = `
+            <div class="upg-info">
+                <h4>${u.name}</h4>
+                <p><span class="rate-boost">+$0/s</span><span style="opacity:0.5">| Qty: 0</span></p>
+                <div class="lvl-up-btn" onclick="window.buyAssetUpgrade(${i}); event.stopPropagation();">LEVEL UP: $...</div>
+            </div>
+            <div class="upg-cost">
+                <div class="cost-text">...</div>
+                <div class="count-badge">0</div>
+            </div>`;
         container.appendChild(div);
     });
 }
+
 
 // --- 6. GLOBAL CONTROLS & MODALS ---
 function setBuyMode(mode, btn) {
@@ -592,3 +606,37 @@ function buyUpgrade(id) {
         showToast("Insufficient capital.", "error");
     }
 }
+
+function buyAssetUpgrade(id) {
+    const cost = getUpgradeCost(id);
+    // You can only level up if you own at least one of the asset
+    if (game.money >= cost && game.counts[id] > 0) {
+        game.money -= cost;
+        game.levels[id]++;
+        playSound('buy');
+        
+        // Visual feedback: Gold sparks at the button location
+        const el = document.getElementById(`upg-${id}`);
+        if (el) {
+            const rect = el.getBoundingClientRect();
+            for(let i=0; i<10; i++) {
+                createParticle(rect.left + 50, rect.top + 30, '', 'spark');
+            }
+        }
+
+        showToast(`${upgrades[id].name} Reached Level ${game.levels[id]}!`, 'success');
+        updateUI(0); // Refresh all numbers
+    } else if (game.counts[id] === 0) {
+        showToast("Acquire asset before leveling.", "error");
+    } else {
+        showToast("Insufficient capital.", "error");
+    }
+}
+window.buyAssetUpgrade = buyAssetUpgrade;
+
+function getUpgradeCost(id) {
+    const level = game.levels[id] || 1;
+    // Calculation: Base Price * 50 * 3^(Level-1)
+    return upgrades[id].baseCost * 50 * Math.pow(3, level - 1);
+}
+window.getUpgradeCost = getUpgradeCost;
