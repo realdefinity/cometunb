@@ -313,14 +313,7 @@ function renderPortfolio() {
     let ownedAny = false;
     let html = '';
     upgrades.forEach((u, i) => {
-        const masterBtn = el.querySelector('.lvl-up-btn');
-        if (masterBtn) {
-            const upgCost = getUpgradeCost(i);
-            const canMaster = game.money >= upgCost && game.counts[i] > 0;
-            masterBtn.innerText = `LEVEL UP: $${formatNumber(upgCost)}`;
-            // Add the 'ready' class if affordable so it turns gold
-            masterBtn.className = `lvl-up-btn ${canMaster ? 'ready' : ''}`;
-        }
+
 
         if (game.counts[i] > 0) {
             ownedAny = true;
@@ -338,6 +331,14 @@ function renderPortfolio() {
                         <div class="count-badge" style="background:var(--gold); color:#000; border:none;">$${formatNumber(upgCost)}</div>
                     </div>
                 </div>`;
+        }
+        const masterBtn = el.querySelector('.lvl-up-btn');
+        if (masterBtn) {
+            const upgCost = getUpgradeCost(i);
+            const canMaster = game.money >= upgCost && game.counts[i] > 0;
+            masterBtn.innerText = `LEVEL UP: $${formatNumber(upgCost)}`;
+            // Add the 'ready' class if affordable so it turns gold
+            masterBtn.className = `lvl-up-btn ${canMaster ? 'ready' : ''}`;
         }
     });
     container.innerHTML = ownedAny ? html : `<div class="portfolio-empty">NO ASSETS UNDER MANAGEMENT.</div>`;
