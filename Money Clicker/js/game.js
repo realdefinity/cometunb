@@ -117,11 +117,11 @@ function createParticle(x, y, text, type) {
 function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { 
-        if(upgrades[i]) {
-            // Level Mastery: +25% yield per level (+0.25)
-            let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
-            base += count * upgrades[i].baseRate * levelMult; 
-        }
+            if(upgrades[i]) {
+                // Level 1 = 1x, Level 2 = 1.25x, Level 3 = 1.50x, etc.
+                let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
+                base += count * upgrades[i].baseRate * levelMult; 
+            }
     });
     
     let influenceMult = 1 + (game.influence * 0.10); 
@@ -145,7 +145,7 @@ function clickAction(e) {
         x = e.clientX;
         y = e.clientY;
     }
-    
+
     let baseRate = 0;
     game.counts.forEach((c, i) => { 
         if(upgrades[i]) {

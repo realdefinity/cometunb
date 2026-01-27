@@ -68,10 +68,10 @@ window.game = {
     lifetimeEarnings: 0, 
     influence: 0, 
     counts: Array(upgrades.length).fill(0),
-    levels: Array(upgrades.length).fill(1),
-    staff: [], // Array of owned staff IDs
-    startTime: Date.now(),
-    upgradesOwned: []
+    levels: Array(upgrades.length).fill(1), // Level 1 is base
+    staff: [],
+    upgradesOwned: [],
+    startTime: Date.now() 
 };
 
 // Global Configs

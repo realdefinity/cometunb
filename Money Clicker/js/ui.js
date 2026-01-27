@@ -461,6 +461,14 @@ function updateShopUI(influenceMult) {
         el.classList.remove('affordable', 'affordable-max', 'locked');
         if (affordable && (buyMode !== 'MAX' || max > 0)) el.classList.add(buyMode === 'MAX' ? 'affordable-max' : 'affordable');
         else if (game.counts[i] === 0 && !affordable) el.classList.add('locked');
+
+        const masterBtn = el.querySelector('.lvl-up-btn');
+        if (masterBtn) {
+            const upgCost = getUpgradeCost(i);
+            const canAffordUpg = game.money >= upgCost && game.counts[i] > 0;
+            masterBtn.innerText = `LEVEL UP: $${formatNumber(upgCost)}`;
+            masterBtn.className = `lvl-up-btn ${canAffordUpg ? 'ready' : ''}`;
+        }
     });
 }
 
@@ -483,8 +491,17 @@ function renderShop() {
         div.onmouseenter = (e) => showTooltip(e, i);
         div.onmousemove = (e) => moveTooltip(e);
         div.onmouseleave = hideTooltip;
-        div.innerHTML = `<div class="upg-info"><h4>${u.name}</h4><p><span class="rate-boost">+$0/s</span><span style="opacity:0.5">| Base: $${formatNumber(u.baseRate)}</span></p></div><div class="upg-cost"><div class="cost-text">...</div><div class="count-badge">0</div></div>`;
-        container.appendChild(div);
+        div.innerHTML = `
+                    <div class="upg-info">
+                        <h4>${u.name}</h4>
+                        <p><span class="rate-boost">+$0/s</span><span style="opacity:0.5">| Qty: 0</span></p>
+                        <div class="lvl-up-btn" onclick="window.buyAssetUpgrade(${i}); event.stopPropagation();">LEVEL UP: $...</div>
+                    </div>
+                    <div class="upg-cost">
+                        <div class="cost-text">...</div>
+                        <div class="count-badge">0</div>
+                    </div>`;
+            container.appendChild(div);
     });
 }
 
@@ -592,3 +609,37 @@ function buyUpgrade(id) {
         showToast("Insufficient capital.", "error");
     }
 }
+
+function buyAssetUpgrade(id) {
+    const cost = getUpgradeCost(id);
+    if (game.money >= cost && game.counts[id] > 0) {
+        game.money -= cost;
+        game.levels[id]++;
+        
+        if (window.playSound) playSound('buy');
+        
+        // Flashy Particle Effect on the card
+        const el = document.getElementById(`upg-${id}`);
+        if (el) {
+            const rect = el.getBoundingClientRect();
+            for(let i=0; i<12; i++) {
+                if (window.createParticle) createParticle(rect.left + 60, rect.top + 40, '', 'spark');
+            }
+        }
+
+        if (window.showToast) showToast(`${upgrades[id].name} Reached Level ${game.levels[id]}!`, 'success');
+        updateUI(0); // Refresh everything
+    } else if (game.counts[id] === 0) {
+        if (window.showToast) showToast("You must own the asset first!", "error");
+    } else {
+        if (window.showToast) showToast("Insufficient capital.", "error");
+    }
+}
+window.buyAssetUpgrade = buyAssetUpgrade;
+
+function getUpgradeCost(id) {
+    const level = game.levels[id] || 1;
+    // Calculation: Base Price * 50 * 4x per level
+    return upgrades[id].baseCost * 50 * Math.pow(4, level - 1);
+}
+window.getUpgradeCost = getUpgradeCost;
