@@ -145,7 +145,7 @@ function clickAction(e) {
         x = e.clientX;
         y = e.clientY;
     }
-
+    
     let baseRate = 0;
     game.counts.forEach((c, i) => { 
         if(upgrades[i]) {
