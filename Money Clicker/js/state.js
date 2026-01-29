@@ -235,6 +235,10 @@ function loadLocal() {
     let s = localStorage.getItem('mintV7_money_save');
     if(s) {
         try {
+            if (!d.researchedTech) d.researchedTech = [];
+            if (!d.upgradesOwned) d.upgradesOwned = [];
+            if (d.debt === undefined) d.debt = 0;
+            if (!d.activeSkin) d.activeSkin = 'default';
             let d = JSON.parse(s);
             if (!d.levels) d.levels = Array(upgrades.length).fill(1);
             if (!d.staff) d.staff = [];

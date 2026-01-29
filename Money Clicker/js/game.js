@@ -117,22 +117,26 @@ function createParticle(x, y, text, type) {
 function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { 
-        if(upgrades[i]) {
+        if (upgrades[i]) {
+            let upgradeMult = 1;
+            // Check for purchased one-time upgrades
+            marketUpgrades.forEach(upg => { 
+                if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; 
+            });
             let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
-            base += count * upgrades[i].baseRate * levelMult; 
+            base += count * upgrades[i].baseRate * levelMult * upgradeMult; 
         }
     });
-    
-    // R&D: Singularity (ID: 4) = 2x Global
+
+    // R&D Multipliers
     let singularityMult = game.researchedTech.includes(4) ? 2 : 1;
     let influenceMult = 1 + (game.influence * 0.10); 
-    
-    // R&D: Dark Pool (ID: 3) = 3x Mania
     let maniaMult = game.researchedTech.includes(3) ? (maniaMode ? 3 : 1) : (maniaMode ? 2 : 1);
-    
-    let totalRate = base * influenceMult * maniaMult * singularityMult;
+    let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
 
-    // Loan repayment (15%)
+    let totalRate = base * influenceMult * maniaMult * singularityMult * ceoMult;
+
+    // Debt Repayment (15%)
     if (game.debt > 0) {
         let deduction = totalRate * 0.15;
         if (deduction > game.debt) deduction = game.debt;
@@ -144,11 +148,12 @@ function calculateIncome() {
 }
 
 
+
 // --- INPUT HANDLING (Clicking) ---
 function clickAction(e) {
     if (e.type === 'touchstart') e.preventDefault();
-    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    
     let x, y;
     if (e.touches && e.touches.length > 0) {
         x = e.touches[0].clientX;
@@ -160,26 +165,22 @@ function clickAction(e) {
 
     let baseRate = 0;
     game.counts.forEach((c, i) => { 
-        if(upgrades[i]) {
+        if (upgrades[i]) {
             let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
             baseRate += c * upgrades[i].baseRate * levelMult; 
         }
     });
     
-    let clickVal = (1 + (baseRate * 0.05));
-    let influenceMult = 1 + (game.influence * 0.10);
-    let maniaMult = maniaMode ? 2 : 1;
-    
-    // STAFF: Executive CEO applies to clicks
+    // Multipliers & Tech Boosts
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
     let siphonBoost = game.researchedTech.includes(1) ? 1.1 : 1;
     let clickVal = (1 + (baseRate * 0.05)) * siphonBoost;
-    
     let influenceMult = 1 + (game.influence * 0.10);
     let maniaMult = maniaMode ? 2 : 1;
-    let total = clickVal * influenceMult * maniaMult;
+    
+    let total = clickVal * influenceMult * maniaMult * ceoMult;
 
-    // STAFF: Quant Analyst (ID: 1) crit boost
+    // Crit Logic (Quant Analyst ID: 1)
     let critChance = 0.04;
     if (game.staff && game.staff.includes(1)) critChance += 0.10;
 
@@ -204,6 +205,7 @@ function clickAction(e) {
     
     if (window.analytics) window.analytics.clickHistory.push(Date.now());
 }
+
 
 // --- EVENTS ---
 function startMania() {
