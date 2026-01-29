@@ -74,7 +74,7 @@ class Particle {
         }
     }
 
-draw() {
+    draw() {
         if (this.life <= 0) return;
         ctx.save();
         ctx.globalAlpha = this.life;
@@ -86,23 +86,23 @@ draw() {
             ctx.arc(0, 0, this.scale, 0, Math.PI * 2);
             ctx.fill();
         } 
+        else if (this.type === 'confetti') {
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation * Math.PI / 180);
+            ctx.fillStyle = this.color;
+            ctx.fillRect(-this.scale/2, -this.scale/2, this.scale, this.scale * 1.5);
+        } 
         else if (this.type === 'text') {
             ctx.translate(this.x, this.y);
             ctx.scale(this.scale, this.scale);
             ctx.font = "800 28px Outfit";
             ctx.textAlign = "center";
-            
-            // Particle Skin Logic
-            let skin = particleSkins.find(s => s.id === game.activeSkin) || particleSkins[0];
-            let displayText = this.text.includes("+") ? this.text.replace("+", skin.char) : this.text;
-
             ctx.lineJoin = "round";
             ctx.lineWidth = 4;
             ctx.strokeStyle = "rgba(0,0,0,0.8)";
-            ctx.strokeText(displayText, 0, 0);
-            
-            ctx.fillStyle = skin.color;
-            ctx.fillText(displayText, 0, 0);
+            ctx.strokeText(this.text, 0, 0);
+            ctx.fillStyle = maniaMode ? '#eab308' : '#22c55e';
+            ctx.fillText(this.text, 0, 0);
         }
         ctx.restore();
     }
@@ -123,18 +123,14 @@ function calculateIncome() {
         }
     });
     
-    // R&D: Singularity (ID: 4) = 2x Global
-    let singularityMult = game.researchedTech.includes(4) ? 2 : 1;
     let influenceMult = 1 + (game.influence * 0.10); 
+    let maniaMult = game.researchedTech.includes(2) ? 3 : (maniaMode ? 2 : 1); // R&D: Dark Pool
     
-    // R&D: Dark Pool (ID: 3) = 3x Mania
-    let maniaMult = game.researchedTech.includes(3) ? (maniaMode ? 3 : 1) : (maniaMode ? 2 : 1);
-    
-    let totalRate = base * influenceMult * maniaMult * singularityMult;
+    let totalRate = base * influenceMult * maniaMult;
 
-    // Loan repayment (15%)
+    // LOAN REPAYMENT LOGIC
     if (game.debt > 0) {
-        let deduction = totalRate * 0.15;
+        let deduction = totalRate * 0.15; // 15% flat deduction
         if (deduction > game.debt) deduction = game.debt;
         game.debt -= deduction;
         totalRate -= deduction;
@@ -142,6 +138,7 @@ function calculateIncome() {
 
     return totalRate;
 }
+
 
 // --- INPUT HANDLING (Clicking) ---
 function clickAction(e) {
@@ -171,11 +168,6 @@ function clickAction(e) {
     
     // STAFF: Executive CEO applies to clicks
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
-    let siphonBoost = game.researchedTech.includes(1) ? 1.1 : 1;
-    let clickVal = (1 + (baseRate * 0.05)) * siphonBoost;
-    
-    let influenceMult = 1 + (game.influence * 0.10);
-    let maniaMult = maniaMode ? 2 : 1;
     let total = clickVal * influenceMult * maniaMult * ceoMult;
 
     // STAFF: Quant Analyst (ID: 1) crit boost
@@ -402,12 +394,6 @@ function gameLoop(currentTime) {
         if (p.life <= 0) particles.splice(i, 1);
     }
 
-    if (game.researchedTech.includes(0)) {
-        if (Math.random() < 0.015) clickAction({ clientX: width/2, clientY: height/2, type: 'click' });
-    }
-
-
-    
     if (window.updateUI) window.updateUI(rate);
     
     autoSaveTimer += dt;
