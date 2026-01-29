@@ -634,3 +634,70 @@ function getUpgradeCost(id) {
     return upgrades[id].baseCost * 50 * Math.pow(4, level - 1);
 }
 window.getUpgradeCost = getUpgradeCost;
+
+function renderRD() {
+    const container = document.getElementById('rd-container');
+    let html = `<div style="padding:10px; color:#666; font-size:0.7rem; margin-bottom:10px;">SPEND INFLUENCE TO UNLOCK PERMANENT TECH.</div>`;
+    techTree.forEach(tech => {
+        const isOwned = game.researchedTech.includes(tech.id);
+        const canAfford = game.influence >= tech.cost;
+        html += `
+            <div class="staff-card ${isOwned ? 'hired' : ''}" onclick="buyTech(${tech.id})" style="border-color:${isOwned ? '#22c55e' : '#333'}">
+                <div class="upg-info">
+                    <h4 style="color:${isOwned ? '#22c55e' : '#fff'}">${tech.name}</h4>
+                    <p>${tech.desc}</p>
+                    <span style="font-size:0.55rem; color:#666;">REQUIRED: ${tech.cost} INF</span>
+                </div>
+                <div class="upg-cost">${isOwned ? 'ACTIVE' : 'RESEARCH'}</div>
+            </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function buyTech(id) {
+    const t = techTree[id];
+    if (!game.researchedTech.includes(id) && game.influence >= t.cost) {
+        game.influence -= t.cost;
+        game.researchedTech.push(id);
+        showToast(`Research Complete: ${t.name}`, "success");
+        renderRD();
+    }
+}
+
+function renderLoans() {
+    const container = document.getElementById('loans-container');
+    let debtText = game.debt > 0 ? `<div style="background:rgba(239,68,68,0.1); border:1px solid #ef4444; padding:15px; border-radius:10px; margin-bottom:20px; color:#ef4444; font-weight:bold;">OUTSTANDING DEBT: $${formatNumber(game.debt)}</div>` : '';
+    let html = debtText + `<div style="padding:10px; color:#666; font-size:0.7rem; margin-bottom:10px;">LOANS ARE INSTANT BUT COLLECT A PORTION OF YOUR PASSIVE INCOME.</div>`;
+    loanOptions.forEach(l => {
+        html += `
+            <div class="staff-card" onclick="takeLoan(${l.id})" style="border-color:#eab308">
+                <div class="upg-info">
+                    <h4 style="color:#eab308">Get $${formatNumber(l.amount)}</h4>
+                    <p>${l.desc}</p>
+                </div>
+                <div class="upg-cost">BORROW</div>
+            </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function takeLoan(id) {
+    const l = loanOptions[id];
+    game.money += l.amount;
+    game.debt += l.payback;
+    showToast(`Loan Approved: +$${formatNumber(l.amount)}`, "success");
+    renderLoans();
+}
+
+function renderSkins() {
+    const container = document.getElementById('skins-container');
+    let html = `<h3 style="font-size:0.8rem; margin-bottom:15px; letter-spacing:1px;">PARTICLE SKINS</h3>`;
+    particleSkins.forEach(s => {
+        const isSelected = game.activeSkin === s.id;
+        html += `
+            <div class="opt-btn" onclick="game.activeSkin='${s.id}'; renderSkins();" style="margin-bottom:8px; border-color:${isSelected ? s.color : '#222'}; color:${isSelected ? '#fff' : '#555'}">
+                ${s.name.toUpperCase()} ${isSelected ? '✓' : ''}
+            </div>`;
+    });
+    container.innerHTML = html;
+}
