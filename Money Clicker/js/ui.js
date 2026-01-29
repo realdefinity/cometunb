@@ -724,55 +724,6 @@ function takeLoan(id) {
     const l = loanOptions[id];
     game.money += l.amount;
     game.debt += l.payback;
-    playSound('buy');
-    showToast(`LOAN RECEIVED: $${formatNumber(l.amount)}`, "success");
-    renderLoans();
-}
-
-function renderSkins() {
-    const container = document.getElementById('skins-container');
-    let html = `<div style="font-weight:900; font-size:0.7rem; color:#444; letter-spacing:2px; margin-bottom:15px; text-align:center;">PARTICLE CUSTOMIZATION</div>`;
-    particleSkins.forEach(s => {
-        const active = game.activeSkin === s.id;
-        html += `
-            <div class="opt-btn" onclick="game.activeSkin='${s.id}'; renderSkins();" style="margin-bottom:10px; border-color:${active ? s.color : '#222'}; color:${active ? '#fff' : '#444'}">
-                ${s.name.toUpperCase()} ${active ? ' [SELECTED]' : ''}
-            </div>`;
-    });
-    container.innerHTML = html;
-}
-
-function buyTech(id) {
-    const t = techTree[id];
-    if (!game.researchedTech.includes(id) && game.influence >= t.cost) {
-        game.influence -= t.cost;
-        game.researchedTech.push(id);
-        showToast(`Research Complete: ${t.name}`, "success");
-        renderRD();
-    }
-}
-
-function renderLoans() {
-    const container = document.getElementById('loans-container');
-    let debtText = game.debt > 0 ? `<div style="background:rgba(239,68,68,0.1); border:1px solid #ef4444; padding:15px; border-radius:10px; margin-bottom:20px; color:#ef4444; font-weight:bold;">OUTSTANDING DEBT: $${formatNumber(game.debt)}</div>` : '';
-    let html = debtText + `<div style="padding:10px; color:#666; font-size:0.7rem; margin-bottom:10px;">LOANS ARE INSTANT BUT COLLECT A PORTION OF YOUR PASSIVE INCOME.</div>`;
-    loanOptions.forEach(l => {
-        html += `
-            <div class="staff-card" onclick="takeLoan(${l.id})" style="border-color:#eab308">
-                <div class="upg-info">
-                    <h4 style="color:#eab308">Get $${formatNumber(l.amount)}</h4>
-                    <p>${l.desc}</p>
-                </div>
-                <div class="upg-cost">BORROW</div>
-            </div>`;
-    });
-    container.innerHTML = html;
-}
-
-function takeLoan(id) {
-    const l = loanOptions[id];
-    game.money += l.amount;
-    game.debt += l.payback;
     showToast(`Loan Approved: +$${formatNumber(l.amount)}`, "success");
     renderLoans();
 }
@@ -789,3 +740,16 @@ function renderSkins() {
     });
     container.innerHTML = html;
 }
+
+function buyTech(id) {
+    const t = techTree[id];
+    if (!game.researchedTech.includes(id) && game.influence >= t.cost) {
+        game.influence -= t.cost;
+        game.researchedTech.push(id);
+        showToast(`Research Complete: ${t.name}`, "success");
+        renderRD();
+    }
+}
+
+
+
