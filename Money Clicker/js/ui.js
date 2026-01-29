@@ -256,53 +256,44 @@ function updateAnalyticsUI(rate) {
 function openAnalytics() { openModal('analytics-modal'); }
 window.openAnalytics = openAnalytics;
 
-// --- 4. TABS, PORTFOLIO & STAFF ---
 function setShopTab(tab) {
-    currentShopTab = tab;
-    // 1. Grab all buttons
-    const marketBtn = document.getElementById('btn-tab-markets');
-    const portfolioBtn = document.getElementById('btn-tab-portfolio');
-    const staffBtn = document.getElementById('btn-tab-staff');
-    const upgradesBtn = document.getElementById('btn-tab-upgrades'); // NEW
+    window.currentShopTab = tab;
+    const tabs = ['markets', 'portfolio', 'staff', 'rd', 'loans', 'skins'];
     
-    // 2. Grab all control headers
-    const marketControls = document.getElementById('market-controls');
-    const portfolioControls = document.getElementById('portfolio-controls');
-    const staffControls = document.getElementById('staff-controls');
-    
-    // 3. Grab all containers
+    // Hide all containers and reset all buttons
+    tabs.forEach(t => {
+        const btn = document.getElementById(`btn-tab-${t}`);
+        const cont = document.getElementById(`${t}-container`);
+        const ctrl = document.getElementById(`${t}-controls`);
+        if (btn) btn.classList.remove('active');
+        if (cont) cont.style.display = 'none';
+        if (ctrl) ctrl.style.display = 'none';
+    });
+
+    // Show selected
+    const activeBtn = document.getElementById(`btn-tab-${tab}`);
+    const activeCont = document.getElementById(`${tab}-container`);
+    const activeCtrl = document.getElementById(`${tab}-controls`);
     const shopContainer = document.getElementById('shop-container');
-    const portfolioContainer = document.getElementById('portfolio-container');
-    const staffContainer = document.getElementById('staff-container');
-    const upgradesContainer = document.getElementById('upgrades-container'); // NEW
 
-    // 4. Reset all buttons (Remove 'active' class)
-    [marketBtn, portfolioBtn, staffBtn, upgradesBtn].forEach(b => b?.classList.remove('active'));
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activeCont) activeCont.style.display = 'block';
+    if (activeCtrl) activeCtrl.style.display = 'block';
 
-    // 5. Reset all containers (Set display to 'none')
-    [marketControls, portfolioControls, staffControls, shopContainer, portfolioContainer, staffContainer, upgradesContainer].forEach(c => c ? c.style.display = 'none' : null);
-
-    // 6. Show the selected tab
+    // Special case for markets
     if (tab === 'markets') {
-        marketBtn.classList.add('active');
-        marketControls.style.display = 'block';
-        shopContainer.style.display = 'block';
-    } else if (tab === 'portfolio') {
-        portfolioBtn.classList.add('active');
-        portfolioControls.style.display = 'block';
-        portfolioContainer.style.display = 'block';
-        renderPortfolio();
-    } else if (tab === 'staff') {
-        staffBtn.classList.add('active');
-        staffControls.style.display = 'block';
-        staffContainer.style.display = 'block';
-        renderStaff();
-    } else if (tab === 'upgrades') {
-        upgradesBtn.classList.add('active');
-        // Upgrades don't have a special header, so we just show the container
-        upgradesContainer.style.display = 'block';
-        renderUpgrades();
+        if (shopContainer) shopContainer.style.display = 'block';
+        if (document.getElementById('market-controls')) document.getElementById('market-controls').style.display = 'block';
+    } else {
+        if (shopContainer) shopContainer.style.display = 'none';
+        if (document.getElementById('market-controls')) document.getElementById('market-controls').style.display = 'none';
     }
+
+    // Call individual renderers
+    if (tab === 'rd') renderRD();
+    if (tab === 'loans') renderLoans();
+    if (tab === 'skins') renderSkins();
+    if (tab === 'staff') renderStaff();
 }
 
 window.setShopTab = setShopTab;

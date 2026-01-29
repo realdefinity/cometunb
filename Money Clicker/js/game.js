@@ -74,7 +74,7 @@ class Particle {
         }
     }
 
-    draw() {
+draw() {
         if (this.life <= 0) return;
         ctx.save();
         ctx.globalAlpha = this.life;
@@ -86,23 +86,23 @@ class Particle {
             ctx.arc(0, 0, this.scale, 0, Math.PI * 2);
             ctx.fill();
         } 
-        else if (this.type === 'confetti') {
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation * Math.PI / 180);
-            ctx.fillStyle = this.color;
-            ctx.fillRect(-this.scale/2, -this.scale/2, this.scale, this.scale * 1.5);
-        } 
         else if (this.type === 'text') {
             ctx.translate(this.x, this.y);
             ctx.scale(this.scale, this.scale);
             ctx.font = "800 28px Outfit";
             ctx.textAlign = "center";
+            
+            // Particle Skin Logic
+            let skin = particleSkins.find(s => s.id === game.activeSkin) || particleSkins[0];
+            let displayText = this.text.includes("+") ? this.text.replace("+", skin.char) : this.text;
+
             ctx.lineJoin = "round";
             ctx.lineWidth = 4;
             ctx.strokeStyle = "rgba(0,0,0,0.8)";
-            ctx.strokeText(this.text, 0, 0);
-            ctx.fillStyle = maniaMode ? '#eab308' : '#22c55e';
-            ctx.fillText(this.text, 0, 0);
+            ctx.strokeText(displayText, 0, 0);
+            
+            ctx.fillStyle = skin.color;
+            ctx.fillText(displayText, 0, 0);
         }
         ctx.restore();
     }
@@ -117,18 +117,26 @@ function createParticle(x, y, text, type) {
 function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { 
-            if(upgrades[i]) {
-                // Level 1 = 1x, Level 2 = 1.25x, Level 3 = 1.50x, etc.
-                let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
-                base += count * upgrades[i].baseRate * levelMult; 
-            }
+        if(upgrades[i]) {
+            let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
+            base += count * upgrades[i].baseRate * levelMult; 
+        }
     });
     
     let influenceMult = 1 + (game.influence * 0.10); 
-    let maniaMult = maniaMode ? 2 : 1;
-    let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
+    let maniaMult = game.researchedTech.includes(2) ? 3 : (maniaMode ? 2 : 1); // R&D: Dark Pool
     
-    return base * influenceMult * maniaMult * ceoMult;
+    let totalRate = base * influenceMult * maniaMult;
+
+    // LOAN REPAYMENT LOGIC
+    if (game.debt > 0) {
+        let deduction = totalRate * 0.15; // 15% flat deduction
+        if (deduction > game.debt) deduction = game.debt;
+        game.debt -= deduction;
+        totalRate -= deduction;
+    }
+
+    return totalRate;
 }
 
 
@@ -384,6 +392,11 @@ function gameLoop(currentTime) {
         p.update(); 
         p.draw();
         if (p.life <= 0) particles.splice(i, 1);
+    }
+
+// R&D: Auto-Bot logic
+    if (game.researchedTech.includes(0)) {
+        if (Math.random() < 0.01) clickAction({ clientX: width/2, clientY: height/2, type: 'click' });
     }
 
     if (window.updateUI) window.updateUI(rate);

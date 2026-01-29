@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>THE MINT // FINTECH</title>
+    <title>THE MINT</title>
     
     <!-- FONTS -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -125,12 +125,12 @@
 
         <div class="panel-right">
             <div class="shop-header">
-                <div class="shop-tabs">
-                    <div class="tab-btn active" id="btn-tab-markets" onclick="setShopTab('markets')">MARKETS</div>
-                    <div class="tab-btn" id="btn-tab-portfolio" onclick="setShopTab('portfolio')">PORTFOLIO</div>
-                    <div class="tab-btn" id="btn-tab-staff" onclick="setShopTab('staff')">STAFF</div>
-                    <div class="tab-btn" id="btn-tab-upgrades" onclick="setShopTab('upgrades')">UPGRADES</div>
-                </div>
+            <div class="shop-tabs">
+                <div class="tab-btn active" id="btn-tab-markets" onclick="setShopTab('markets')">MARKETS</div>
+                <div class="tab-btn" id="btn-tab-staff" onclick="setShopTab('staff')">STAFF</div>
+                <div class="tab-btn" id="btn-tab-rd" onclick="setShopTab('rd')">R&D</div>
+                <div class="tab-btn" id="btn-tab-loans" onclick="setShopTab('loans')">LOANS</div>
+            </div>
 
                 <div id="market-controls">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -161,6 +161,11 @@
                 <div id="portfolio-container" style="display:none;"></div>
                 <div id="staff-container" style="display:none;"></div>
                 <div id="upgrades-container" style="display:none;"></div>
+                <div id="rd-container" style="display:none;"></div>
+                <div id="loans-container" style="display:none;"></div>
+                <div id="skins-container" style="display:none; padding:10px;"></div>
+                <!-- Add a mini-button for skins somewhere at the bottom of the shop -->
+                <button class="tab-btn" style="width:100%; margin-top:20px; font-size:0.6rem;" onclick="setShopTab('skins')">CHANGE CLICK PARTICLES</button>
             </div>
         </div>
     </div>

@@ -62,17 +62,40 @@ const marketUpgrades = [
 ];
 
 
-// --- GAME STATE ---
 window.game = { 
     money: 0, 
     lifetimeEarnings: 0, 
     influence: 0, 
     counts: Array(upgrades.length).fill(0),
-    levels: Array(upgrades.length).fill(1), // Level 1 is base
+    levels: Array(upgrades.length).fill(1),
     staff: [],
     upgradesOwned: [],
+    researchedTech: [], // New: Track R&D
+    debt: 0,            // New: Current loan balance
+    activeSkin: 'default', // New: Particle skin
     startTime: Date.now() 
 };
+
+// Data for the new systems
+const loanOptions = [
+    { id: 0, name: "Micro-Loan", amount: 1e6, payback: 1.2e6, desc: "Instant $1M. 10% of income goes to debt." },
+    { id: 1, name: "Corporate Credit", amount: 50e6, payback: 65e6, desc: "Instant $50M. 15% of income goes to debt." },
+    { id: 2, name: "Venture Capital", amount: 1e9, payback: 1.5e9, desc: "Instant $1B. 25% of income goes to debt." }
+];
+
+const techTree = [
+    { id: 0, name: "Auto-Bot", cost: 10, desc: "Automated clicking every 2 seconds.", type: "Automation" },
+    { id: 1, name: "Hype Cooler", cost: 25, desc: "Hype decays 50% slower.", type: "Utility" },
+    { id: 2, name: "Dark Pool", cost: 50, desc: "Mania multiplier becomes 3x.", type: "Market" },
+    { id: 3, name: "Neural Link", cost: 100, desc: "Critical hits are now 20x.", type: "Tactical" }
+];
+
+const particleSkins = [
+    { id: 'default', name: "Standard Cash", color: "#22c55e", char: "+$" },
+    { id: 'gold', name: "Golden Coins", color: "#eab308", char: "●" },
+    { id: 'fire', name: "Market Heat", color: "#f43f5e", char: "🔥" },
+    { id: 'cyber', name: "Byte Stream", color: "#3b82f6", char: "01" }
+];
 
 // Global Configs
 window.buyMode = 1;
