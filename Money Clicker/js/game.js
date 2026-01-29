@@ -74,7 +74,7 @@ class Particle {
         }
     }
 
-    draw() {
+draw() {
         if (this.life <= 0) return;
         ctx.save();
         ctx.globalAlpha = this.life;
@@ -86,23 +86,23 @@ class Particle {
             ctx.arc(0, 0, this.scale, 0, Math.PI * 2);
             ctx.fill();
         } 
-        else if (this.type === 'confetti') {
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation * Math.PI / 180);
-            ctx.fillStyle = this.color;
-            ctx.fillRect(-this.scale/2, -this.scale/2, this.scale, this.scale * 1.5);
-        } 
         else if (this.type === 'text') {
             ctx.translate(this.x, this.y);
             ctx.scale(this.scale, this.scale);
             ctx.font = "800 28px Outfit";
             ctx.textAlign = "center";
+            
+            // Particle Skin Logic
+            let skin = particleSkins.find(s => s.id === game.activeSkin) || particleSkins[0];
+            let displayText = this.text.includes("+") ? this.text.replace("+", skin.char) : this.text;
+
             ctx.lineJoin = "round";
             ctx.lineWidth = 4;
             ctx.strokeStyle = "rgba(0,0,0,0.8)";
-            ctx.strokeText(this.text, 0, 0);
-            ctx.fillStyle = maniaMode ? '#eab308' : '#22c55e';
-            ctx.fillText(this.text, 0, 0);
+            ctx.strokeText(displayText, 0, 0);
+            
+            ctx.fillStyle = skin.color;
+            ctx.fillText(displayText, 0, 0);
         }
         ctx.restore();
     }
