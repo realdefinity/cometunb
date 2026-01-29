@@ -25,21 +25,11 @@ const staffMembers = [
 ];
 
 const rankData = [
-    { name: "Intern", req: 0 },
-    { name: "Freelancer", req: 10 },
-    { name: "Trader", req: 25 },
-    { name: "Broker", req: 50 },
-    { name: "Manager", req: 100 },
-    { name: "Executive", req: 250 },
-    { name: "Director", req: 500 },
-    { name: "VP", req: 1000 },
-    { name: "President", req: 2500 },
-    { name: "CEO", req: 5000 },
-    { name: "Chairman", req: 10000 },
-    { name: "Tycoon", req: 25000 },
-    { name: "Oligarch", req: 50000 },
-    { name: "World Banker", req: 100000 },
-    { name: "Illuminati", req: 1000000 }
+    { name: "Intern", req: 0 }, { name: "Freelancer", req: 10 }, { name: "Trader", req: 25 },
+    { name: "Broker", req: 50 }, { name: "Manager", req: 100 }, { name: "Executive", req: 250 },
+    { name: "Director", req: 500 }, { name: "VP", req: 1000 }, { name: "President", req: 2500 },
+    { name: "CEO", req: 5000 }, { name: "Chairman", req: 10000 }, { name: "Tycoon", req: 25000 },
+    { name: "Oligarch", req: 50000 }, { name: "World Banker", req: 100000 }, { name: "Illuminati", req: 1000000 }
 ];
 
 const marketUpgrades = [
@@ -61,22 +51,6 @@ const marketUpgrades = [
     { id: 15, targetId: 15, name: "Reality Anchoring", cost: 1e24, mult: 2, desc: "Galactic Treasuries produce 2x more income." }
 ];
 
-
-window.game = { 
-    money: 0, 
-    lifetimeEarnings: 0, 
-    influence: 0, 
-    counts: Array(upgrades.length).fill(0),
-    levels: Array(upgrades.length).fill(1),
-    staff: [],
-    upgradesOwned: [],
-    researchedTech: [], 
-    debt: 0,            
-    activeSkin: 'default', 
-    startTime: Date.now() 
-};
-
-// The Tech Tree Structure (Parents must be researched first)
 const techTree = [
     { id: 0, name: "Neural Link", cost: 15, desc: "Auto-clicker active.", x: 150, y: 50, parents: [] },
     { id: 1, name: "Data Siphon", cost: 40, desc: "+10% Click value.", x: 50, y: 150, parents: [0] },
@@ -96,7 +70,20 @@ const particleSkins = [
     { id: 'fire', name: "Heat", color: "#f43f5e", char: "🔥" }
 ];
 
-// Global Configs
+window.game = { 
+    money: 0, 
+    lifetimeEarnings: 0, 
+    influence: 0, 
+    counts: Array(upgrades.length).fill(0),
+    levels: Array(upgrades.length).fill(1),
+    staff: [],
+    upgradesOwned: [],
+    researchedTech: [], 
+    debt: 0,            
+    activeSkin: 'default', 
+    startTime: Date.now() 
+};
+
 window.buyMode = 1;
 window.hype = 0;
 window.maniaMode = false;
@@ -120,6 +107,8 @@ function loadLocal() {
             let d = JSON.parse(s);
             if (!d.levels) d.levels = Array(upgrades.length).fill(1);
             if (!d.staff) d.staff = [];
+            if (!d.researchedTech) d.researchedTech = [];
+            if (!d.upgradesOwned) d.upgradesOwned = [];
             game = { ...game, ...d };
             while(game.counts.length < upgrades.length) {
                 game.counts.push(0);
