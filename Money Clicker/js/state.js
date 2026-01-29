@@ -70,31 +70,30 @@ window.game = {
     levels: Array(upgrades.length).fill(1),
     staff: [],
     upgradesOwned: [],
-    researchedTech: [], // New: Track R&D
-    debt: 0,            // New: Current loan balance
-    activeSkin: 'default', // New: Particle skin
+    researchedTech: [], 
+    debt: 0,            
+    activeSkin: 'default', 
     startTime: Date.now() 
 };
 
-// Data for the new systems
-const loanOptions = [
-    { id: 0, name: "Micro-Loan", amount: 1e6, payback: 1.2e6, desc: "Instant $1M. 10% of income goes to debt." },
-    { id: 1, name: "Corporate Credit", amount: 50e6, payback: 65e6, desc: "Instant $50M. 15% of income goes to debt." },
-    { id: 2, name: "Venture Capital", amount: 1e9, payback: 1.5e9, desc: "Instant $1B. 25% of income goes to debt." }
+// The Tech Tree Structure (Parents must be researched first)
+const techTree = [
+    { id: 0, name: "Neural Link", cost: 15, desc: "Auto-clicker active.", x: 150, y: 50, parents: [] },
+    { id: 1, name: "Data Siphon", cost: 40, desc: "+10% Click value.", x: 50, y: 150, parents: [0] },
+    { id: 2, name: "Market Pulse", cost: 60, desc: "Hype decays 50% slower.", x: 250, y: 150, parents: [0] },
+    { id: 3, name: "Dark Pool", cost: 150, desc: "Mania is now 3x multiplier.", x: 150, y: 250, parents: [1, 2] },
+    { id: 4, name: "Singularity", cost: 500, desc: "All yield x2.", x: 150, y: 380, parents: [3] }
 ];
 
-const techTree = [
-    { id: 0, name: "Auto-Bot", cost: 10, desc: "Automated clicking every 2 seconds.", type: "Automation" },
-    { id: 1, name: "Hype Cooler", cost: 25, desc: "Hype decays 50% slower.", type: "Utility" },
-    { id: 2, name: "Dark Pool", cost: 50, desc: "Mania multiplier becomes 3x.", type: "Market" },
-    { id: 3, name: "Neural Link", cost: 100, desc: "Critical hits are now 20x.", type: "Tactical" }
+const loanOptions = [
+    { id: 0, name: "Starter Credit", amount: 1e6, payback: 1.2e6, desc: "Fast $1M. 15% income tax." },
+    { id: 1, name: "Venture Debt", amount: 1e9, payback: 1.4e9, desc: "Fast $1B. 15% income tax." }
 ];
 
 const particleSkins = [
-    { id: 'default', name: "Standard Cash", color: "#22c55e", char: "+$" },
-    { id: 'gold', name: "Golden Coins", color: "#eab308", char: "●" },
-    { id: 'fire', name: "Market Heat", color: "#f43f5e", char: "🔥" },
-    { id: 'cyber', name: "Byte Stream", color: "#3b82f6", char: "01" }
+    { id: 'default', name: "Cash", color: "#22c55e", char: "+$" },
+    { id: 'gold', name: "Gold", color: "#eab308", char: "●" },
+    { id: 'fire', name: "Heat", color: "#f43f5e", char: "🔥" }
 ];
 
 // Global Configs

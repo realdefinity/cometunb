@@ -321,3 +321,72 @@ body.mania-mode .big-button:hover::before { color: var(--gold); text-shadow: 0 0
 }
 
 .lvl-up-btn:active { transform: scale(0.95); }
+
+.rd-viewport {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    background: radial-gradient(circle at center, #0a0a0f 0%, #050507 100%);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid #1a1a22;
+}
+
+.tech-node {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: #0d0d14;
+    border: 2px solid #222;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: translate(-50%, -50%);
+}
+
+.tech-node.available { border-color: #444; color: #888; }
+.tech-node.locked { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+.tech-node.researched { 
+    border-color: #22c55e; 
+    background: rgba(34, 197, 94, 0.1);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+}
+
+.tech-node:hover:not(.locked) {
+    background: #161625;
+    transform: translate(-50%, -52%) scale(1.05);
+    border-color: #3b82f6;
+}
+
+.tech-node-icon { font-size: 1.2rem; margin-bottom: 4px; }
+.tech-node-name { font-size: 0.5rem; font-weight: 800; text-align: center; color: inherit; }
+
+/* The Lines */
+.tech-tree-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.tech-line {
+    fill: none;
+    stroke: #1a1a22;
+    stroke-width: 2;
+    transition: stroke 0.5s, stroke-width 0.5s;
+}
+
+.tech-line.active {
+    stroke: #22c55e;
+    stroke-width: 3;
+    stroke-dasharray: 10;
+    animation: lineFlow 2s linear infinite;
+}
+
+@keyframes lineFlow { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }

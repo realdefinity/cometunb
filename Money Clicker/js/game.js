@@ -123,14 +123,18 @@ function calculateIncome() {
         }
     });
     
+    // R&D: Singularity (ID: 4) = 2x Global
+    let singularityMult = game.researchedTech.includes(4) ? 2 : 1;
     let influenceMult = 1 + (game.influence * 0.10); 
-    let maniaMult = game.researchedTech.includes(2) ? 3 : (maniaMode ? 2 : 1); // R&D: Dark Pool
     
-    let totalRate = base * influenceMult * maniaMult;
+    // R&D: Dark Pool (ID: 3) = 3x Mania
+    let maniaMult = game.researchedTech.includes(3) ? (maniaMode ? 3 : 1) : (maniaMode ? 2 : 1);
+    
+    let totalRate = base * influenceMult * maniaMult * singularityMult;
 
-    // LOAN REPAYMENT LOGIC
+    // Loan repayment (15%)
     if (game.debt > 0) {
-        let deduction = totalRate * 0.15; // 15% flat deduction
+        let deduction = totalRate * 0.15;
         if (deduction > game.debt) deduction = game.debt;
         game.debt -= deduction;
         totalRate -= deduction;
@@ -138,7 +142,6 @@ function calculateIncome() {
 
     return totalRate;
 }
-
 
 // --- INPUT HANDLING (Clicking) ---
 function clickAction(e) {
@@ -168,6 +171,11 @@ function clickAction(e) {
     
     // STAFF: Executive CEO applies to clicks
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
+    let siphonBoost = game.researchedTech.includes(1) ? 1.1 : 1;
+    let clickVal = (1 + (baseRate * 0.05)) * siphonBoost;
+    
+    let influenceMult = 1 + (game.influence * 0.10);
+    let maniaMult = maniaMode ? 2 : 1;
     let total = clickVal * influenceMult * maniaMult * ceoMult;
 
     // STAFF: Quant Analyst (ID: 1) crit boost
@@ -394,11 +402,12 @@ function gameLoop(currentTime) {
         if (p.life <= 0) particles.splice(i, 1);
     }
 
-// R&D: Auto-Bot logic
     if (game.researchedTech.includes(0)) {
-        if (Math.random() < 0.01) clickAction({ clientX: width/2, clientY: height/2, type: 'click' });
+        if (Math.random() < 0.015) clickAction({ clientX: width/2, clientY: height/2, type: 'click' });
     }
 
+
+    
     if (window.updateUI) window.updateUI(rate);
     
     autoSaveTimer += dt;
