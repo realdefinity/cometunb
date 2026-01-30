@@ -137,6 +137,13 @@ const techTree = [
     { id: 39, name: "THE END", cost: 1e12, desc: "Income x100", x: 220, y: 1050, parents: [37, 38], effect: { type: 'global_mult', val: 99.0 } }
 ];
 
+const shadowAssets = [
+    { id: 0, name: "Shell Company", cost: 5e6, rate: 50000, heat: 0.5, desc: "High yield, low risk." },
+    { id: 1, name: "Data Broker", cost: 100e6, rate: 1.5e6, heat: 1.2, desc: "Sells user data. Moderate risk." },
+    { id: 2, name: "Arms Dealer", cost: 5e9, rate: 80e6, heat: 3.5, desc: "Extremely illegal. High risk." },
+    { id: 3, name: "Shadow Gov", cost: 100e12, rate: 5e12, heat: 10.0, desc: "Run the world. Extreme heat." }
+];
+
 const loanOptions = [
     { id: 0, name: "Starter Credit", amount: 1e6, payback: 1.2e6, desc: "Fast $1M. 15% income tax." },
     { id: 1, name: "Venture Debt", amount: 1e9, payback: 1.4e9, desc: "Fast $1B. 15% income tax." }
@@ -183,7 +190,9 @@ window.game = {
     researchedTech: [], 
     debt: 0,            
     activeSkin: 'default', 
-    startTime: Date.now() 
+    startTime: Date.now(),
+    shadowCounts: [0, 0, 0, 0], 
+    heat: 0           
 };
 
 window.buyMode = 1;

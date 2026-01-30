@@ -193,28 +193,41 @@ function getTechBonus(type) {
 
 function calculateIncome() {
     let base = 0;
+    
+    // 1. Regular Assets
     game.counts.forEach((count, i) => { 
         if(upgrades[i]) {
-            // Standard Math: Count * Base
             let upgradeMult = 1;
             if (window.marketUpgrades) {
                 marketUpgrades.forEach(upg => { if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; });
             }
-            base += count * upgrades[i].baseRate * upgradeMult; 
+            let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
+            base += count * upgrades[i].baseRate * levelMult * upgradeMult; 
         }
     });
 
-    // Global Multipliers
+    // 2. Shadow Assets (High Yield)
+    let shadowIncome = 0;
+    if (game.shadowCounts) {
+        game.shadowCounts.forEach((count, i) => {
+            if (shadowAssets[i]) {
+                shadowIncome += count * shadowAssets[i].rate;
+            }
+        });
+    }
+
+    // Global Mults
     let singularityMult = game.researchedTech.includes(4) ? 2 : 1;
     let influenceMult = 1 + (game.influence * 0.10); 
     let maniaMult = game.researchedTech.includes(3) ? (maniaMode ? 3 : 1) : (maniaMode ? 2 : 1);
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
     
-    // Tech Bonuses
-    let techGlobal = 1;
-    if (window.getTechBonus) techGlobal = getTechBonus('global_mult').mult;
+    // Shadow income is NOT affected by standard multipliers (it's "off the books"), 
+    // but it IS affected by Mania.
+    let cleanIncome = base * influenceMult * singularityMult * ceoMult;
+    let dirtyIncome = shadowIncome * maniaMult;
 
-    return base * influenceMult * maniaMult * singularityMult * ceoMult * techGlobal;
+    return (cleanIncome + dirtyIncome) * maniaMult;
 }
 
 function clickAction(e) {
@@ -439,6 +452,36 @@ function gameLoop(currentTime) {
     // R&D: Neural Link (ID: 0) Auto-Clicker
     if (game.researchedTech.includes(0)) {
         if (Math.random() < 0.015) clickAction({ clientX: width/2, clientY: height/2, type: 'click' });
+    }
+
+// --- SHADOW LOGIC ---
+    if (!game.shadowCounts) game.shadowCounts = [0,0,0,0];
+    if (typeof game.heat === 'undefined') game.heat = 0;
+
+    // Calculate Heat Gen
+    let heatGen = 0;
+    game.shadowCounts.forEach((c, i) => {
+        heatGen += c * shadowAssets[i].heat;
+    });
+    
+    // Heat increases over time based on assets
+    if (heatGen > 0) {
+        game.heat += (heatGen * dt) * 0.05; // Scaling factor
+    }
+    
+    // Natural Heat Decay (slowly cools down if you stop)
+    if (heatGen === 0 && game.heat > 0) {
+        game.heat -= 1 * dt;
+    }
+
+    // RAID EVENT
+    if (game.heat >= 100) {
+        game.heat = 0;
+        game.money = game.money * 0.5; // Lose 50%
+        game.shadowCounts = [0,0,0,0]; // Assets Seized
+        playSound('error');
+        if (window.showToast) showToast("FEDERAL RAID! 50% CASH SEIZED.", "error");
+        if (window.pushNews) window.pushNews("BREAKING: FEDERAL AGENTS SEIZE ILLEGAL ASSETS.");
     }
 
     if (window.updateUI) window.updateUI(rate);

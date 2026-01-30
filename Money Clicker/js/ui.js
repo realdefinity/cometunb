@@ -384,7 +384,7 @@ window.openAnalytics = openAnalytics;
 
 function setShopTab(tab) {
     window.currentShopTab = tab;
-    const tabs = ['markets', 'portfolio', 'staff', 'rd', 'skins'];
+    const tabs = ['markets', 'staff', 'rd', 'shadow', 'casino'];
     
     // Hide all containers and reset all buttons
     tabs.forEach(t => {
@@ -419,6 +419,8 @@ function setShopTab(tab) {
     if (tab === 'rd') renderRD();
     if (tab === 'skins') renderSkins();
     if (tab === 'staff') renderStaff();
+    if (tab === 'shadow') renderShadow();
+    if (tab === 'casino') renderCasino();
 }
 
 window.setShopTab = setShopTab;
@@ -769,3 +771,116 @@ function confirmPrestige() {
     }
 }
 window.confirmPrestige = confirmPrestige;
+
+// --- SHADOW OPS RENDERER ---
+function renderShadow() {
+    const container = document.getElementById('shadow-container');
+    if (!container) return;
+
+    // Calculate Heat Cost (Bribe)
+    const bribeCost = game.money * 0.10; // 10% of current cash to clear 10% heat
+    
+    let html = `
+        <div style="background:#1a0505; border:1px solid #450a0a; padding:15px; border-radius:12px; margin-bottom:20px; text-align:center;">
+            <div style="font-size:0.7rem; color:#f43f5e; font-weight:900; letter-spacing:2px; margin-bottom:5px;">HEAT LEVEL</div>
+            <div style="width:100%; height:8px; background:#2a0a0a; border-radius:4px; overflow:hidden; position:relative;">
+                <div style="width:${Math.min(100, game.heat)}%; height:100%; background:linear-gradient(90deg, #f43f5e, #ff0000); transition:width 0.2s;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                <span style="font-size:0.7rem; color:#f43f5e;">${game.heat.toFixed(1)}% / 100%</span>
+                <button class="opt-btn" onclick="payBribe()" style="width:auto; padding:4px 8px; font-size:0.6rem; border-color:#f43f5e; color:#fff; background:#450a0a;">BRIBE (-10% HEAT)</button>
+            </div>
+            <div style="font-size:0.55rem; color:#888; margin-top:5px;">WARNING: 100% HEAT TRIGGERS FEDERAL RAID (50% CASH SEIZED).</div>
+        </div>
+    `;
+
+    shadowAssets.forEach((s, i) => {
+        const canAfford = game.money >= s.cost;
+        html += `
+            <div class="staff-card" onclick="buyShadow(${i})" style="border-color:${canAfford ? '#f43f5e' : '#333'};">
+                <div class="upg-info">
+                    <h4 style="color:#f43f5e">${s.name} <span style="font-size:0.7em; color:#fff;">(x${game.shadowCounts[i]})</span></h4>
+                    <p>${s.desc}</p>
+                    <span style="font-size:0.6rem; color:#f43f5e;">+${s.heat} HEAT/s</span>
+                </div>
+                <div class="upg-cost">
+                    <div class="cost-text">$${formatNumber(s.cost)}</div>
+                    <div class="count-badge" style="background:#450a0a; color:#f43f5e;">Illegal</div>
+                </div>
+            </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function buyShadow(id) {
+    const s = shadowAssets[id];
+    if (game.money >= s.cost) {
+        game.money -= s.cost;
+        game.shadowCounts[id]++;
+        playSound('buy');
+        renderShadow();
+    } else {
+        showToast("Insufficient Dirty Money", "error");
+    }
+}
+
+function payBribe() {
+    const cost = game.money * 0.10;
+    if (game.money >= cost) {
+        game.money -= cost;
+        game.heat = Math.max(0, game.heat - 10);
+        showToast("Bribe Accepted. Heat Reduced.", "success");
+        renderShadow();
+        updateUI(0);
+    }
+}
+
+// --- CASINO RENDERER ---
+function renderCasino() {
+    const container = document.getElementById('casino-container');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="text-align:center; padding:20px; background:linear-gradient(135deg, #1a0b2e 0%, #000 100%); border:1px solid #a855f7; border-radius:16px;">
+            <h2 style="color:#a855f7; margin-bottom:5px;">HIGH STAKES TERMINAL</h2>
+            <p style="font-size:0.7rem; color:#ccc; margin-bottom:20px;">DOUBLE OR NOTHING</p>
+            
+            <div style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
+                <button class="opt-btn" onclick="gamble(0.1)">BET 10%</button>
+                <button class="opt-btn" onclick="gamble(0.5)">BET 50%</button>
+                <button class="opt-btn" onclick="gamble(1.0)" style="border-color:#a855f7; color:#a855f7;">ALL IN</button>
+            </div>
+            
+            <div id="casino-result" style="height:40px; font-family:'JetBrains Mono'; font-weight:800; font-size:1.2rem;">READY?</div>
+        </div>
+    `;
+}
+
+function gamble(percent) {
+    if (game.money <= 0) return showToast("You are broke.", "error");
+    
+    const bet = game.money * percent;
+    const win = Math.random() > 0.5; // 50/50 chance
+    
+    const resEl = document.getElementById('casino-result');
+    
+    if (win) {
+        game.money += bet;
+        game.lifetimeEarnings += bet; // Gambling counts towards prestige
+        resEl.innerHTML = `<span style="color:#22c55e">WIN +$${formatNumber(bet)}</span>`;
+        playSound('crit');
+        if (window.createParticle) {
+             for(let i=0; i<20; i++) createParticle(window.innerWidth/2, window.innerHeight/2, '', 'spark');
+        }
+    } else {
+        game.money -= bet;
+        resEl.innerHTML = `<span style="color:#f43f5e">LOST -$${formatNumber(bet)}</span>`;
+        playSound('error');
+    }
+    updateUI(0);
+}
+
+// Helper to bridge the new tabs
+window.buyShadow = buyShadow;
+window.payBribe = payBribe;
+window.gamble = gamble;

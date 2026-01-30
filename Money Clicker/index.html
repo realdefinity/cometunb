@@ -19,6 +19,7 @@
             margin-bottom: 20px;
             border-bottom: 1px solid var(--panel-border);
             padding-bottom: 12px;
+            
         }
         .tab-btn {
             font-size: 0.75rem;
@@ -128,8 +129,11 @@
                 <!-- Navigation Tabs -->
                 <div class="shop-tabs" style="flex-wrap: wrap;">
                     <div class="tab-btn active" id="btn-tab-markets" onclick="setShopTab('markets')">MARKETS</div>
+                    <div class="tab-btn" id="btn-tab-portfolio" onclick="setShopTab('portfolio')">PORTFOLIO</div>
                     <div class="tab-btn" id="btn-tab-staff" onclick="setShopTab('staff')">STAFF</div>
                     <div class="tab-btn" id="btn-tab-rd" onclick="setShopTab('rd')">R&D</div>
+                    <div class="tab-btn" id="btn-tab-shadow" onclick="setShopTab('shadow')" style="color:#f43f5e;">SHADOW</div>
+                    <div class="tab-btn" id="btn-tab-casino" onclick="setShopTab('casino')" style="color:#a855f7;">CASINO</div>
                 </div>
 
                 <!-- Section Headers (Dynamic) -->
@@ -172,7 +176,8 @@
                 <div id="rd-container" style="display:none;"></div>
                 <div id="loans-container" style="display:none;"></div>
                 <div id="skins-container" style="display:none; padding-top:10px;"></div>
-                
+                <div id="shadow-container" style="display:none;"></div>
+                <div id="casino-container" style="display:none;"></div>
                 <div style="margin-top:20px; text-align:center;">
                     <button class="opt-btn" onclick="setShopTab('skins')" style="padding:8px; font-size:0.6rem;">CUSTOMIZE PARTICLES</button>
                 </div>
