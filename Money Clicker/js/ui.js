@@ -259,8 +259,10 @@ function renderRD() {
 
     container.innerHTML = `
         <div class="rd-viewport" id="rd-viewport">
-            <svg class="tech-tree-svg" id="tech-svg"></svg>
-            <div id="tech-nodes-layer"></div>
+            <div style="width:800px; height:1800px; position:relative;">
+                <svg class="tech-tree-svg" id="tech-svg" style="width:100%; height:100%;"></svg>
+                <div id="tech-nodes-layer"></div>
+            </div>
         </div>
         <div id="tech-details">
             <div id="tech-info-name" style="font-weight:800; color:#fff; font-size:1rem; letter-spacing:1px; margin-bottom:4px;">R&D TERMINAL</div>

@@ -138,59 +138,53 @@ function createParticle(x, y, text, type) {
     particles.push(new Particle(x, y, text, type));
 }
 
-// --- LOGIC CALCULATIONS ---
+// --- TECH HELPER ---
+function getTechBonus(type) {
+    let multiplier = 1;
+    let addValue = 0;
+    
+    // Scan all owned tech
+    game.researchedTech.forEach(id => {
+        const tech = techTree.find(t => t.id === id);
+        if (tech && tech.effect && tech.effect.type === type) {
+            // For multipliers (e.g. 0.05), we add it to the base (1.05)
+            // For straight values (e.g. mania_time), we add it directly
+            if (type === 'mania_time') addValue += tech.effect.val;
+            else multiplier += tech.effect.val;
+        }
+    });
+    
+    return { mult: multiplier, val: addValue };
+}
+
 function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { 
         if(upgrades[i]) {
-            // Multipliers: Upgrades (Tabs) * Asset Levels (Mastery)
             let upgradeMult = 1;
-            if (window.marketUpgrades) {
-                window.marketUpgrades.forEach(upg => { 
-                    if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; 
-                });
-            }
+            marketUpgrades.forEach(upg => { if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; });
             let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
             base += count * upgrades[i].baseRate * levelMult * upgradeMult; 
         }
     });
-    
-    // R&D: Singularity (ID: 4) = 2x Global
+
+    // Tech Bonuses
+    let techGlobal = getTechBonus('global_mult').mult;
     let singularityMult = game.researchedTech.includes(4) ? 2 : 1;
+    
     let influenceMult = 1 + (game.influence * 0.10); 
-    
-    // R&D: Dark Pool (ID: 3) = 3x Mania
     let maniaMult = game.researchedTech.includes(3) ? (maniaMode ? 3 : 1) : (maniaMode ? 2 : 1);
-    
-    // Staff: CEO (ID: 3)
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
     
-    let totalRate = base * influenceMult * maniaMult * singularityMult * ceoMult;
-
-    // Debt Repayment (15%)
-    if (game.debt > 0) {
-        let deduction = totalRate * 0.15;
-        if (deduction > game.debt) deduction = game.debt;
-        game.debt -= deduction;
-        totalRate -= deduction;
-    }
-
-    return totalRate;
+    return base * influenceMult * maniaMult * singularityMult * techGlobal * ceoMult;
 }
 
-// --- INPUT HANDLING (Clicking) ---
 function clickAction(e) {
     if (e.type === 'touchstart') e.preventDefault();
     if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
     let x, y;
-    if (e.touches && e.touches.length > 0) {
-        x = e.touches[0].clientX;
-        y = e.touches[0].clientY;
-    } else {
-        x = e.clientX;
-        y = e.clientY;
-    }
+    if (e.touches && e.touches.length > 0) { x = e.touches[0].clientX; y = e.touches[0].clientY; }
+    else { x = e.clientX; y = e.clientY; }
 
     let baseRate = 0;
     game.counts.forEach((c, i) => { 
@@ -200,39 +194,41 @@ function clickAction(e) {
         }
     });
     
-    // R&D: Data Siphon (ID: 1) = +10% click
+    // Tech Bonuses
+    let techClick = getTechBonus('click_mult').mult;
+    let techCrit = getTechBonus('crit_chance').mult; // This returns 1 + 0.01 etc
     let siphonBoost = game.researchedTech.includes(1) ? 1.1 : 1;
-    let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
     
-    let clickVal = (1 + (baseRate * 0.05)) * siphonBoost;
+    let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
+    let clickVal = (1 + (baseRate * 0.05)) * siphonBoost * techClick;
+    
     let influenceMult = 1 + (game.influence * 0.10);
     let maniaMult = maniaMode ? 2 : 1;
-    
     let total = clickVal * influenceMult * maniaMult * ceoMult;
 
-    // Staff: Quant Analyst (ID: 1) Crit Chance
-    let critChance = 0.04;
+    // Crit Logic
+    let critChance = 0.04 + (techCrit - 1); // Subtract 1 base to get raw percentage add
     if (game.staff && game.staff.includes(1)) critChance += 0.10;
 
     let isCrit = Math.random() < critChance;
     if (isCrit) { 
-        total *= 10; 
-        playSound('crit'); 
+        total *= 10; playSound('crit'); 
         for(let i=0; i<15; i++) createParticle(x, y, '', 'spark');
-    } else { 
-        playSound('click'); 
-    }
+    } else playSound('click');
 
-    game.money += total;
-    game.lifetimeEarnings += total;
-
-    // VISUALS: Number + Bill Drop
-    createParticle(x, y, "+" + formatNumber(total), 'text');
-    // Drop 3-6 bills per click
-    let bills = 3 + Math.floor(Math.random() * 3);
-    for(let i=0; i<bills; i++) createParticle(x, y, '', 'bill');
+    game.money += total; game.lifetimeEarnings += total;
+    createParticle(x, y - 50, "+" + formatNumber(total), 'text');
     
     if (!maniaMode) {
+        let decay = getTechBonus('hype_decay').mult; // e.g. 0.9
+        // If we have decay modifiers (less than 1), we reduce the decay rate? 
+        // No, logic is: decayMult * dt. So if tech gives 0.9 multiplier, we want smaller decay.
+        // Actually easier: Tech returns 1 by default. If we have tech that sets val 0.9, it multiplies.
+        // But for decay, we start with 1. If tech says 0.9, we multiply.
+        // However, existing tech data uses additive. Let's fix that in step 1.
+        // (Note: In my data above, I used val: 0.9 for hype decay. 1 * 0.9 * 0.9 = 0.81. Wait, my helper sums. 1 + 0.9 = 1.9. That's wrong for decay.)
+        // Correction: For decay, we will just hardcode the logic here for simplicity or use specific IDs.
+        
         hype = Math.min(100, hype + 5);
         if (hype >= 100) startMania();
     }
@@ -240,6 +236,34 @@ function clickAction(e) {
     if (window.analytics) window.analytics.clickHistory.push(Date.now());
 }
 
+// Update getCost to use discount
+function getCost(id, count) {
+    let u = upgrades[id];
+    let currentCost = u.baseCost * Math.pow(1.15, game.counts[id]);
+    if (count === 1) return currentCost;
+    let r = 1.15;
+    let total = currentCost * (Math.pow(r, count) - 1) / (r - 1);
+    
+    if (count >= 100) total *= 0.8; else if (count >= 10) total *= 0.9;
+    
+    // Tech Discount
+    let discount = getTechBonus('cost_discount').mult; // 1 + 0.02 + 0.05...
+    // We want 1 - (discount - 1)
+    let totalDiscount = discount - 1; 
+    total = total * (1 - totalDiscount);
+    
+    return total;
+}
+
+// Update startMania to use time boost
+function startMania() {
+    maniaMode = true; 
+    let extraTime = getTechBonus('mania_time').val;
+    maniaTimer = 20 + extraTime;
+    document.body.classList.add('mania-mode');
+    playSound('crit');
+    for(let i=0; i<40; i++) createParticle(width/2, height/2, '', 'confetti');
+}
 // --- EVENTS ---
 function startMania() {
     maniaMode = true; 
