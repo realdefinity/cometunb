@@ -750,3 +750,74 @@ function getUpgradeCost(id) {
 }
 window.getUpgradeCost = getUpgradeCost;
 
+// --- IMPROVED PRESTIGE SYSTEM ---
+
+function openPrestige() {
+    // 1. Calculate Potential
+    // Formula: Sqrt(LifetimeEarnings / 1M) = Total Influence
+    let potential = Math.floor(Math.pow(game.lifetimeEarnings / 1000000, 0.5));
+    let claimable = Math.max(0, potential - game.influence);
+
+    // 2. Calculate Requirement for NEXT point
+    // If you have 10 inf, you need (11^2)*1M lifetime earnings for the 11th point
+    let nextPoint = (game.influence + claimable) + 1;
+    let reqLifetime = Math.pow(nextPoint, 2) * 1000000;
+    let missing = reqLifetime - game.lifetimeEarnings;
+
+    // 3. Update Modal UI
+    const elClaim = document.getElementById('claimable-influence');
+    const elCur = document.getElementById('current-bonus-modal');
+    const elNew = document.getElementById('new-bonus-modal');
+    const btn = document.querySelector('#prestige-modal .opt-btn');
+
+    if(elClaim) elClaim.innerText = formatNumber(claimable);
+    if(elCur) elCur.innerText = formatNumber(game.influence * 10) + "%";
+    if(elNew) elNew.innerText = formatNumber((game.influence + claimable) * 10) + "%";
+
+    // 4. Smart Button State
+    if (claimable > 0) {
+        btn.classList.add('ready');
+        btn.style.opacity = "1";
+        btn.style.pointerEvents = "auto";
+        btn.innerHTML = `CONFIRM SALE <span style="font-size:0.7em; opacity:0.8">(+${formatNumber(claimable)} INF)</span>`;
+        btn.onclick = confirmPrestige; // Ensure click is bound
+    } else {
+        btn.classList.remove('ready');
+        btn.style.opacity = "0.5";
+        btn.style.pointerEvents = "none";
+        // Tell the user exactly what they need
+        btn.innerHTML = `NEED $${formatNumber(missing)} MORE LIFETIME VALUE`;
+    }
+
+    if (window.openModal) window.openModal('prestige-modal');
+}
+window.openPrestige = openPrestige;
+
+function confirmPrestige() {
+    let potential = Math.floor(Math.pow(game.lifetimeEarnings / 1000000, 0.5));
+    
+    if (potential > game.influence) {
+        // 1. Apply Influence
+        game.influence = potential;
+        
+        // 2. Soft Reset (Keep Mastery Levels!)
+        game.money = 0;
+        game.counts = game.counts.map(() => 0); 
+        // NOTE: We do NOT reset game.levels, staff, or research.
+        // This makes your upgrades feel "Permanent".
+        
+        // 3. Save & Close
+        if (window.closeModal) window.closeModal('prestige-modal');
+        saveLocal();
+        
+        // 4. Refresh Visuals
+        if (window.renderShop) window.renderShop();
+        if (window.renderPortfolio) window.renderPortfolio();
+        if (window.updateUI) updateUI(0);
+        
+        // 5. Celebration
+        if (window.playSound) playSound('crit');
+        if (window.showToast) showToast(`LIQUIDATION SUCCESS: ${formatNumber(game.influence)} INFLUENCE`, "success");
+    }
+}
+window.confirmPrestige = confirmPrestige;
