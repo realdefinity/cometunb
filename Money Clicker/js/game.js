@@ -22,31 +22,26 @@ class Particle {
         this.type = type; 
         this.life = 1.0;
         
-        if (type === 'text') {
-            // MONEY NUMBER: Pops up, then falls down
-            this.text = text;
-            this.vx = (Math.random() - 0.5) * 4;  // Spread X
-            this.vy = -8 - Math.random() * 5;     // Shoot Up Fast
-            this.gravity = 0.5;                   // Fall Down
-            this.drag = 0.96;
+        // 1. GET ACTIVE SKIN
+        // We look up the skin you selected in the UI
+        const activeSkinId = (window.game && window.game.activeSkin) ? window.game.activeSkin : 'default';
+        const skinList = window.particleSkins || [{ id: 'default', color: '#22c55e', char: '+$' }];
+        const skin = skinList.find(s => s.id === activeSkinId) || skinList[0];
+
+        // 2. TEXT PARTICLES (The Numbers)
+        if(type === 'text') {
+            // Replace the "+" in "+100" with the skin char (e.g. "₿100" or "🔥100")
+            this.text = text.replace("+", skin.char); 
+            this.vx = (Math.random() - 0.5) * 1.5;
+            this.vy = -2 - Math.random();
+            this.gravity = 0;
+            this.drag = 0.98;
             this.decay = 0.015;
-            this.scale = 1.0;
-            this.color = maniaMode ? '#eab308' : '#22c55e'; // Gold or Green
+            this.scale = 1;
+            // Use Skin Color (or Gold if in Mania Mode)
+            this.color = maniaMode ? '#eab308' : skin.color; 
         } 
-        else if (type === 'bill') {
-            // FALLING CASH: Flutters down
-            this.vx = (Math.random() - 0.5) * 12; // Wide spread
-            this.vy = -6 - Math.random() * 6;     // Initial pop
-            this.gravity = 0.3;                   // Slow fall
-            this.drag = 0.92;
-            this.decay = 0.01;
-            this.scale = Math.random() * 0.5 + 0.8;
-            this.rotation = Math.random() * Math.PI * 2;
-            this.rotSpeed = (Math.random() - 0.5) * 0.3;
-            this.color = '#15803d'; // Darker money green
-            this.w = 12; // Bill width
-            this.h = 6;  // Bill height
-        }
+        // 3. SPARK PARTICLES (The Explosion)
         else if (type === 'spark') {
             const angle = Math.random() * Math.PI * 2;
             const speed = Math.random() * 15 + 5;
@@ -56,9 +51,24 @@ class Particle {
             this.drag = 0.85;
             this.decay = 0.03 + Math.random() * 0.02;
             this.scale = Math.random() * 3 + 2;
-            const rand = Math.random();
-            this.color = rand > 0.6 ? '#eab308' : (rand > 0.3 ? '#22c55e' : '#ffffff');
+            // Mix Skin Color with White for sparkle effect
+            this.color = Math.random() > 0.5 ? skin.color : '#ffffff'; 
         } 
+        // 4. BILLS (Physical Money Drops)
+        else if (type === 'bill') {
+            this.vx = (Math.random() - 0.5) * 12; 
+            this.vy = -6 - Math.random() * 6;
+            this.gravity = 0.3;
+            this.drag = 0.92;
+            this.decay = 0.01;
+            this.scale = Math.random() * 0.5 + 0.8;
+            this.rotation = Math.random() * Math.PI * 2;
+            this.rotSpeed = (Math.random() - 0.5) * 0.3;
+            this.color = skin.color; // Bills match skin color
+            this.w = 12;
+            this.h = 6;
+        }
+        // 5. CONFETTI (Mania Mode)
         else if (type === 'confetti') {
             this.x = Math.random() * width;
             this.y = -20;
@@ -84,10 +94,11 @@ class Particle {
 
         if (this.type === 'bill') {
             this.rotation += this.rotSpeed;
-            // Flutter effect (Sine wave on X)
-            this.x += Math.sin(this.life * 10) * 0.5; 
+            this.x += Math.sin(this.life * 10) * 0.5; // Flutter
         } else if (this.type === 'confetti') {
             this.rotation += this.rotSpeed;
+        } else if (this.type === 'text') {
+            this.scale += 0.005;
         }
     }
 
@@ -95,38 +106,42 @@ class Particle {
         if (this.life <= 0) return;
         ctx.save();
         ctx.globalAlpha = this.life;
-        ctx.translate(this.x, this.y);
 
-        if (this.type === 'text') {
-            ctx.scale(this.scale, this.scale);
-            ctx.font = "800 28px Outfit";
-            ctx.textAlign = "center";
-            // Stroke for readability
-            ctx.lineJoin = "round";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "rgba(0,0,0,0.8)";
-            ctx.strokeText(this.text, 0, 0);
-            ctx.fillStyle = this.color;
-            ctx.fillText(this.text, 0, 0);
-        }
-        else if (this.type === 'bill') {
-            ctx.rotate(this.rotation);
-            ctx.fillStyle = this.color;
-            ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
-            // Little detail line on bill
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.fillRect(-2, -3, 4, 6);
-        }
-        else if (this.type === 'spark') {
+        if (this.type === 'spark') {
+            ctx.translate(this.x, this.y);
             ctx.fillStyle = this.color;
             ctx.beginPath();
             ctx.arc(0, 0, this.scale, 0, Math.PI * 2);
             ctx.fill();
         } 
+        else if (this.type === 'bill') {
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation);
+            ctx.fillStyle = this.color;
+            ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(-2, -3, 4, 6); // Detail line
+        }
         else if (this.type === 'confetti') {
+            ctx.translate(this.x, this.y);
             ctx.rotate(this.rotation * Math.PI / 180);
             ctx.fillStyle = this.color;
             ctx.fillRect(-this.scale/2, -this.scale/2, this.scale, this.scale * 1.5);
+        } 
+        else if (this.type === 'text') {
+            ctx.translate(this.x, this.y);
+            ctx.scale(this.scale, this.scale);
+            
+            // Render Text
+            ctx.font = "800 28px Outfit";
+            ctx.textAlign = "center";
+            ctx.lineJoin = "round";
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "rgba(0,0,0,0.8)";
+            ctx.strokeText(this.text, 0, 0);
+            
+            ctx.fillStyle = this.color;
+            ctx.fillText(this.text, 0, 0);
         }
         ctx.restore();
     }
