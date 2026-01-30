@@ -423,59 +423,6 @@ function setShopTab(tab) {
 
 window.setShopTab = setShopTab;
 
-function renderPortfolio() {
-    const container = document.getElementById('portfolio-container');
-    if (!container) return;
-    
-    // 1. Filter for Owned Assets Only
-    const ownedAssets = upgrades.map((u, i) => ({...u, originalIndex: i}))
-                                .filter(u => game.counts[u.originalIndex] > 0);
-
-    if (ownedAssets.length === 0) {
-        container.innerHTML = `<div class="portfolio-empty" style="color:#666; margin-top:40px; font-weight:700;">NO ASSETS UNDER MANAGEMENT.<br>ACQUIRE ASSETS IN MARKETS TAB.</div>`;
-        return;
-    }
-
-    let html = '';
-    
-    ownedAssets.forEach(u => {
-        const i = u.originalIndex;
-        const level = game.levels[i] || 1;
-        const count = game.counts[i];
-        
-        // Math: 1 + 25% per level
-        const currentMult = 1 + ((level - 1) * 0.25);
-        const nextMult = 1 + (level * 0.25);
-        
-        const cost = getUpgradeCost(i);
-        const canAfford = game.money >= cost;
-
-        html += `
-            <div class="portfolio-card ${canAfford ? 'affordable' : ''}" onclick="window.buyAssetUpgrade(${i})">
-                <div class="port-info">
-                    <div class="port-header">
-                        <h4>${u.name}</h4>
-                        <span class="port-level">LVL ${level}</span>
-                    </div>
-                    <div class="port-stats">
-                        <span class="stat-item">QTY: <strong>${formatNumber(count)}</strong></span>
-                        <span class="stat-item">YIELD: <strong style="color:#22c55e">${currentMult.toFixed(2)}x</strong></span>
-                    </div>
-                </div>
-                
-                <div class="port-action">
-                    <div class="upgrade-preview">NEXT: ${nextMult.toFixed(2)}x</div>
-                    <div class="port-btn">
-                        OPTIMIZE $${formatNumber(cost)}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
-window.renderPortfolio = renderPortfolio;
 
 function renderStaff() {
     const container = document.getElementById('staff-container');
@@ -752,42 +699,7 @@ function buyUpgrade(id) {
     }
 }
 
-function buyAssetUpgrade(id) {
-    const cost = getUpgradeCost(id);
-    if (game.money >= cost && game.counts[id] > 0) {
-        game.money -= cost;
-        game.levels[id]++;
-        
-        if (window.playSound) playSound('buy');
-        
-        // Flashy Particle Effect on the card
-        const el = document.getElementById(`upg-${id}`);
-        if (el) {
-            const rect = el.getBoundingClientRect();
-            for(let i=0; i<12; i++) {
-                if (window.createParticle) createParticle(rect.left + 60, rect.top + 40, '', 'spark');
-            }
-        }
-
-        if (window.showToast) showToast(`${upgrades[id].name} Reached Level ${game.levels[id]}!`, 'success');
-        updateUI(0); // Refresh everything
-    } else if (game.counts[id] === 0) {
-        if (window.showToast) showToast("You must own the asset first!", "error");
-    } else {
-        if (window.showToast) showToast("Insufficient capital.", "error");
-    }
-}
-window.buyAssetUpgrade = buyAssetUpgrade;
-
-function getUpgradeCost(id) {
-    const level = game.levels[id] || 1;
-    // Calculation: Base Price * 50 * 4x per level
-    return upgrades[id].baseCost * 50 * Math.pow(4, level - 1);
-}
-window.getUpgradeCost = getUpgradeCost;
-
 // --- IMPROVED PRESTIGE SYSTEM ---
-
 function openPrestige() {
     // 1. Calculate Potential
     // Formula: Sqrt(LifetimeEarnings / 1M) = Total Influence
@@ -857,3 +769,89 @@ function confirmPrestige() {
     }
 }
 window.confirmPrestige = confirmPrestige;
+
+// --- FIXED PORTFOLIO LOGIC ---
+
+function renderPortfolio() {
+    const container = document.getElementById('portfolio-container');
+    if (!container) return;
+    
+    // Safety: Ensure levels exist
+    if (!game.levels) game.levels = new Array(upgrades.length).fill(1);
+
+    // 1. Filter: Only show assets you own
+    const ownedAssets = upgrades.map((u, i) => ({...u, originalIndex: i}))
+                                .filter(u => game.counts[u.originalIndex] > 0);
+
+    if (ownedAssets.length === 0) {
+        container.innerHTML = `<div class="portfolio-empty" style="color:#666; margin-top:40px; font-weight:700; font-family:'JetBrains Mono'; text-align:center;">NO ASSETS MANAGED.<br>BUY ASSETS IN MARKETS TAB.</div>`;
+        return;
+    }
+
+    let html = '';
+    ownedAssets.forEach(u => {
+        const i = u.originalIndex;
+        const level = game.levels[i] || 1;
+        const count = game.counts[i];
+        
+        // Math: +25% Yield per Level
+        const currentMult = 1 + ((level - 1) * 0.25);
+        const nextMult = 1 + (level * 0.25);
+        
+        const cost = getUpgradeCost(i);
+        const canAfford = game.money >= cost;
+
+        html += `
+            <div class="upgrade ${canAfford ? 'affordable-max' : ''}" style="border-left: 4px solid var(--gold); cursor: default;">
+                <div class="upg-info">
+                    <h4 style="margin-bottom:6px;">${u.name} <span style="color:var(--gold); font-size:0.8em; border:1px solid var(--gold); padding:1px 6px; border-radius:4px;">LVL ${level}</span></h4>
+                    <p style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#888;">
+                        QTY: <span style="color:#fff">${formatNumber(count)}</span> | 
+                        YIELD: <span style="color:var(--green)">${currentMult.toFixed(2)}x</span>
+                    </p>
+                </div>
+                
+                <div class="upg-cost" 
+                     onclick="window.buyAssetUpgrade(${i}); event.stopPropagation();" 
+                     style="cursor: pointer; padding: 6px 12px; border-radius: 8px; border: 1px solid #333; background: #000; text-align: center; min-width: 80px; transition: 0.2s;">
+                     
+                    <div style="font-size:0.65rem; color:#666; font-weight:700; margin-bottom:2px;">OPTIMIZE</div>
+                    <div style="color: ${canAfford ? 'var(--gold)' : '#555'}; font-weight:800; font-family:'JetBrains Mono';">
+                        $${formatNumber(cost)}
+                    </div>
+                </div>
+            </div>`;
+    });
+    
+    container.innerHTML = html;
+}
+window.renderPortfolio = renderPortfolio;
+
+function buyAssetUpgrade(id) {
+    // Safety Check
+    if (!game.levels) game.levels = new Array(upgrades.length).fill(1);
+    
+    const cost = getUpgradeCost(id);
+    
+    if (game.money >= cost) {
+        game.money -= cost;
+        game.levels[id]++; // Increase Level
+        
+        if (window.playSound) playSound('buy');
+        if (window.showToast) showToast(`Optimized ${upgrades[id].name} to Level ${game.levels[id]}`, 'success');
+        
+        // Instant Visual Update
+        renderPortfolio();
+        updateUI(0);
+    } else {
+        if (window.showToast) showToast(`Need $${formatNumber(cost)} to optimize`, 'error');
+    }
+}
+window.buyAssetUpgrade = buyAssetUpgrade;
+
+function getUpgradeCost(id) {
+    const level = (game.levels && game.levels[id]) ? game.levels[id] : 1;
+    // Cost scales: Base * 50 * (1.5 ^ Level)
+    return upgrades[id].baseCost * 50 * Math.pow(1.5, level - 1);
+}
+window.getUpgradeCost = getUpgradeCost;
