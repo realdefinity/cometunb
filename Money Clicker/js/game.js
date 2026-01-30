@@ -190,36 +190,40 @@ function getTechBonus(type) {
     
     return { mult: multiplier, val: addValue };
 }
+
 function calculateIncome() {
     let base = 0;
+    
+    // 1. Regular Assets
     game.counts.forEach((count, i) => { 
         if(upgrades[i]) {
             let upgradeMult = 1;
-            // Upgrades Tab Multiplier
             if (window.marketUpgrades) {
                 marketUpgrades.forEach(upg => { if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; });
             }
-            base += count * upgrades[i].baseRate * upgradeMult; 
+            let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
+            base += count * upgrades[i].baseRate * levelMult * upgradeMult; 
         }
     });
 
-    // Shadow Assets
+    // 2. Shadow Assets (High Yield)
     let shadowIncome = 0;
     if (game.shadowCounts) {
         game.shadowCounts.forEach((count, i) => {
-            if (window.shadowAssets && shadowAssets[i]) {
+            if (shadowAssets[i]) {
                 shadowIncome += count * shadowAssets[i].rate;
             }
         });
     }
 
-    // Global Multipliers
+    // Global Mults
     let singularityMult = game.researchedTech.includes(4) ? 2 : 1;
     let influenceMult = 1 + (game.influence * 0.10); 
     let maniaMult = game.researchedTech.includes(3) ? (maniaMode ? 3 : 1) : (maniaMode ? 2 : 1);
-    let ceoMult = game.staff && game.staff.includes(8) ? 1.5 : 1.0; // CEO is ID 8 now? Check your ID list.
+    let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
     
-    // Shadow income ignores standard multipliers but gets Mania
+    // Shadow income is NOT affected by standard multipliers (it's "off the books"), 
+    // but it IS affected by Mania.
     let cleanIncome = base * influenceMult * singularityMult * ceoMult;
     let dirtyIncome = shadowIncome * maniaMult;
 
