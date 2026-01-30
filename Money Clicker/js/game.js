@@ -22,16 +22,31 @@ class Particle {
         this.type = type; 
         this.life = 1.0;
         
-        if(type === 'text') {
+        if (type === 'text') {
+            // MONEY NUMBER: Pops up, then falls down
             this.text = text;
-            this.vx = (Math.random() - 0.5) * 1.5;
-            this.vy = -2 - Math.random();
-            this.gravity = 0;
-            this.drag = 0.98;
+            this.vx = (Math.random() - 0.5) * 4;  // Spread X
+            this.vy = -8 - Math.random() * 5;     // Shoot Up Fast
+            this.gravity = 0.5;                   // Fall Down
+            this.drag = 0.96;
             this.decay = 0.015;
-            this.scale = 1;
-            this.color = '#fff'; 
+            this.scale = 1.0;
+            this.color = maniaMode ? '#eab308' : '#22c55e'; // Gold or Green
         } 
+        else if (type === 'bill') {
+            // FALLING CASH: Flutters down
+            this.vx = (Math.random() - 0.5) * 12; // Wide spread
+            this.vy = -6 - Math.random() * 6;     // Initial pop
+            this.gravity = 0.3;                   // Slow fall
+            this.drag = 0.92;
+            this.decay = 0.01;
+            this.scale = Math.random() * 0.5 + 0.8;
+            this.rotation = Math.random() * Math.PI * 2;
+            this.rotSpeed = (Math.random() - 0.5) * 0.3;
+            this.color = '#15803d'; // Darker money green
+            this.w = 12; // Bill width
+            this.h = 6;  // Bill height
+        }
         else if (type === 'spark') {
             const angle = Math.random() * Math.PI * 2;
             const speed = Math.random() * 15 + 5;
@@ -67,49 +82,59 @@ class Particle {
         this.vy *= this.drag;
         this.life -= this.decay;
 
-        if (this.type === 'confetti') {
+        if (this.type === 'bill') {
             this.rotation += this.rotSpeed;
-        } else if (this.type === 'text') {
-            this.scale += 0.005;
+            // Flutter effect (Sine wave on X)
+            this.x += Math.sin(this.life * 10) * 0.5; 
+        } else if (this.type === 'confetti') {
+            this.rotation += this.rotSpeed;
         }
     }
 
-draw() {
+    draw() {
         if (this.life <= 0) return;
         ctx.save();
         ctx.globalAlpha = this.life;
+        ctx.translate(this.x, this.y);
 
-        if (this.type === 'spark') {
-            ctx.translate(this.x, this.y);
+        if (this.type === 'text') {
+            ctx.scale(this.scale, this.scale);
+            ctx.font = "800 28px Outfit";
+            ctx.textAlign = "center";
+            // Stroke for readability
+            ctx.lineJoin = "round";
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "rgba(0,0,0,0.8)";
+            ctx.strokeText(this.text, 0, 0);
+            ctx.fillStyle = this.color;
+            ctx.fillText(this.text, 0, 0);
+        }
+        else if (this.type === 'bill') {
+            ctx.rotate(this.rotation);
+            ctx.fillStyle = this.color;
+            ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+            // Little detail line on bill
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(-2, -3, 4, 6);
+        }
+        else if (this.type === 'spark') {
             ctx.fillStyle = this.color;
             ctx.beginPath();
             ctx.arc(0, 0, this.scale, 0, Math.PI * 2);
             ctx.fill();
         } 
-        else if (this.type === 'text') {
-            ctx.translate(this.x, this.y);
-            ctx.scale(this.scale, this.scale);
-            ctx.font = "800 28px Outfit";
-            ctx.textAlign = "center";
-            
-            // Particle Skin Logic
-            let skin = particleSkins.find(s => s.id === game.activeSkin) || particleSkins[0];
-            let displayText = this.text.includes("+") ? this.text.replace("+", skin.char) : this.text;
-
-            ctx.lineJoin = "round";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "rgba(0,0,0,0.8)";
-            ctx.strokeText(displayText, 0, 0);
-            
-            ctx.fillStyle = skin.color;
-            ctx.fillText(displayText, 0, 0);
+        else if (this.type === 'confetti') {
+            ctx.rotate(this.rotation * Math.PI / 180);
+            ctx.fillStyle = this.color;
+            ctx.fillRect(-this.scale/2, -this.scale/2, this.scale, this.scale * 1.5);
         }
         ctx.restore();
     }
 }
 
 function createParticle(x, y, text, type) {
-    if(particles.length > 200) particles.shift();
+    // Performance cap
+    if(particles.length > 300) particles.shift();
     particles.push(new Particle(x, y, text, type));
 }
 
@@ -117,36 +142,47 @@ function createParticle(x, y, text, type) {
 function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { 
-        if (upgrades[i]) {
+        if(upgrades[i]) {
+            // Multipliers: Upgrades (Tabs) * Asset Levels (Mastery)
             let upgradeMult = 1;
-            // Check for purchased one-time upgrades
-            marketUpgrades.forEach(upg => { 
-                if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; 
-            });
+            if (window.marketUpgrades) {
+                window.marketUpgrades.forEach(upg => { 
+                    if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; 
+                });
+            }
             let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
             base += count * upgrades[i].baseRate * levelMult * upgradeMult; 
         }
     });
-
-    // R&D Multipliers
+    
+    // R&D: Singularity (ID: 4) = 2x Global
     let singularityMult = game.researchedTech.includes(4) ? 2 : 1;
     let influenceMult = 1 + (game.influence * 0.10); 
+    
+    // R&D: Dark Pool (ID: 3) = 3x Mania
     let maniaMult = game.researchedTech.includes(3) ? (maniaMode ? 3 : 1) : (maniaMode ? 2 : 1);
+    
+    // Staff: CEO (ID: 3)
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
-
+    
     let totalRate = base * influenceMult * maniaMult * singularityMult * ceoMult;
+
+    // Debt Repayment (15%)
+    if (game.debt > 0) {
+        let deduction = totalRate * 0.15;
+        if (deduction > game.debt) deduction = game.debt;
+        game.debt -= deduction;
+        totalRate -= deduction;
+    }
 
     return totalRate;
 }
 
-
-
 // --- INPUT HANDLING (Clicking) ---
 function clickAction(e) {
     if (e.type === 'touchstart') e.preventDefault();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
-    // 1. Get Coordinates
     let x, y;
     if (e.touches && e.touches.length > 0) {
         x = e.touches[0].clientX;
@@ -156,7 +192,6 @@ function clickAction(e) {
         y = e.clientY;
     }
 
-    // 2. Calculate Base Rate
     let baseRate = 0;
     game.counts.forEach((c, i) => { 
         if(upgrades[i]) {
@@ -165,10 +200,8 @@ function clickAction(e) {
         }
     });
     
-    // 3. Apply Multipliers & R&D
-    // R&D: Data Siphon (ID: 1) = +10% click power
+    // R&D: Data Siphon (ID: 1) = +10% click
     let siphonBoost = game.researchedTech.includes(1) ? 1.1 : 1;
-    // Staff: CEO (ID: 3) = 1.5x global multiplier
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
     
     let clickVal = (1 + (baseRate * 0.05)) * siphonBoost;
@@ -177,8 +210,7 @@ function clickAction(e) {
     
     let total = clickVal * influenceMult * maniaMult * ceoMult;
 
-    // 4. Critical Hit Logic
-    // Staff: Quant Analyst (ID: 1) = +10% crit chance
+    // Staff: Quant Analyst (ID: 1) Crit Chance
     let critChance = 0.04;
     if (game.staff && game.staff.includes(1)) critChance += 0.10;
 
@@ -191,12 +223,14 @@ function clickAction(e) {
         playSound('click'); 
     }
 
-    // 5. Update State
     game.money += total;
     game.lifetimeEarnings += total;
 
-    // 6. Visuals
-    createParticle(x, y - 50, "+" + formatNumber(total), 'text');
+    // VISUALS: Number + Bill Drop
+    createParticle(x, y, "+" + formatNumber(total), 'text');
+    // Drop 3-6 bills per click
+    let bills = 3 + Math.floor(Math.random() * 3);
+    for(let i=0; i<bills; i++) createParticle(x, y, '', 'bill');
     
     if (!maniaMode) {
         hype = Math.min(100, hype + 5);
@@ -205,7 +239,6 @@ function clickAction(e) {
     
     if (window.analytics) window.analytics.clickHistory.push(Date.now());
 }
-
 
 // --- EVENTS ---
 function startMania() {
@@ -225,11 +258,9 @@ function endMania() {
 function spawnGoldenBill() {
     let bill = document.createElement('div');
     bill.className = 'golden-bill';
-    
     const padding = 100;
     bill.style.left = (padding + Math.random() * (window.innerWidth - padding * 2)) + 'px';
     bill.style.top = (padding + Math.random() * (window.innerHeight - padding * 2)) + 'px';
-    
     document.getElementById('event-layer').appendChild(bill);
     
     const collect = (x, y) => {
@@ -242,20 +273,19 @@ function spawnGoldenBill() {
         if(bill.parentNode) bill.remove();
     };
 
-    // STAFF: Junior Intern (ID: 0) auto-collect
+    // Staff: Intern (ID: 0) Auto-Collect
     if (game.staff && game.staff.includes(0)) {
         setTimeout(() => {
             if (bill.parentNode) {
                 let rect = bill.getBoundingClientRect();
                 collect(rect.left + rect.width/2, rect.top + rect.height/2);
-                if (window.pushNews) window.pushNews("INTERN COLLECTED MARKET BONUS.");
+                if(window.pushNews) window.pushNews("INTERN COLLECTED MARKET BONUS.");
             }
         }, 1200);
     }
 
     bill.onmousedown = bill.ontouchstart = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
+        e.stopPropagation(); e.preventDefault();
         let rect = bill.getBoundingClientRect();
         collect(rect.left + rect.width/2, rect.top + rect.height/2);
     };
@@ -263,18 +293,14 @@ function spawnGoldenBill() {
     setTimeout(() => { if(bill.parentNode) bill.remove(); }, 10000); 
 }
 
-// --- BUYING LOGIC (Math) ---
+// --- UTILS ---
 function getCost(id, count) {
     let u = upgrades[id];
     let currentCost = u.baseCost * Math.pow(1.15, game.counts[id]);
     if (count === 1) return currentCost;
-    
     let r = 1.15;
     let total = currentCost * (Math.pow(r, count) - 1) / (r - 1);
-    
-    if (count >= 100) total *= 0.8;
-    else if (count >= 10) total *= 0.9;
-    
+    if (count >= 100) total *= 0.8; else if (count >= 10) total *= 0.9;
     return total;
 }
 
@@ -282,89 +308,28 @@ function getMaxBuy(id) {
     let u = upgrades[id];
     let currentCost = u.baseCost * Math.pow(1.15, game.counts[id]);
     if (game.money < currentCost) return 0;
-    
     let r = 1.15;
-    let count = Math.floor(Math.log(1 + (game.money * (r - 1)) / currentCost) / Math.log(r));
-    return count;
+    return Math.floor(Math.log(1 + (game.money * (r - 1)) / currentCost) / Math.log(r));
 }
 
 function buy(id) {
     let max = getMaxBuy(id);
     let amount = (buyMode === 'MAX') ? max : buyMode;
     if (amount <= 0) { playSound('error'); return; }
-    
     let cost = getCost(id, amount);
     if (game.money >= cost) {
         game.money -= cost;
         game.counts[id] += amount;
-        
         let btn = document.getElementById(`upg-${id}`);
-        if(btn) {
-            let rect = btn.getBoundingClientRect();
+        if(btn) { 
+            let rect = btn.getBoundingClientRect(); 
             for(let i=0; i<5; i++) createParticle(rect.right - 40, rect.top + rect.height/2, '', 'spark');
         }
         playSound('buy');
     }
 }
 
-// --- PORTFOLIO OPTIMIZATION ---
-function buyAssetUpgrade(id) {
-    const cost = getUpgradeCost(id);
-    if (game.money >= cost) {
-        game.money -= cost;
-        game.levels[id] = (game.levels[id] || 1) + 1;
-        playSound('buy');
-        if (window.renderPortfolio) window.renderPortfolio();
-        if (window.showToast) window.showToast(`${upgrades[id].name} optimized!`, 'success');
-    } else {
-        if (window.showToast) window.showToast("Insufficient capital.", "error");
-    }
-}
-window.buyAssetUpgrade = buyAssetUpgrade;
-
-function getUpgradeCost(id) {
-    const level = game.levels[id] || 1;
-    return upgrades[id].baseCost * 100 * Math.pow(5, level - 1);
-}
-window.getUpgradeCost = getUpgradeCost;
-
-// --- PRESTIGE LOGIC ---
-function openPrestige() {
-    // STAFF: High-Stakes Lobbyist (ID: 2) increases influence gain
-    let lobbyistMult = game.staff && game.staff.includes(2) ? 1.5 : 1.0;
-    let potential = Math.floor(Math.pow(game.lifetimeEarnings / 1000000, 0.5) * lobbyistMult);
-    let claimable = Math.max(0, potential - game.influence);
-    
-    const elClaim = document.getElementById('claimable-influence');
-    const elCur = document.getElementById('current-bonus-modal');
-    const elNew = document.getElementById('new-bonus-modal');
-    
-    if(elClaim) elClaim.innerText = formatNumber(claimable);
-    if(elCur) elCur.innerText = formatNumber(game.influence * 10) + "%";
-    if(elNew) elNew.innerText = formatNumber((game.influence + claimable) * 10) + "%";
-    
-    if (window.openModal) window.openModal('prestige-modal');
-}
-window.openPrestige = openPrestige;
-
-function confirmPrestige() {
-    let lobbyistMult = game.staff && game.staff.includes(2) ? 1.5 : 1.0;
-    let potential = Math.floor(Math.pow(game.lifetimeEarnings / 1000000, 0.5) * lobbyistMult);
-    if (potential > game.influence) {
-        game.influence = potential;
-        game.money = 0;
-        game.counts = Array(upgrades.length).fill(0);
-        game.levels = Array(upgrades.length).fill(1);
-        
-        if (window.closeModal) window.closeModal('prestige-modal');
-        if (window.saveLocal) window.saveLocal();
-        if (window.setShopTab) window.setShopTab('markets');
-        playSound('crit');
-    }
-}
-window.confirmPrestige = confirmPrestige;
-
-// --- MAIN GAME LOOP ---
+// --- GAME LOOP ---
 function gameLoop(currentTime) {
     let dt = (currentTime - lastTick) / 1000;
     if (dt > 1) dt = 1;
@@ -381,7 +346,9 @@ function gameLoop(currentTime) {
         if(Math.random() > 0.95) createParticle(Math.random() * width, height + 10, '', 'confetti'); 
         if (maniaTimer <= 0) endMania();
     } else {
-        hype = Math.max(0, hype - (8 * dt)); 
+        // R&D: Market Pulse (ID: 2) slows decay
+        let decayMult = game.researchedTech.includes(2) ? 4 : 8;
+        hype = Math.max(0, hype - (decayMult * dt)); 
     }
 
     tickerTimer += dt;
@@ -404,10 +371,12 @@ function gameLoop(currentTime) {
         p.draw();
         if (p.life <= 0) particles.splice(i, 1);
     }
-// R&D: Neural Link (ID: 0) - Automatic clicking 
+    
+    // R&D: Neural Link (ID: 0) Auto-Clicker
     if (game.researchedTech.includes(0)) {
         if (Math.random() < 0.015) clickAction({ clientX: width/2, clientY: height/2, type: 'click' });
     }
+
     if (window.updateUI) window.updateUI(rate);
     
     autoSaveTimer += dt;
@@ -416,9 +385,7 @@ function gameLoop(currentTime) {
     requestAnimationFrame(gameLoop);
 }
 
-// Bind Main Event
+// Binds
 document.getElementById('main-btn').addEventListener('mousedown', clickAction);
 document.getElementById('main-btn').addEventListener('touchstart', clickAction);
-
-// Initialize Loop
 requestAnimationFrame(gameLoop);
