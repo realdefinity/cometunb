@@ -438,5 +438,3 @@ body.mania-mode .big-button:hover::before { color: var(--gold); text-shadow: 0 0
 }
 
 @keyframes lineFlow { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
-
-h
