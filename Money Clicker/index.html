@@ -124,14 +124,17 @@
         </div>
 
         <div class="panel-right">
-            <div class="shop-header">
-            <div class="shop-tabs">
-                <div class="tab-btn active" id="btn-tab-markets" onclick="setShopTab('markets')">MARKETS</div>
-                <div class="tab-btn" id="btn-tab-staff" onclick="setShopTab('staff')">STAFF</div>
-                <div class="tab-btn" id="btn-tab-rd" onclick="setShopTab('rd')">R&D</div>
-                <div class="tab-btn" id="btn-tab-loans" onclick="setShopTab('loans')">LOANS</div>
-            </div>
+<div class="shop-header">
+                <!-- Navigation Tabs -->
+                <div class="shop-tabs" style="flex-wrap: wrap;">
+                    <div class="tab-btn active" id="btn-tab-markets" onclick="setShopTab('markets')">MARKETS</div>
+                    <div class="tab-btn" id="btn-tab-portfolio" onclick="setShopTab('portfolio')">PORTFOLIO</div>
+                    <div class="tab-btn" id="btn-tab-staff" onclick="setShopTab('staff')">STAFF</div>
+                    <div class="tab-btn" id="btn-tab-rd" onclick="setShopTab('rd')">R&D</div>
+                    <div class="tab-btn" id="btn-tab-loans" onclick="setShopTab('loans')">LOANS</div>
+                </div>
 
+                <!-- Section Headers (Dynamic) -->
                 <div id="market-controls">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="header-title" style="margin:0;">ASSET ACQUISITION</div>
@@ -147,12 +150,26 @@
 
                 <div id="portfolio-controls" style="display:none;">
                     <div class="header-title" style="margin:0;">OWNED ASSETS</div>
-                    <p style="font-size:0.65rem; color:#444; font-weight:700; margin-top:4px;">OPTIMIZE TIERS TO INCREASE BASE YIELD</p>
+                    <p style="font-size:0.65rem; color:#666; font-weight:700; margin-top:4px;">OPTIMIZE TIERS TO INCREASE YIELD</p>
                 </div>
 
                 <div id="staff-controls" style="display:none;">
                     <div class="header-title" style="margin:0;">TALENT ACQUISITION</div>
-                    <p style="font-size:0.65rem; color:#444; font-weight:700; margin-top:4px;">HIRE SPECIALISTS TO AUTOMATE OPERATIONS</p>
+                    <p style="font-size:0.65rem; color:#666; font-weight:700; margin-top:4px;">HIRE SPECIALISTS FOR AUTOMATION</p>
+                </div>
+
+                <div id="rd-controls" style="display:none;">
+                    <div class="header-title" style="margin:0;">RESEARCH & DEVELOPMENT</div>
+                    <p style="font-size:0.65rem; color:#666; font-weight:700; margin-top:4px;">UNLOCK PERMANENT TECH UPGRADES</p>
+                </div>
+
+                <div id="loans-controls" style="display:none;">
+                    <div class="header-title" style="margin:0;">FINANCIAL LEVERAGE</div>
+                    <p style="font-size:0.65rem; color:#666; font-weight:700; margin-top:4px;">INSTANT CAPITAL WITH INTEREST</p>
+                </div>
+                
+                <div id="skins-controls" style="display:none;">
+                     <div class="header-title" style="margin:0;">VISUAL CUSTOMIZATION</div>
                 </div>
             </div>
 
@@ -164,8 +181,14 @@
                 <div id="rd-container" style="display:none;"></div>
                 <div id="loans-container" style="display:none;"></div>
                 <div id="skins-container" style="display:none; padding:10px;"></div>
-                <!-- Add a mini-button for skins somewhere at the bottom of the shop -->
                 <button class="tab-btn" style="width:100%; margin-top:20px; font-size:0.6rem;" onclick="setShopTab('skins')">CHANGE CLICK PARTICLES</button>
+                <div id="rd-container" style="display:none;"></div>
+                <div id="loans-container" style="display:none;"></div>
+                <div id="skins-container" style="display:none; padding-top:10px;"></div>
+                
+                <div style="margin-top:20px; text-align:center;">
+                    <button class="opt-btn" onclick="setShopTab('skins')" style="padding:8px; font-size:0.6rem;">CUSTOMIZE PARTICLES</button>
+                </div>
             </div>
         </div>
     </div>

@@ -153,7 +153,8 @@ function calculateIncome() {
 function clickAction(e) {
     if (e.type === 'touchstart') e.preventDefault();
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    
+
+    // 1. Get Coordinates
     let x, y;
     if (e.touches && e.touches.length > 0) {
         x = e.touches[0].clientX;
@@ -163,24 +164,29 @@ function clickAction(e) {
         y = e.clientY;
     }
 
+    // 2. Calculate Base Rate
     let baseRate = 0;
     game.counts.forEach((c, i) => { 
-        if (upgrades[i]) {
+        if(upgrades[i]) {
             let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
             baseRate += c * upgrades[i].baseRate * levelMult; 
         }
     });
     
-    // Multipliers & Tech Boosts
-    let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
+    // 3. Apply Multipliers & R&D
+    // R&D: Data Siphon (ID: 1) = +10% click power
     let siphonBoost = game.researchedTech.includes(1) ? 1.1 : 1;
+    // Staff: CEO (ID: 3) = 1.5x global multiplier
+    let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
+    
     let clickVal = (1 + (baseRate * 0.05)) * siphonBoost;
     let influenceMult = 1 + (game.influence * 0.10);
     let maniaMult = maniaMode ? 2 : 1;
     
     let total = clickVal * influenceMult * maniaMult * ceoMult;
 
-    // Crit Logic (Quant Analyst ID: 1)
+    // 4. Critical Hit Logic
+    // Staff: Quant Analyst (ID: 1) = +10% crit chance
     let critChance = 0.04;
     if (game.staff && game.staff.includes(1)) critChance += 0.10;
 
@@ -193,9 +199,11 @@ function clickAction(e) {
         playSound('click'); 
     }
 
+    // 5. Update State
     game.money += total;
     game.lifetimeEarnings += total;
 
+    // 6. Visuals
     createParticle(x, y - 50, "+" + formatNumber(total), 'text');
     
     if (!maniaMode) {
