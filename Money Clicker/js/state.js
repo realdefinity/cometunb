@@ -1,97 +1,93 @@
-// --- ASSETS (Expanded to 26 Tiers) ---
+// --- BACKDOOR FOR CHEAT MENUS ---
+window.MINT_READY = true;
+
+// --- ASSETS (Expanded to 20 Tiers) ---
 const upgrades = [
-    { name: "Piggy Bank", baseCost: 15, baseRate: 1 },
-    { name: "Paper Route", baseCost: 100, baseRate: 4 },
-    { name: "Lemonade Stand", baseCost: 500, baseRate: 10 },
-    { name: "Vending Machine", baseCost: 1100, baseRate: 16 },
-    { name: "Car Wash", baseCost: 5000, baseRate: 40 },
-    { name: "Laundromat", baseCost: 12000, baseRate: 64 },
-    { name: "Pizza Shop", baseCost: 50000, baseRate: 150 },
-    { name: "Real Estate", baseCost: 130000, baseRate: 260 },
-    { name: "Stock Portfolio", baseCost: 500000, baseRate: 600 },
-    { name: "Tech Startup", baseCost: 1.4e6, baseRate: 1100 },
-    { name: "Software Firm", baseCost: 8e6, baseRate: 3000 },
-    { name: "Hedge Fund", baseCost: 20e6, baseRate: 5400 },
-    { name: "Offshore Bank", baseCost: 100e6, baseRate: 12000 },
-    { name: "Gold Reserve", baseCost: 330e6, baseRate: 24000 },
-    { name: "Oil Company", baseCost: 1e9, baseRate: 60000 },
-    { name: "Mining Corp", baseCost: 5e9, baseRate: 120000 },
-    { name: "Investment Bank", baseCost: 25e9, baseRate: 350000 },
-    { name: "Central Bank", baseCost: 75e9, baseRate: 750000 },
-    { name: "Global Exchange", baseCost: 500e9, baseRate: 2.5e6 },
-    { name: "Space Program", baseCost: 1e12, baseRate: 5e6 },
-    { name: "Lunar Outpost", baseCost: 14e12, baseRate: 35e6 },
-    { name: "Mars Colony", baseCost: 200e12, baseRate: 280e6 },
-    { name: "Asteroid Belt", baseCost: 5e15, baseRate: 2.5e9 },
-    { name: "Dyson Sphere", baseCost: 1e18, baseRate: 40e9 },
-    { name: "Galactic Federation", baseCost: 1e21, baseRate: 800e9 },
-    { name: "Universal Ledger", baseCost: 1e24, baseRate: 20e12 }
+    { name: "Spare Change", baseCost: 15, baseRate: 1 },
+    { name: "Piggy Bank", baseCost: 100, baseRate: 4 },
+    { name: "Wallet", baseCost: 1100, baseRate: 16 },
+    { name: "ATM", baseCost: 12000, baseRate: 64 },
+    { name: "Vending Machine", baseCost: 130000, baseRate: 260 },
+    { name: "Corner Store", baseCost: 1.4e6, baseRate: 1100 },
+    { name: "Barber Shop", baseCost: 20e6, baseRate: 5400 },
+    { name: "Restaurant", baseCost: 330e6, baseRate: 24000 },
+    { name: "Supermarket", baseCost: 5e9, baseRate: 120000 },
+    { name: "Hotel", baseCost: 75e9, baseRate: 750000 },
+    { name: "Casino", baseCost: 1e12, baseRate: 5e6 },
+    { name: "Stadium", baseCost: 14e12, baseRate: 35e6 },
+    { name: "Oil Rig", baseCost: 200e12, baseRate: 280e6 },
+    { name: "Airline", baseCost: 5e15, baseRate: 2.5e9 },
+    { name: "Tech Firm", baseCost: 1e18, baseRate: 40e9 },
+    { name: "Bank", baseCost: 1e21, baseRate: 800e9 },
+    { name: "Hedge Fund", baseCost: 1e24, baseRate: 20e12 },
+    { name: "Global Exchange", baseCost: 1e27, baseRate: 500e12 },
+    { name: "Federal Reserve", baseCost: 1e30, baseRate: 15e15 },
+    { name: "World Bank", baseCost: 1e33, baseRate: 800e15 }
 ];
 
-// --- STAFF (Specialists) ---
+// --- STAFF (Expanded to 10 Tiers) ---
 const staffMembers = [
-    { id: 0, name: "Intern", cost: 2.5e6, desc: "Auto-collects bonuses.", type: "Utility" },
-    { id: 1, name: "Analyst", cost: 75e6, desc: "+10% Critical Hit chance.", type: "Tactical" },
-    { id: 2, name: "Lobbyist", cost: 2e9, desc: "+50% Influence gain.", type: "Strategic" },
-    { id: 3, name: "CEO", cost: 500e12, desc: "1.5x Global Multiplier.", type: "Leadership" }
+    { id: 0, name: "Janitor", cost: 500, desc: "Keeps the office clean. +1% Income.", type: "Support" },
+    { id: 1, name: "Security Guard", cost: 5000, desc: "Protects assets. +2% Click Value.", type: "Support" },
+    { id: 2, name: "Assistant", cost: 50000, desc: "Auto-collects bonuses.", type: "Utility" },
+    { id: 3, name: "Accountant", cost: 500000, desc: "Reduces tax waste. +5% Income.", type: "Finance" },
+    { id: 4, name: "Lawyer", cost: 5e6, desc: "+10% Critical Hit Chance.", type: "Legal" },
+    { id: 5, name: "Trader", cost: 50e6, desc: "Market volatility expert. +10% Income.", type: "Finance" },
+    { id: 6, name: "Banker", cost: 500e6, desc: "Investment pro. +20% Income.", type: "Finance" },
+    { id: 7, name: "Director", cost: 5e9, desc: "+50% Influence Gain.", type: "Management" },
+    { id: 8, name: "VP", cost: 50e9, desc: "Global Operations. 1.2x Multiplier.", type: "Executive" },
+    { id: 9, name: "CEO", cost: 500e9, desc: "The Boss. 1.5x Global Multiplier.", type: "Leadership" }
 ];
 
-// --- RANKS (Progression Tiers) ---
+// --- RANKS (Simple Business Titles) ---
 const rankData = [
     { name: "Broke", req: 0 },
-    { name: "Saver", req: 10 },
-    { name: "Earner", req: 25 },
-    { name: "Hustler", req: 50 },
-    { name: "Trader", req: 100 },
-    { name: "Manager", req: 250 },
-    { name: "Founder", req: 500 },
-    { name: "Investor", req: 1000 },
-    { name: "Millionaire", req: 2500 },
-    { name: "Multi-Millionaire", req: 5000 },
-    { name: "Capitalist", req: 10000 },
-    { name: "Tycoon", req: 25000 },
-    { name: "Baron", req: 50000 },
-    { name: "Oligarch", req: 100000 },
-    { name: "Billionaire", req: 250000 },
-    { name: "Trillionaire", req: 500000 },
-    { name: "Magnate", req: 1000000 },
-    { name: "Monarch", req: 2500000 },
-    { name: "Emperor", req: 5000000 },
-    { name: "World Owner", req: 10000000 },
-    { name: "The Mint", req: 50000000 }
+    { name: "Poor", req: 100 },
+    { name: "Saver", req: 500 },
+    { name: "Spender", req: 1000 },
+    { name: "Earner", req: 5000 },
+    { name: "Employee", req: 25000 },
+    { name: "Manager", req: 100000 },
+    { name: "Boss", req: 500000 },
+    { name: "Executive", req: 2500000 },
+    { name: "Director", req: 10000000 },
+    { name: "VP", req: 50000000 },
+    { name: "President", req: 250000000 },
+    { name: "Millionaire", req: 1000000000 },
+    { name: "Billionaire", req: 10000000000 },
+    { name: "Tycoon", req: 100000000000 },
+    { name: "Magnate", req: 1e15 },
+    { name: "Oligarch", req: 1e18 },
+    { name: "Titan", req: 1e21 },
+    { name: "The 1%", req: 1e24 },
+    { name: "World Owner", req: 1e30 }
 ];
 
-// --- UPGRADES (One-time Multipliers) ---
+// --- ASSET UPGRADES (Matches New Assets) ---
 const marketUpgrades = [
-    { id: 0, targetId: 0, name: "Ceramic Pig", cost: 500, mult: 2, desc: "Piggy Banks x2" },
-    { id: 1, targetId: 1, name: "Electric Bike", cost: 2500, mult: 2, desc: "Paper Routes x2" },
-    { id: 2, targetId: 2, name: "Fresh Lemons", cost: 10000, mult: 2, desc: "Lemonade Stands x2" },
-    { id: 3, targetId: 3, name: "New Coils", cost: 25000, mult: 2, desc: "Vending Machines x2" },
-    { id: 4, targetId: 4, name: "Premium Wax", cost: 100000, mult: 2, desc: "Car Washes x2" },
-    { id: 5, targetId: 5, name: "New Machines", cost: 300000, mult: 2, desc: "Laundromats x2" },
-    { id: 6, targetId: 6, name: "Secret Sauce", cost: 1e6, mult: 2, desc: "Pizza Shops x2" },
-    { id: 7, targetId: 7, name: "Renovations", cost: 5e6, mult: 2, desc: "Real Estate x2" },
-    { id: 8, targetId: 8, name: "Insider Info", cost: 20e6, mult: 2, desc: "Stock Portfolios x2" },
-    { id: 9, targetId: 9, name: "Angel Investor", cost: 50e6, mult: 2, desc: "Tech Startups x2" },
-    { id: 10, targetId: 10, name: "Cloud Servers", cost: 250e6, mult: 2, desc: "Software Firms x2" },
-    { id: 11, targetId: 11, name: "AI Algorithms", cost: 1e9, mult: 2, desc: "Hedge Funds x2" },
-    { id: 12, targetId: 12, name: "Tax Haven", cost: 5e9, mult: 2, desc: "Offshore Banks x2" },
-    { id: 13, targetId: 13, name: "New Vaults", cost: 25e9, mult: 2, desc: "Gold Reserves x2" },
-    { id: 14, targetId: 14, name: "Fracking", cost: 100e9, mult: 2, desc: "Oil Companies x2" },
-    { id: 15, targetId: 15, name: "Heavy Machinery", cost: 500e9, mult: 2, desc: "Mining Corps x2" },
-    { id: 16, targetId: 16, name: "Global Trading", cost: 2e12, mult: 2, desc: "Investment Banks x2" },
-    { id: 17, targetId: 17, name: "Money Printer", cost: 10e12, mult: 2, desc: "Central Banks x2" },
-    { id: 18, targetId: 18, name: "Fiber Cables", cost: 50e12, mult: 2, desc: "Global Exchanges x2" },
-    { id: 19, targetId: 19, name: "Reusable Rockets", cost: 200e12, mult: 2, desc: "Space Programs x2" },
-    { id: 20, targetId: 20, name: "Helium-3", cost: 1e15, mult: 2, desc: "Lunar Outposts x2" },
-    { id: 21, targetId: 21, name: "Terraforming", cost: 10e15, mult: 2, desc: "Mars Colonies x2" },
-    { id: 22, targetId: 22, name: "Drone Miners", cost: 100e15, mult: 2, desc: "Asteroid Belts x2" },
-    { id: 23, targetId: 23, name: "Solar Panels", cost: 1e18, mult: 2, desc: "Dyson Spheres x2" },
-    { id: 24, targetId: 24, name: "Universal Law", cost: 1e21, mult: 2, desc: "Galactic Federations x2" },
-    { id: 25, targetId: 25, name: "Matter Code", cost: 1e24, mult: 2, desc: "Universal Ledgers x2" }
+    { id: 0, targetId: 0, name: "Coin Star", cost: 500, mult: 2, desc: "Spare Change x2" },
+    { id: 1, targetId: 1, name: "Ceramic Pig", cost: 2500, mult: 2, desc: "Piggy Banks x2" },
+    { id: 2, targetId: 2, name: "Leather Stitching", cost: 10000, mult: 2, desc: "Wallets x2" },
+    { id: 3, targetId: 3, name: "Lower Fees", cost: 50000, mult: 2, desc: "ATMs x2" },
+    { id: 4, targetId: 4, name: "New Coils", cost: 300000, mult: 2, desc: "Vending Machines x2" },
+    { id: 5, targetId: 5, name: "Better Snacks", cost: 1e6, mult: 2, desc: "Corner Stores x2" },
+    { id: 6, targetId: 6, name: "Sharp Scissors", cost: 5e6, mult: 2, desc: "Barber Shops x2" },
+    { id: 7, targetId: 7, name: "Michelin Star", cost: 25e6, mult: 2, desc: "Restaurants x2" },
+    { id: 8, targetId: 8, name: "Fresh Produce", cost: 100e6, mult: 2, desc: "Supermarkets x2" },
+    { id: 9, targetId: 9, name: "Room Service", cost: 500e6, mult: 2, desc: "Hotels x2" },
+    { id: 10, targetId: 10, name: "Loaded Dice", cost: 2.5e9, mult: 2, desc: "Casinos x2" },
+    { id: 11, targetId: 11, name: "Luxury Suites", cost: 10e9, mult: 2, desc: "Stadiums x2" },
+    { id: 12, targetId: 12, name: "Deep Drilling", cost: 50e12, mult: 2, desc: "Oil Rigs x2" },
+    { id: 13, targetId: 13, name: "New Jets", cost: 250e12, mult: 2, desc: "Airlines x2" },
+    { id: 14, targetId: 14, name: "IPO Launch", cost: 1e15, mult: 2, desc: "Tech Firms x2" },
+    { id: 15, targetId: 15, name: "Gold Vaults", cost: 5e15, mult: 2, desc: "Banks x2" },
+    { id: 16, targetId: 16, name: "High Freq Trading", cost: 25e18, mult: 2, desc: "Hedge Funds x2" },
+    { id: 17, targetId: 17, name: "Fiber Optic Cables", cost: 100e21, mult: 2, desc: "Global Exchanges x2" },
+    { id: 18, targetId: 18, name: "Money Printer", cost: 500e24, mult: 2, desc: "Federal Reserves x2" },
+    { id: 19, targetId: 19, name: "Global Currency", cost: 1e30, mult: 2, desc: "World Banks x2" }
 ];
 
-// --- R&D TECH TREE ---
+// ... (Rest of file including techTree and loanOptions remains the same) ...
 const techTree = [
     { id: 0, name: "Neural Link", cost: 15, desc: "Auto-clicker active.", x: 220, y: 60, parents: [] },
     { id: 1, name: "Data Siphon", cost: 40, desc: "+10% Click value.", x: 100, y: 180, parents: [0] },
@@ -100,7 +96,11 @@ const techTree = [
     { id: 4, name: "Singularity", cost: 500, desc: "All yield x2.", x: 220, y: 420, parents: [3] }
 ];
 
-// --- SKINS ---
+const loanOptions = [
+    { id: 0, name: "Starter Credit", amount: 1e6, payback: 1.2e6, desc: "Fast $1M. 15% income tax." },
+    { id: 1, name: "Venture Debt", amount: 1e9, payback: 1.4e9, desc: "Fast $1B. 15% income tax." }
+];
+
 const particleSkins = [
     { id: 'default', name: "Cash", color: "#22c55e", char: "+$" },
     { id: 'gold', name: "Gold", color: "#eab308", char: "●" },
@@ -134,7 +134,8 @@ window.tickerTimer = 15;
 const newsHeadlines = [
     "Market rallying to new heights...", "Tech stocks surging...",
     "Asset optimization protocols online...", "Portfolio diversification recommended...",
-    "Bulls taking over the market...", "Secure terminal connection established..."
+    "Bulls taking over the market...", "Secure terminal connection established...",
+    "R&D Breakthroughs reported in sector 7...", "Recruitment drive in progress..."
 ];
 
 function saveLocal() { localStorage.setItem('mintV7_money_save', JSON.stringify(game)); }
