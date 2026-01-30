@@ -22,16 +22,29 @@ class Particle {
         this.type = type; 
         this.life = 1.0;
         
-        // 1. GET ACTIVE SKIN
-        // We look up the skin you selected in the UI
+        // --- SKIN SELECTION FIX ---
+        // 1. Find the list of skins (Handles scope issues)
+        let skinList = [];
+        if (typeof particleSkins !== 'undefined') {
+            skinList = particleSkins;
+        } else if (window.particleSkins) {
+            skinList = window.particleSkins;
+        } else {
+            // Fallback if state.js hasn't loaded yet
+            skinList = [{ id: 'default', color: '#22c55e', char: '+$' }];
+        }
+
+        // 2. Find the active skin
         const activeSkinId = (window.game && window.game.activeSkin) ? window.game.activeSkin : 'default';
-        const skinList = window.particleSkins || [{ id: 'default', color: '#22c55e', char: '+$' }];
         const skin = skinList.find(s => s.id === activeSkinId) || skinList[0];
 
-        // 2. TEXT PARTICLES (The Numbers)
+        // --- PARTICLE LOGIC ---
+        
+        // TYPE: TEXT (The Numbers)
         if(type === 'text') {
-            // Replace the "+" in "+100" with the skin char (e.g. "₿100" or "🔥100")
-            this.text = text.replace("+", skin.char); 
+            // Swaps the "+" for your skin character (e.g. "🔥100")
+            this.text = text.includes("+") ? text.replace("+", skin.char) : skin.char + text;
+            
             this.vx = (Math.random() - 0.5) * 1.5;
             this.vy = -2 - Math.random();
             this.gravity = 0;
@@ -41,7 +54,8 @@ class Particle {
             // Use Skin Color (or Gold if in Mania Mode)
             this.color = maniaMode ? '#eab308' : skin.color; 
         } 
-        // 3. SPARK PARTICLES (The Explosion)
+        
+        // TYPE: SPARK (The Explosion)
         else if (type === 'spark') {
             const angle = Math.random() * Math.PI * 2;
             const speed = Math.random() * 15 + 5;
@@ -54,7 +68,8 @@ class Particle {
             // Mix Skin Color with White for sparkle effect
             this.color = Math.random() > 0.5 ? skin.color : '#ffffff'; 
         } 
-        // 4. BILLS (Physical Money Drops)
+        
+        // TYPE: BILL (Falling Money/Items)
         else if (type === 'bill') {
             this.vx = (Math.random() - 0.5) * 12; 
             this.vy = -6 - Math.random() * 6;
@@ -64,11 +79,12 @@ class Particle {
             this.scale = Math.random() * 0.5 + 0.8;
             this.rotation = Math.random() * Math.PI * 2;
             this.rotSpeed = (Math.random() - 0.5) * 0.3;
-            this.color = skin.color; // Bills match skin color
+            this.color = skin.color; // Matches skin color
             this.w = 12;
             this.h = 6;
         }
-        // 5. CONFETTI (Mania Mode)
+        
+        // TYPE: CONFETTI (Mania Mode)
         else if (type === 'confetti') {
             this.x = Math.random() * width;
             this.y = -20;
@@ -119,8 +135,9 @@ class Particle {
             ctx.rotate(this.rotation);
             ctx.fillStyle = this.color;
             ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+            // Detail line
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.fillRect(-2, -3, 4, 6); // Detail line
+            ctx.fillRect(-2, -3, 4, 6); 
         }
         else if (this.type === 'confetti') {
             ctx.translate(this.x, this.y);
@@ -132,14 +149,16 @@ class Particle {
             ctx.translate(this.x, this.y);
             ctx.scale(this.scale, this.scale);
             
-            // Render Text
             ctx.font = "800 28px Outfit";
             ctx.textAlign = "center";
             ctx.lineJoin = "round";
+            
+            // Outline
             ctx.lineWidth = 4;
             ctx.strokeStyle = "rgba(0,0,0,0.8)";
             ctx.strokeText(this.text, 0, 0);
             
+            // Fill
             ctx.fillStyle = this.color;
             ctx.fillText(this.text, 0, 0);
         }
