@@ -63,11 +63,11 @@ const marketUpgrades = [
 
 // --- R&D TECH TREE DATA ---
 const techTree = [
-    { id: 0, name: "Neural Link", cost: 15, desc: "Auto-clicker active.", x: 150, y: 50, parents: [] },
-    { id: 1, name: "Data Siphon", cost: 40, desc: "+10% Click value.", x: 50, y: 150, parents: [0] },
-    { id: 2, name: "Market Pulse", cost: 60, desc: "Hype decays 50% slower.", x: 250, y: 150, parents: [0] },
-    { id: 3, name: "Dark Pool", cost: 150, desc: "Mania is now 3x multiplier.", x: 150, y: 250, parents: [1, 2] },
-    { id: 4, name: "Singularity", cost: 500, desc: "All yield x2.", x: 150, y: 380, parents: [3] }
+    { id: 0, name: "Neural Link", cost: 15, desc: "Auto-clicker active.", x: 220, y: 60, parents: [] },
+    { id: 1, name: "Data Siphon", cost: 40, desc: "+10% Click value.", x: 100, y: 180, parents: [0] },
+    { id: 2, name: "Market Pulse", cost: 60, desc: "Hype decays 50% slower.", x: 340, y: 180, parents: [0] },
+    { id: 3, name: "Dark Pool", cost: 150, desc: "Mania is now 3x multiplier.", x: 220, y: 300, parents: [1, 2] },
+    { id: 4, name: "Singularity", cost: 500, desc: "All yield x2.", x: 220, y: 420, parents: [3] }
 ];
 
 // --- LOAN OPTIONS ---

@@ -322,51 +322,91 @@ body.mania-mode .big-button:hover::before { color: var(--gold); text-shadow: 0 0
 
 .lvl-up-btn:active { transform: scale(0.95); }
 
+/* =========================================
+   R&D TECH TREE (Holo-Blueprint Design)
+   ========================================= */
+
+/* The Container */
 .rd-viewport {
     position: relative;
     width: 100%;
-    height: 450px;
-    background: radial-gradient(circle at center, #0a0a0f 0%, #050507 100%);
-    border-radius: 15px;
+    height: 500px;
+    background-color: #050508;
+    /* Cyber Grid Background */
+    background-image: 
+        linear-gradient(rgba(34, 197, 94, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    border-radius: 16px;
+    border: 1px solid #222;
     overflow: hidden;
-    border: 1px solid #1a1a22;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
 }
 
+/* The Nodes */
 .tech-node {
     position: absolute;
-    width: 80px;
-    height: 80px;
-    background: #0d0d14;
-    border: 2px solid #222;
-    border-radius: 12px;
+    width: 90px;
+    height: 90px;
+    
+    /* Glass Effect */
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid #333;
+    border-radius: 50%; /* Circles look better for nodes */
+    
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    
     cursor: pointer;
-    z-index: 2;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
     transform: translate(-50%, -50%);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy hover */
 }
 
-.tech-node.available { border-color: #444; color: #888; }
-.tech-node.locked { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+/* Node States */
+.tech-node.available { 
+    border-color: #666; 
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+.tech-node.available .tech-node-icon { color: #fff; }
+
+.tech-node.locked { 
+    opacity: 0.3; 
+    filter: grayscale(1); 
+    cursor: not-allowed; 
+    transform: translate(-50%, -50%) scale(0.9);
+}
+
 .tech-node.researched { 
-    border-color: #22c55e; 
+    border-color: var(--green); 
     background: rgba(34, 197, 94, 0.1);
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+    box-shadow: 0 0 30px var(--green-glow), inset 0 0 10px var(--green-glow);
+    animation: node-pulse 3s infinite ease-in-out;
 }
+.tech-node.researched .tech-node-icon { color: var(--green); text-shadow: 0 0 10px var(--green); }
 
+/* Hover Effects */
 .tech-node:hover:not(.locked) {
-    background: #161625;
-    transform: translate(-50%, -52%) scale(1.05);
-    border-color: #3b82f6;
+    transform: translate(-50%, -50%) scale(1.15);
+    background: #111;
+    border-color: #fff;
+    z-index: 20;
 }
 
-.tech-node-icon { font-size: 1.2rem; margin-bottom: 4px; }
-.tech-node-name { font-size: 0.5rem; font-weight: 800; text-align: center; color: inherit; }
+/* Node Content */
+.tech-node-icon { font-size: 1.4rem; margin-bottom: 4px; transition: color 0.2s; }
+.tech-node-name { font-size: 0.55rem; font-weight: 800; letter-spacing: 0.5px; color: #888; text-align: center; line-height: 1.1; max-width: 80%; }
 
-/* The Lines */
+@keyframes node-pulse { 
+    0% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.2); } 
+    50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.5); } 
+    100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.2); } 
+}
+
+/* The Connection Lines */
 .tech-tree-svg {
     position: absolute;
     top: 0; left: 0;
@@ -377,85 +417,24 @@ body.mania-mode .big-button:hover::before { color: var(--gold); text-shadow: 0 0
 
 .tech-line {
     fill: none;
-    stroke: #1a1a22;
+    stroke: #222;
     stroke-width: 2;
-    transition: stroke 0.5s, stroke-width 0.5s;
+    transition: stroke 0.5s;
+    stroke-linecap: round;
 }
 
 .tech-line.active {
-    stroke: #22c55e;
+    stroke: var(--green);
     stroke-width: 3;
-    stroke-dasharray: 10;
-    animation: lineFlow 2s linear infinite;
+    stroke-dasharray: 12;
+    opacity: 0.6;
+    animation: lineFlow 1s linear infinite;
+    filter: drop-shadow(0 0 5px var(--green));
 }
 
-@keyframes lineFlow { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
-
-.rd-viewport {
-    position: relative;
-    width: 100%;
-    height: 450px;
-    background: radial-gradient(circle at center, #0a0a0f 0%, #050507 100%);
-    border-radius: 15px;
-    overflow: hidden;
-    border: 1px solid #1a1a22;
-}
-
-.tech-node {
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    background: #0d0d14;
-    border: 2px solid #222;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 2;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transform: translate(-50%, -50%);
-}
-
-.tech-node.available { border-color: #444; color: #888; }
-.tech-node.locked { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
-.tech-node.researched { 
-    border-color: #22c55e; 
-    background: rgba(34, 197, 94, 0.1);
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
-}
-
-.tech-node:hover:not(.locked) {
-    background: #161625;
-    transform: translate(-50%, -52%) scale(1.05);
-    border-color: #3b82f6;
-}
-
-.tech-node-icon { font-size: 1.2rem; margin-bottom: 4px; }
-.tech-node-name { font-size: 0.5rem; font-weight: 800; text-align: center; color: inherit; }
-
-/* The Lines */
-.tech-tree-svg {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.tech-line {
-    fill: none;
-    stroke: #1a1a22;
-    stroke-width: 2;
-    transition: stroke 0.5s, stroke-width 0.5s;
-}
-
-.tech-line.active {
-    stroke: #22c55e;
-    stroke-width: 3;
-    stroke-dasharray: 10;
-    animation: lineFlow 2s linear infinite;
+@keyframes lineFlow { 
+    from { stroke-dashoffset: 24; } 
+    to { stroke-dashoffset: 0; } 
 }
 
 @keyframes lineFlow { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
