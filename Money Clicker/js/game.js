@@ -195,74 +195,80 @@ function calculateIncome() {
     let base = 0;
     game.counts.forEach((count, i) => { 
         if(upgrades[i]) {
+            // Standard Math: Count * Base
             let upgradeMult = 1;
-            marketUpgrades.forEach(upg => { if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; });
-            let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
-            base += count * upgrades[i].baseRate * levelMult * upgradeMult; 
+            if (window.marketUpgrades) {
+                marketUpgrades.forEach(upg => { if (game.upgradesOwned.includes(upg.id) && upg.targetId === i) upgradeMult *= upg.mult; });
+            }
+            base += count * upgrades[i].baseRate * upgradeMult; 
         }
     });
 
-    // Tech Bonuses
-    let techGlobal = getTechBonus('global_mult').mult;
+    // Global Multipliers
     let singularityMult = game.researchedTech.includes(4) ? 2 : 1;
-    
     let influenceMult = 1 + (game.influence * 0.10); 
     let maniaMult = game.researchedTech.includes(3) ? (maniaMode ? 3 : 1) : (maniaMode ? 2 : 1);
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
     
-    return base * influenceMult * maniaMult * singularityMult * techGlobal * ceoMult;
+    // Tech Bonuses
+    let techGlobal = 1;
+    if (window.getTechBonus) techGlobal = getTechBonus('global_mult').mult;
+
+    return base * influenceMult * maniaMult * singularityMult * ceoMult * techGlobal;
 }
 
 function clickAction(e) {
     if (e.type === 'touchstart') e.preventDefault();
     if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
     let x, y;
     if (e.touches && e.touches.length > 0) { x = e.touches[0].clientX; y = e.touches[0].clientY; }
     else { x = e.clientX; y = e.clientY; }
 
+    // Base Rate Calculation
     let baseRate = 0;
     game.counts.forEach((c, i) => { 
         if(upgrades[i]) {
-            let levelMult = 1 + ((game.levels[i] - 1) * 0.25);
-            baseRate += c * upgrades[i].baseRate * levelMult; 
+            baseRate += c * upgrades[i].baseRate; 
         }
     });
     
-    // Tech Bonuses
-    let techClick = getTechBonus('click_mult').mult;
-    let techCrit = getTechBonus('crit_chance').mult; // This returns 1 + 0.01 etc
+    // Click Multipliers
     let siphonBoost = game.researchedTech.includes(1) ? 1.1 : 1;
-    
     let ceoMult = game.staff && game.staff.includes(3) ? 1.5 : 1.0;
-    let clickVal = (1 + (baseRate * 0.05)) * siphonBoost * techClick;
+    let techClick = 1;
+    if (window.getTechBonus) techClick = getTechBonus('click_mult').mult;
+
+    let clickVal = (1 + (baseRate * 0.05)) * siphonBoost * ceoMult * techClick;
     
     let influenceMult = 1 + (game.influence * 0.10);
     let maniaMult = maniaMode ? 2 : 1;
-    let total = clickVal * influenceMult * maniaMult * ceoMult;
+    
+    let total = clickVal * influenceMult * maniaMult;
 
     // Crit Logic
-    let critChance = 0.04 + (techCrit - 1); // Subtract 1 base to get raw percentage add
+    let critChance = 0.04;
+    if (window.getTechBonus) critChance += (getTechBonus('crit_chance').mult - 1);
     if (game.staff && game.staff.includes(1)) critChance += 0.10;
 
     let isCrit = Math.random() < critChance;
     if (isCrit) { 
-        total *= 10; playSound('crit'); 
+        total *= 10; 
+        playSound('crit'); 
         for(let i=0; i<15; i++) createParticle(x, y, '', 'spark');
-    } else playSound('click');
+    } else { 
+        playSound('click'); 
+    }
 
-    game.money += total; game.lifetimeEarnings += total;
+    game.money += total;
+    game.lifetimeEarnings += total;
+
+    // Visuals
     createParticle(x, y - 50, "+" + formatNumber(total), 'text');
+    let bills = 3 + Math.floor(Math.random() * 3);
+    for(let i=0; i<bills; i++) createParticle(x, y, '', 'bill');
     
     if (!maniaMode) {
-        let decay = getTechBonus('hype_decay').mult; // e.g. 0.9
-        // If we have decay modifiers (less than 1), we reduce the decay rate? 
-        // No, logic is: decayMult * dt. So if tech gives 0.9 multiplier, we want smaller decay.
-        // Actually easier: Tech returns 1 by default. If we have tech that sets val 0.9, it multiplies.
-        // But for decay, we start with 1. If tech says 0.9, we multiply.
-        // However, existing tech data uses additive. Let's fix that in step 1.
-        // (Note: In my data above, I used val: 0.9 for hype decay. 1 * 0.9 * 0.9 = 0.81. Wait, my helper sums. 1 + 0.9 = 1.9. That's wrong for decay.)
-        // Correction: For decay, we will just hardcode the logic here for simplicity or use specific IDs.
-        
         hype = Math.min(100, hype + 5);
         if (hype >= 100) startMania();
     }
