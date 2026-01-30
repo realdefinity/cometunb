@@ -1,5 +1,5 @@
 /* =========================================
-   1. THE MAINFRAME BUTTON (Tactile Overhaul)
+   1. THE MECHANICAL MINT (Tactile Engine)
    ========================================= */
 .big-button-container {
     width: 100%; height: 100%;
@@ -10,35 +10,33 @@
 
 .big-button {
     /* GEOMETRY */
-    width: 38vmin; height: 38vmin;
+    width: 36vmin; height: 36vmin;
     min-width: 250px; min-height: 250px;
     max-width: 450px; max-height: 450px;
     border-radius: 50%;
     
-    /* MATERIAL: Satin Finish Black Steel */
-    background: radial-gradient(circle at 30% 30%, #2a2a2a 0%, #050505 80%);
+    /* MATERIAL: Dark Matte Rubber/Steel */
+    background: radial-gradient(circle at 30% 30%, #2a2a2a 0%, #111 100%);
+    border: none;
     
-    /* LIGHTING & DEPTH (Resting State) */
+    /* THE PHYSICAL STACK (Crucial for the 'Click' feel) */
     box-shadow: 
-        /* Deep Ground Shadow */
-        0 30px 60px rgba(0,0,0,0.8),
-        /* Top Highlight (Glass Edge) */
-        inset 0 2px 20px rgba(255,255,255,0.1),
-        /* Deep Inner Shadow */
-        inset 0 -10px 40px rgba(0,0,0,0.8),
-        /* Rim Light */
-        0 0 0 1px rgba(255,255,255,0.08);
+        /* 1. The 'Side' of the button (Physical Height) */
+        0 12px 0 #050505,
+        /* 2. The Ambient Drop Shadow */
+        0 30px 40px rgba(0,0,0,0.5),
+        /* 3. The Top Highlight (Gloss) */
+        inset 0 5px 20px rgba(255,255,255,0.1),
+        /* 4. The Outer Rim */
+        0 0 0 4px rgba(255,255,255,0.05);
         
-    /* INTERACTION */
-    cursor: pointer;
-    position: relative;
+    cursor: pointer; position: relative;
     display: flex; align-items: center; justify-content: center;
     
-    /* PHYSICS: The "Spring" effect */
+    /* ANIMATION: Super-fast press, bouncy release */
     transition: 
-        transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), /* Bouncy return */
-        box-shadow 0.1s ease,
-        border-color 0.2s ease;
+        transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.4), 
+        box-shadow 0.1s ease;
         
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
@@ -48,61 +46,59 @@
 .big-button::before { 
     content: '$'; 
     font-family: var(--font-head); 
-    font-weight: 800; font-size: 14vmin; 
+    font-weight: 900; font-size: 14vmin; 
     color: #333;
     text-shadow: 0 2px 4px rgba(255,255,255,0.05);
     transition: all 0.1s;
     pointer-events: none;
-    transform: translateY(0);
+    transform: translateY(-4px); /* Compensate for button height */
 }
 
 /* --- INTERACTION STATES --- */
 
-/* 1. HOVER (Magnetic Lift) */
+/* 1. HOVER (Ready state) */
 .big-button:hover { 
-    transform: scale(1.02) translateY(-2px);
+    /* Lifts up slightly */
+    transform: translateY(-2px);
     box-shadow: 
-        0 50px 100px rgba(0,0,0,0.9), 
-        inset 0 4px 30px rgba(255,255,255,0.15),
-        0 0 0 2px rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.1);
+        0 14px 0 #050505,
+        0 40px 60px rgba(0,0,0,0.7),
+        inset 0 5px 25px rgba(255,255,255,0.2),
+        0 0 0 4px rgba(255,255,255,0.2);
 }
 .big-button:hover::before { 
     color: var(--green); 
-    text-shadow: 0 0 50px var(--green-glow);
+    text-shadow: 0 0 40px var(--green-glow);
 }
 
-/* 2. ACTIVE / CLICK (The Heavy Press) */
+/* 2. ACTIVE (The Impact) */
 .big-button:active { 
-    /* Physically shrinks and pushes down */
-    transform: scale(0.92) translateY(4px);
+    /* Pushes DOWN by the height of the shadow (12px) */
+    transform: translateY(12px) scale(0.98);
     
-    /* Shadows collapse to look pressed in */
+    /* Shadow disappears (compressed) */
     box-shadow: 
-        0 10px 20px rgba(0,0,0,1), 
-        inset 0 10px 50px rgba(0,0,0,1), /* Inner shadow gets darker */
-        0 0 0 1px rgba(255,255,255,0.05);
-        
-    border-color: var(--green-dim);
-    transition-duration: 0.05s; /* Instant snap down */
+        0 0 0 #050505,
+        0 0 10px rgba(0,0,0,0.8),
+        inset 0 10px 40px rgba(0,0,0,0.9), /* Internal shadow darkens */
+        0 0 0 2px var(--green-dim);
+    
+    transition: 0.04s ease-out; /* Instant reaction */
 }
 .big-button:active::before {
     color: #fff;
-    transform: scale(0.95); /* Text shrinks slightly with button */
-    text-shadow: 0 0 20px var(--green);
+    transform: translateY(0) scale(0.95);
+    text-shadow: 0 0 30px var(--green);
 }
 
 /* Mania Mode Pulse */
 body.mania-mode .big-button {
-    animation: mania-breath 0.8s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+    animation: mania-bounce 0.4s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
-body.mania-mode .big-button:hover::before { color: var(--gold); text-shadow: 0 0 60px var(--gold-glow); }
-
-@keyframes mania-breath {
-    0% { box-shadow: 0 0 40px var(--gold-glow); border-color: var(--gold); }
-    100% { box-shadow: 0 0 80px var(--gold-glow); border-color: #fff; }
+@keyframes mania-bounce {
+    from { transform: translateY(0); box-shadow: 0 12px 0 #050505, 0 0 40px var(--gold-glow); }
+    to { transform: translateY(-4px); box-shadow: 0 16px 0 #050505, 0 0 80px var(--gold-glow); }
 }
-
 
 /* =========================================
    2. UPGRADE CARDS (Data Blades)
