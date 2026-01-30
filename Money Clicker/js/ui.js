@@ -318,34 +318,6 @@ function renderRD() {
     });
 }
 
-// Full replacement for Loans (as requested)
-function renderLoans() {
-    const container = document.getElementById('loans-container');
-    let debtText = game.debt > 0 ? `<div style="background:rgba(239,68,68,0.1); border:1px solid #ef4444; padding:15px; border-radius:10px; margin-bottom:20px; color:#ef4444; font-weight:bold; font-size:0.7rem; text-align:center;">OUTSTANDING REPAYMENT: $${formatNumber(game.debt)}</div>` : '';
-    
-    let html = debtText + `<div style="padding:10px; color:#666; font-size:0.6rem; text-align:center;">CAPITAL INJECTION: 15% OF PASSIVE INCOME IS AUTOMATICALLY RE-ROUTED TO PAYBACK.</div>`;
-    
-    loanOptions.forEach(l => {
-        html += `
-            <div class="staff-card" onclick="takeLoan(${l.id})" style="border-color:#eab308; margin-top:10px;">
-                <div class="upg-info">
-                    <h4 style="color:#eab308">LOAN: $${formatNumber(l.amount)}</h4>
-                    <p>${l.desc}</p>
-                </div>
-                <div class="upg-cost">BORROW</div>
-            </div>`;
-    });
-    container.innerHTML = html;
-}
-
-function takeLoan(id) {
-    const l = loanOptions[id];
-    game.money += l.amount;
-    game.debt += l.payback;
-    playSound('buy');
-    showToast(`LOAN RECEIVED: $${formatNumber(l.amount)}`, "success");
-    renderLoans();
-}
 
 function renderSkins() {
     const container = document.getElementById('skins-container');
@@ -365,7 +337,7 @@ window.openAnalytics = openAnalytics;
 
 function setShopTab(tab) {
     window.currentShopTab = tab;
-    const tabs = ['markets', 'portfolio', 'staff', 'rd', 'loans', 'skins'];
+    const tabs = ['markets', 'portfolio', 'staff', 'rd', 'skins'];
     
     // Hide all containers and reset all buttons
     tabs.forEach(t => {
@@ -398,7 +370,6 @@ function setShopTab(tab) {
 
     // Call individual renderers
     if (tab === 'rd') renderRD();
-    if (tab === 'loans') renderLoans();
     if (tab === 'skins') renderSkins();
     if (tab === 'staff') renderStaff();
 }

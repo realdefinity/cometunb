@@ -136,14 +136,6 @@ function calculateIncome() {
 
     let totalRate = base * influenceMult * maniaMult * singularityMult * ceoMult;
 
-    // Debt Repayment (15%)
-    if (game.debt > 0) {
-        let deduction = totalRate * 0.15;
-        if (deduction > game.debt) deduction = game.debt;
-        game.debt -= deduction;
-        totalRate -= deduction;
-    }
-
     return totalRate;
 }
 
