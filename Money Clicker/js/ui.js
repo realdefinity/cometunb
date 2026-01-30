@@ -383,16 +383,14 @@ function openAnalytics() { openModal('analytics-modal'); }
 window.openAnalytics = openAnalytics;
 
 function setShopTab(tab) {
-    currentShopTab = tab;
-    // Removed: 'portfolio', 'loans', 'skins'
-    const tabs = ['markets', 'staff', 'rd', 'shadow', 'casino', 'upgrades'];
+    window.currentShopTab = tab;
+    const tabs = ['markets', 'staff', 'rd', 'shadow', 'casino'];
     
     // Hide all containers and reset all buttons
     tabs.forEach(t => {
         const btn = document.getElementById(`btn-tab-${t}`);
         const cont = document.getElementById(`${t}-container`);
         const ctrl = document.getElementById(`${t}-controls`);
-        
         if (btn) btn.classList.remove('active');
         if (cont) cont.style.display = 'none';
         if (ctrl) ctrl.style.display = 'none';
@@ -400,25 +398,29 @@ function setShopTab(tab) {
 
     // Show selected
     const activeBtn = document.getElementById(`btn-tab-${tab}`);
-    const activeCont = (tab === 'markets') ? document.getElementById('shop-container') : document.getElementById(`${tab}-container`);
-    const marketControls = document.getElementById('market-controls');
+    const activeCont = document.getElementById(`${tab}-container`);
+    const activeCtrl = document.getElementById(`${tab}-controls`);
+    const shopContainer = document.getElementById('shop-container');
 
     if (activeBtn) activeBtn.classList.add('active');
     if (activeCont) activeCont.style.display = 'block';
+    if (activeCtrl) activeCtrl.style.display = 'block';
 
+    // Special case for markets
     if (tab === 'markets') {
-        if (marketControls) marketControls.style.display = 'block';
+        if (shopContainer) shopContainer.style.display = 'block';
+        if (document.getElementById('market-controls')) document.getElementById('market-controls').style.display = 'block';
     } else {
-        if (marketControls) marketControls.style.display = 'none';
+        if (shopContainer) shopContainer.style.display = 'none';
+        if (document.getElementById('market-controls')) document.getElementById('market-controls').style.display = 'none';
     }
 
-    // Trigger Renderer
-    if (tab === 'staff') renderStaff();
+    // Call individual renderers
     if (tab === 'rd') renderRD();
+    if (tab === 'skins') renderSkins();
+    if (tab === 'staff') renderStaff();
     if (tab === 'shadow') renderShadow();
     if (tab === 'casino') renderCasino();
-    if (tab === 'upgrades') renderUpgrades();
-    if (tab === 'markets') updateShopUI(1 + (game.influence * 0.10));
 }
 
 window.setShopTab = setShopTab;
