@@ -87,53 +87,54 @@ const marketUpgrades = [
     { id: 19, targetId: 19, name: "Global Currency", cost: 1e30, mult: 2, desc: "World Banks x2" }
 ];
 
-// --- R&D TECH TREE ---
+// --- R&D TECH TREE (Vertical Core Layout) ---
+// Panel Width ~440px. Center X = 220.
 const techTree = [
-    // --- ROOT (Center) ---
-    { id: 0, name: "Neural Link", cost: 15, desc: "Auto-clicker (1%).", x: 500, y: 50, parents: [] },
+    // --- ROOT ---
+    { id: 0, name: "Neural Link", cost: 15, desc: "Auto-clicker active (1%).", x: 220, y: 50, parents: [] },
 
-    // --- TIER 1 (Branching Out) ---
-    { id: 1, name: "Data Siphon", cost: 40, desc: "+10% Click value.", x: 200, y: 150, parents: [0] },
-    { id: 23, name: "Tax Loophole", cost: 200, desc: "Assets 2% Cheaper", x: 400, y: 150, parents: [0] },
-    { id: 14, name: "Server Cooling", cost: 150, desc: "+5% Passive Income", x: 600, y: 150, parents: [0] },
-    { id: 2, name: "Market Pulse", cost: 60, desc: "Hype decays 50% slower.", x: 800, y: 150, parents: [0] },
+    // --- TIER 1 (Split) ---
+    { id: 1, name: "Data Siphon", cost: 40, desc: "+10% Click value.", x: 120, y: 140, parents: [0] },
+    { id: 23, name: "Tax Loophole", cost: 200, desc: "Assets 2% Cheaper", x: 185, y: 140, parents: [0] },
+    { id: 14, name: "Server Cooling", cost: 150, desc: "+5% Passive Income", x: 255, y: 140, parents: [0] },
+    { id: 2, name: "Market Pulse", cost: 60, desc: "Hype decays 50% slower.", x: 320, y: 140, parents: [0] },
 
-    // --- BRANCH A: CLICKING (Left - x200) ---
-    { id: 5, name: "Click Cache", cost: 100, desc: "+5% Click Value", x: 200, y: 250, parents: [1], effect: { type: 'click_mult', val: 0.05 } },
-    { id: 6, name: "Tactical Mouse", cost: 250, desc: "+1% Crit Chance", x: 150, y: 350, parents: [5], effect: { type: 'crit_chance', val: 0.01 } },
-    { id: 7, name: "Double Tap", cost: 500, desc: "+10% Click Value", x: 250, y: 350, parents: [5], effect: { type: 'click_mult', val: 0.10 } },
-    { id: 8, name: "Macro Script", cost: 1000, desc: "+15% Click Value", x: 200, y: 450, parents: [6, 7], effect: { type: 'click_mult', val: 0.15 } },
-    { id: 11, name: "Neuro-Click", cost: 15000, desc: "+25% Click Value", x: 200, y: 550, parents: [8], effect: { type: 'click_mult', val: 0.25 } },
-    { id: 13, name: "Zero Latency", cost: 200000, desc: "+50% Click Value", x: 200, y: 650, parents: [11], effect: { type: 'click_mult', val: 0.50 } },
+    // --- BRANCH A: CLICKING (Left - x80) ---
+    { id: 5, name: "Click Cache", cost: 100, desc: "+5% Click Value", x: 80, y: 220, parents: [1], effect: { type: 'click_mult', val: 0.05 } },
+    { id: 6, name: "Tactical Mouse", cost: 250, desc: "+1% Crit Chance", x: 50, y: 300, parents: [5], effect: { type: 'crit_chance', val: 0.01 } },
+    { id: 7, name: "Double Tap", cost: 500, desc: "+10% Click Value", x: 110, y: 300, parents: [5], effect: { type: 'click_mult', val: 0.10 } },
+    { id: 8, name: "Macro Script", cost: 1000, desc: "+15% Click Value", x: 80, y: 380, parents: [6, 7], effect: { type: 'click_mult', val: 0.15 } },
+    { id: 11, name: "Neuro-Click", cost: 15000, desc: "+25% Click Value", x: 80, y: 460, parents: [8], effect: { type: 'click_mult', val: 0.25 } },
+    { id: 13, name: "Zero Latency", cost: 200000, desc: "+50% Click Value", x: 80, y: 540, parents: [11], effect: { type: 'click_mult', val: 0.50 } },
 
-    // --- BRANCH B: ECONOMY (Center Left - x400) ---
-    { id: 24, name: "Offshore Shell", cost: 600, desc: "Assets 3% Cheaper", x: 400, y: 250, parents: [23], effect: { type: 'cost_discount', val: 0.03 } },
-    { id: 25, name: "Lobbying Firm", cost: 1500, desc: "Assets 5% Cheaper", x: 400, y: 350, parents: [24], effect: { type: 'cost_discount', val: 0.05 } },
-    { id: 26, name: "Regulation Cut", cost: 5000, desc: "Assets 5% Cheaper", x: 400, y: 450, parents: [25], effect: { type: 'cost_discount', val: 0.05 } },
-    { id: 27, name: "Govt Contract", cost: 20000, desc: "Assets 10% Cheaper", x: 400, y: 550, parents: [26], effect: { type: 'cost_discount', val: 0.10 } },
+    // --- BRANCH B: ECONOMY (Mid-Left - x170) ---
+    { id: 24, name: "Offshore Shell", cost: 600, desc: "Assets 3% Cheaper", x: 170, y: 220, parents: [23], effect: { type: 'cost_discount', val: 0.03 } },
+    { id: 25, name: "Lobbying Firm", cost: 1500, desc: "Assets 5% Cheaper", x: 170, y: 300, parents: [24], effect: { type: 'cost_discount', val: 0.05 } },
+    { id: 26, name: "Regulation Cut", cost: 5000, desc: "Assets 5% Cheaper", x: 170, y: 380, parents: [25], effect: { type: 'cost_discount', val: 0.05 } },
+    { id: 27, name: "Govt Contract", cost: 20000, desc: "Assets 10% Cheaper", x: 170, y: 460, parents: [26], effect: { type: 'cost_discount', val: 0.10 } },
 
-    // --- BRANCH C: PASSIVE (Center Right - x600) ---
-    { id: 15, name: "Fiber Optic", cost: 400, desc: "+5% Passive Income", x: 600, y: 250, parents: [14], effect: { type: 'global_mult', val: 0.05 } },
-    { id: 17, name: "Blockchain", cost: 2500, desc: "+15% Passive Income", x: 600, y: 350, parents: [15], effect: { type: 'global_mult', val: 0.15 } },
-    { id: 19, name: "Deep Learning", cost: 15000, desc: "+25% Passive Income", x: 600, y: 450, parents: [17], effect: { type: 'global_mult', val: 0.25 } },
-    { id: 21, name: "Sentient AI", cost: 100000, desc: "+40% Passive Income", x: 600, y: 550, parents: [19], effect: { type: 'global_mult', val: 0.40 } },
-    { id: 22, name: "Digital God", cost: 500000, desc: "x2 Passive Income", x: 600, y: 650, parents: [21], effect: { type: 'global_mult', val: 1.0 } },
+    // --- BRANCH C: PASSIVE (Mid-Right - x270) ---
+    { id: 15, name: "Fiber Optic", cost: 400, desc: "+5% Passive Income", x: 270, y: 220, parents: [14], effect: { type: 'global_mult', val: 0.05 } },
+    { id: 17, name: "Blockchain", cost: 2500, desc: "+15% Passive Income", x: 270, y: 300, parents: [15], effect: { type: 'global_mult', val: 0.15 } },
+    { id: 19, name: "Deep Learning", cost: 15000, desc: "+25% Passive Income", x: 270, y: 380, parents: [17], effect: { type: 'global_mult', val: 0.25 } },
+    { id: 21, name: "Sentient AI", cost: 100000, desc: "+40% Passive Income", x: 270, y: 460, parents: [19], effect: { type: 'global_mult', val: 0.40 } },
+    { id: 22, name: "Digital God", cost: 500000, desc: "x2 Passive Income", x: 270, y: 540, parents: [21], effect: { type: 'global_mult', val: 1.0 } },
 
-    // --- BRANCH D: MANIA (Right - x800) ---
-    { id: 3, name: "Dark Pool", cost: 150, desc: "Mania is now 3x multiplier.", x: 800, y: 250, parents: [2] },
-    { id: 28, name: "Hype Bot", cost: 500, desc: "Hype decays 10% slower", x: 800, y: 350, parents: [3], effect: { type: 'hype_decay', val: 0.9 } },
-    { id: 30, name: "Media Empire", cost: 5000, desc: "Mania lasts 5s longer", x: 800, y: 450, parents: [28], effect: { type: 'mania_time', val: 5 } },
-    { id: 31, name: "Mind Control", cost: 25000, desc: "Mania lasts 10s longer", x: 800, y: 550, parents: [30], effect: { type: 'mania_time', val: 10 } },
+    // --- BRANCH D: MANIA (Right - x360) ---
+    { id: 3, name: "Dark Pool", cost: 150, desc: "Mania is now 3x multiplier.", x: 360, y: 220, parents: [2] },
+    { id: 28, name: "Hype Bot", cost: 500, desc: "Hype decays 10% slower", x: 360, y: 300, parents: [3], effect: { type: 'hype_decay', val: 0.9 } },
+    { id: 30, name: "Media Empire", cost: 5000, desc: "Mania lasts 5s longer", x: 360, y: 380, parents: [28], effect: { type: 'mania_time', val: 5 } },
+    { id: 31, name: "Mind Control", cost: 25000, desc: "Mania lasts 10s longer", x: 360, y: 460, parents: [30], effect: { type: 'mania_time', val: 10 } },
 
-    // --- TIER 4: THE CONVERGENCE (Bottom Center) ---
-    { id: 32, name: "Fusion Power", cost: 1e6, desc: "+50% Global Income", x: 500, y: 750, parents: [27, 31], effect: { type: 'global_mult', val: 0.5 } },
-    { id: 4, name: "Singularity", cost: 5e6, desc: "All yield x2.", x: 500, y: 850, parents: [32, 13, 22] },
-    { id: 33, name: "Dyson Link", cost: 10e6, desc: "All yield x2", x: 500, y: 950, parents: [4], effect: { type: 'global_mult', val: 1.0 } },
+    // --- TIER 4: CONVERGENCE (Bottom Center) ---
+    { id: 32, name: "Fusion Power", cost: 1e6, desc: "+50% Global Income", x: 220, y: 620, parents: [27, 31], effect: { type: 'global_mult', val: 0.5 } },
+    { id: 4, name: "Singularity", cost: 5e6, desc: "All yield x2.", x: 220, y: 700, parents: [32, 13, 22] },
+    { id: 33, name: "Dyson Link", cost: 10e6, desc: "All yield x2", x: 220, y: 780, parents: [4], effect: { type: 'global_mult', val: 1.0 } },
     
-    // --- TIER 5: THE VOID (Deep Endgame) ---
-    { id: 37, name: "Void Energy", cost: 1e8, desc: "Income x5", x: 400, y: 1100, parents: [33], effect: { type: 'global_mult', val: 4.0 } },
-    { id: 38, name: "Omega Point", cost: 1e9, desc: "Income x10", x: 600, y: 1100, parents: [33], effect: { type: 'global_mult', val: 9.0 } },
-    { id: 39, name: "THE END", cost: 1e12, desc: "Income x100", x: 500, y: 1250, parents: [37, 38], effect: { type: 'global_mult', val: 99.0 } }
+    // --- TIER 5: THE VOID (Endgame) ---
+    { id: 37, name: "Void Energy", cost: 1e8, desc: "Income x5", x: 140, y: 900, parents: [33], effect: { type: 'global_mult', val: 4.0 } },
+    { id: 38, name: "Omega Point", cost: 1e9, desc: "Income x10", x: 300, y: 900, parents: [33], effect: { type: 'global_mult', val: 9.0 } },
+    { id: 39, name: "THE END", cost: 1e12, desc: "Income x100", x: 220, y: 1050, parents: [37, 38], effect: { type: 'global_mult', val: 99.0 } }
 ];
 
 const loanOptions = [

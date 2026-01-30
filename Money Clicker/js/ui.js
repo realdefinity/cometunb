@@ -259,14 +259,14 @@ function renderRD() {
 
     container.innerHTML = `
         <div class="rd-viewport" id="rd-viewport">
-            <div style="width:1000px; height:1400px; position:relative;">
-                <svg class="tech-tree-svg" id="tech-svg" width="1000" height="1400"></svg>
+            <div style="width:100%; height:1200px; position:relative;">
+                <svg class="tech-tree-svg" id="tech-svg" style="width:100%; height:100%;"></svg>
                 <div id="tech-nodes-layer"></div>
             </div>
         </div>
-        <div id="tech-details">
-            <div id="tech-info-name" style="font-weight:800; color:#fff; font-size:0.9rem; letter-spacing:1px; margin-bottom:4px;">MAINFRAME</div>
-            <div id="tech-info-desc" style="font-size:0.7rem; color:#666; font-family:'JetBrains Mono';">SELECT A NODE TO VIEW DATA</div>
+        <div id="tech-details" style="margin-top:15px; padding:15px; background:rgba(255,255,255,0.02); border-radius:10px; border:1px solid #222; text-align:center;">
+            <div id="tech-info-name" style="font-weight:900; color:#fff; font-size:0.9rem;">SELECT A TECHNOLOGY</div>
+            <div id="tech-info-desc" style="font-size:0.7rem; color:#666; margin-top:5px;">Check requirements to unlock powerful abilities.</div>
         </div>
     `;
 
@@ -274,17 +274,17 @@ function renderRD() {
     const nodesLayer = document.getElementById('tech-nodes-layer');
 
     techTree.forEach(tech => {
+        // ... (Logic remains identical to previous version) ...
         const isResearched = game.researchedTech.includes(tech.id);
         const parentsResearched = tech.parents.length === 0 || tech.parents.every(p => game.researchedTech.includes(p));
         const status = isResearched ? 'researched' : (parentsResearched ? 'available' : 'locked');
 
-        // Draw Circuit Lines (Elbow connectors)
         tech.parents.forEach(pId => {
             const parent = techTree.find(t => t.id === pId);
             if (parent) {
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 
-                // Manhattan Logic: Go Down half way, then Across, then Down rest of way
+                // Vertical Circuit Routing (Down -> Over -> Down)
                 const midY = (parent.y + tech.y) / 2;
                 const d = `M ${parent.x} ${parent.y} L ${parent.x} ${midY} L ${tech.x} ${midY} L ${tech.x} ${tech.y}`;
                 
@@ -294,7 +294,7 @@ function renderRD() {
             }
         });
 
-        // Create Node
+        // ... (Node creation logic remains identical) ...
         const node = document.createElement('div');
         node.className = `tech-node ${status}`;
         node.style.left = tech.x + 'px';
@@ -304,7 +304,6 @@ function renderRD() {
         if (status === 'available') icon = '⚡';
         if (status === 'researched') icon = '◉';
 
-        // Add ID for debugging/hover
         node.innerHTML = `<div class="tech-node-icon">${icon}</div>`;
 
         node.onmouseenter = () => {
@@ -337,13 +336,6 @@ function renderRD() {
 
         nodesLayer.appendChild(node);
     });
-
-    // Auto-Scroll to center start on first render
-    const viewport = document.getElementById('rd-viewport');
-    if (viewport) {
-        viewport.scrollTop = 0;
-        viewport.scrollLeft = 150; // Center the 1000px width slightly (500 is center)
-    }
 }
 
 
