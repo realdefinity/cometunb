@@ -259,33 +259,34 @@ function renderRD() {
 
     container.innerHTML = `
         <div class="rd-viewport" id="rd-viewport">
-            <div style="width:800px; height:1800px; position:relative;">
-                <svg class="tech-tree-svg" id="tech-svg" style="width:100%; height:100%;"></svg>
+            <div style="width:1000px; height:1400px; position:relative;">
+                <svg class="tech-tree-svg" id="tech-svg" width="1000" height="1400"></svg>
                 <div id="tech-nodes-layer"></div>
             </div>
         </div>
         <div id="tech-details">
-            <div id="tech-info-name" style="font-weight:800; color:#fff; font-size:1rem; letter-spacing:1px; margin-bottom:4px;">R&D TERMINAL</div>
-            <div id="tech-info-desc" style="font-size:0.75rem; color:#666; font-family:'JetBrains Mono';">HOVER OVER A NODE TO DECRYPT DATA.</div>
+            <div id="tech-info-name" style="font-weight:800; color:#fff; font-size:0.9rem; letter-spacing:1px; margin-bottom:4px;">MAINFRAME</div>
+            <div id="tech-info-desc" style="font-size:0.7rem; color:#666; font-family:'JetBrains Mono';">SELECT A NODE TO VIEW DATA</div>
         </div>
     `;
 
     const svg = document.getElementById('tech-svg');
     const nodesLayer = document.getElementById('tech-nodes-layer');
-    const detailsBox = document.getElementById('tech-details');
 
     techTree.forEach(tech => {
         const isResearched = game.researchedTech.includes(tech.id);
         const parentsResearched = tech.parents.length === 0 || tech.parents.every(p => game.researchedTech.includes(p));
         const status = isResearched ? 'researched' : (parentsResearched ? 'available' : 'locked');
 
-        // Draw Lines
+        // Draw Circuit Lines (Elbow connectors)
         tech.parents.forEach(pId => {
             const parent = techTree.find(t => t.id === pId);
             if (parent) {
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                // Smooth Curvature (S-Curve)
-                const d = `M ${parent.x} ${parent.y} C ${parent.x} ${(parent.y + tech.y)/2}, ${tech.x} ${(parent.y + tech.y)/2}, ${tech.x} ${tech.y}`;
+                
+                // Manhattan Logic: Go Down half way, then Across, then Down rest of way
+                const midY = (parent.y + tech.y) / 2;
+                const d = `M ${parent.x} ${parent.y} L ${parent.x} ${midY} L ${tech.x} ${midY} L ${tech.x} ${tech.y}`;
                 
                 line.setAttribute("d", d);
                 line.setAttribute("class", `tech-line ${isResearched ? 'active' : ''}`);
@@ -301,25 +302,20 @@ function renderRD() {
         
         let icon = '🔒';
         if (status === 'available') icon = '⚡';
-        if (status === 'researched') icon = '◆';
+        if (status === 'researched') icon = '◉';
 
+        // Add ID for debugging/hover
         node.innerHTML = `<div class="tech-node-icon">${icon}</div>`;
 
         node.onmouseenter = () => {
-            detailsBox.classList.add('active');
-            const color = status === 'researched' ? '#22c55e' : (status === 'available' ? '#fff' : '#666');
-            
+            const color = status === 'researched' ? '#22c55e' : (status === 'available' ? '#fff' : '#444');
             document.getElementById('tech-info-name').style.color = color;
             document.getElementById('tech-info-name').innerText = tech.name.toUpperCase();
             
-            const costTxt = isResearched ? "STATUS: ONLINE" : `REQUIRED: ${formatNumber(tech.cost)} INFLUENCE`;
-            document.getElementById('tech-info-desc').innerHTML = `${tech.desc}<br><span style="color:${color}; font-weight:700;">${costTxt}</span>`;
+            const costTxt = isResearched ? "STATUS: ACTIVE" : `COST: ${formatNumber(tech.cost)} INFLUENCE`;
+            document.getElementById('tech-info-desc').innerHTML = `<span style="color:#ccc">${tech.desc}</span><br><span style="color:${color}; font-weight:700;">${costTxt}</span>`;
             
-            if (window.playSound) playSound('click'); // Tiny feedback tick
-        };
-
-        node.onmouseleave = () => {
-            detailsBox.classList.remove('active');
+            if (window.playSound) playSound('click');
         };
 
         node.onclick = () => {
@@ -328,19 +324,26 @@ function renderRD() {
                     game.influence -= tech.cost;
                     game.researchedTech.push(tech.id);
                     if (window.playSound) playSound('buy');
-                    showToast(`TECH UNLOCKED: ${tech.name}`, "success");
+                    showToast(`SYSTEM UPGRADE: ${tech.name}`, "success");
                     updateUI(0);
                     renderRD(); 
                 } else {
-                    showToast("Insufficient Influence.", "error");
+                    showToast("Insufficient Influence Credits.", "error");
                 }
             } else if (status === 'locked') {
-                showToast("Prerequisites missing.", "error");
+                showToast("Previous node required.", "error");
             }
         };
 
         nodesLayer.appendChild(node);
     });
+
+    // Auto-Scroll to center start on first render
+    const viewport = document.getElementById('rd-viewport');
+    if (viewport) {
+        viewport.scrollTop = 0;
+        viewport.scrollLeft = 150; // Center the 1000px width slightly (500 is center)
+    }
 }
 
 
