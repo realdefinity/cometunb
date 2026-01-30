@@ -341,14 +341,41 @@ function renderRD() {
 
 function renderSkins() {
     const container = document.getElementById('skins-container');
-    let html = `<div style="font-weight:900; font-size:0.7rem; color:#444; letter-spacing:2px; margin-bottom:15px; text-align:center;">PARTICLE CUSTOMIZATION</div>`;
+    if (!container) return;
+    
+    // Header
+    let html = `<div style="font-weight:900; font-size:0.7rem; color:#444; letter-spacing:2px; margin-bottom:15px; text-align:center;">VISUAL FX MODULES</div>`;
+    
+    // Grid Container
+    html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px;">`;
+    
     particleSkins.forEach(s => {
         const active = game.activeSkin === s.id;
+        const borderCol = active ? s.color : '#222';
+        const bgCol = active ? 'rgba(255,255,255,0.05)' : 'transparent';
+        const textCol = active ? '#fff' : '#555';
+        
+        // Tile Item
         html += `
-            <div class="opt-btn" onclick="game.activeSkin='${s.id}'; renderSkins();" style="margin-bottom:10px; border-color:${active ? s.color : '#222'}; color:${active ? '#fff' : '#444'}">
-                ${s.name.toUpperCase()} ${active ? ' [SELECTED]' : ''}
+            <div onclick="game.activeSkin='${s.id}'; renderSkins(); playSound('click');" 
+                 style="
+                    border: 1px solid ${borderCol}; 
+                    background: ${bgCol};
+                    border-radius: 8px; 
+                    padding: 10px; 
+                    cursor: pointer; 
+                    text-align: center;
+                    transition: all 0.2s;
+                 "
+                 onmouseover="this.style.transform='translateY(-2px)'; this.style.background='rgba(255,255,255,0.03)'"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.background='${bgCol}'"
+            >
+                <div style="font-size: 1.2rem; margin-bottom: 4px;">${s.char}</div>
+                <div style="font-size: 0.5rem; font-weight: 800; color: ${textCol}; letter-spacing: 0.5px;">${s.name.toUpperCase()}</div>
             </div>`;
     });
+    
+    html += `</div>`;
     container.innerHTML = html;
 }
 

@@ -142,10 +142,32 @@ const loanOptions = [
     { id: 1, name: "Venture Debt", amount: 1e9, payback: 1.4e9, desc: "Fast $1B. 15% income tax." }
 ];
 
+// --- PARTICLE SKINS (Expanded) ---
 const particleSkins = [
-    { id: 'default', name: "Cash", color: "#22c55e", char: "+$" },
+    { id: 'default', name: "USD", color: "#22c55e", char: "+$" },
     { id: 'gold', name: "Gold", color: "#eab308", char: "●" },
-    { id: 'fire', name: "Heat", color: "#f43f5e", char: "🔥" }
+    { id: 'btc', name: "Bitcoin", color: "#f7931a", char: "₿" },
+    { id: 'eth', name: "Ether", color: "#627eea", char: "Ξ" },
+    { id: 'euro', name: "Euro", color: "#3b82f6", char: "€" },
+    { id: 'yen', name: "Yen", color: "#ec4899", char: "¥" },
+    { id: 'diamond', name: "Gem", color: "#06b6d4", char: "💎" },
+    { id: 'fire', name: "Heat", color: "#f43f5e", char: "🔥" },
+    { id: 'ice', name: "Frost", color: "#a5f3fc", char: "❄" },
+    { id: 'bolt', name: "Flash", color: "#fbbf24", char: "⚡" },
+    { id: 'heart', name: "Love", color: "#f472b6", char: "❤" },
+    { id: 'skull', name: "Death", color: "#9ca3af", char: "💀" },
+    { id: 'ghost', name: "Spirit", color: "#e5e7eb", char: "👻" },
+    { id: 'alien', name: "UFO", color: "#84cc16", char: "👽" },
+    { id: 'robot', name: "Bot", color: "#64748b", char: "🤖" },
+    { id: 'rocket', name: "Moon", color: "#f59e0b", char: "🚀" },
+    { id: 'chart', name: "Stonks", color: "#22c55e", char: "📈" },
+    { id: 'bag', name: "Bag", color: "#15803d", char: "💰" },
+    { id: 'binary', name: "Code", color: "#22c55e", char: "01" },
+    { id: 'hack', name: "Error", color: "#ef4444", char: "⚠" },
+    { id: 'void', name: "Void", color: "#a855f7", char: "🌀" },
+    { id: 'crown', name: "King", color: "#fbbf24", char: "👑" },
+    { id: 'nuclear', name: "Nuke", color: "#39ff14", char: "☢" },
+    { id: 'bio', name: "Bio", color: "#ffff00", char: "☣" }
 ];
 
 
