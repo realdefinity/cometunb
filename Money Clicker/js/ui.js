@@ -426,28 +426,54 @@ window.setShopTab = setShopTab;
 function renderPortfolio() {
     const container = document.getElementById('portfolio-container');
     if (!container) return;
-    let ownedAny = false;
+    
+    // 1. Filter for Owned Assets Only
+    const ownedAssets = upgrades.map((u, i) => ({...u, originalIndex: i}))
+                                .filter(u => game.counts[u.originalIndex] > 0);
+
+    if (ownedAssets.length === 0) {
+        container.innerHTML = `<div class="portfolio-empty" style="color:#666; margin-top:40px; font-weight:700;">NO ASSETS UNDER MANAGEMENT.<br>ACQUIRE ASSETS IN MARKETS TAB.</div>`;
+        return;
+    }
+
     let html = '';
-    upgrades.forEach((u, i) => {
-        if (game.counts[i] > 0) {
-            ownedAny = true;
-            let level = game.levels && game.levels[i] ? game.levels[i] : 1;
-            let upgCost = window.getUpgradeCost ? window.getUpgradeCost(i) : 0;
-            let canAfford = game.money >= upgCost;
-            html += `
-                <div class="upgrade ${canAfford ? 'affordable-max' : ''}" style="border-left: 3px solid var(--gold);">
-                    <div class="upg-info">
-                        <h4>${u.name} <span style="color:var(--gold)">Lv. ${level}</span></h4>
-                        <p><span class="rate-boost">Yield Multiplier: ${level}x</span><span style="opacity:0.5">| Qty: ${game.counts[i]}</span></p>
+    
+    ownedAssets.forEach(u => {
+        const i = u.originalIndex;
+        const level = game.levels[i] || 1;
+        const count = game.counts[i];
+        
+        // Math: 1 + 25% per level
+        const currentMult = 1 + ((level - 1) * 0.25);
+        const nextMult = 1 + (level * 0.25);
+        
+        const cost = getUpgradeCost(i);
+        const canAfford = game.money >= cost;
+
+        html += `
+            <div class="portfolio-card ${canAfford ? 'affordable' : ''}" onclick="window.buyAssetUpgrade(${i})">
+                <div class="port-info">
+                    <div class="port-header">
+                        <h4>${u.name}</h4>
+                        <span class="port-level">LVL ${level}</span>
                     </div>
-                    <div class="upg-cost" onclick="window.buyAssetUpgrade(${i}); event.stopPropagation();">
-                        <div class="cost-text" style="color: ${canAfford ? 'var(--gold)' : '#555'}">Optimize</div>
-                        <div class="count-badge" style="background:var(--gold); color:#000; border:none;">$${formatNumber(upgCost)}</div>
+                    <div class="port-stats">
+                        <span class="stat-item">QTY: <strong>${formatNumber(count)}</strong></span>
+                        <span class="stat-item">YIELD: <strong style="color:#22c55e">${currentMult.toFixed(2)}x</strong></span>
                     </div>
-                </div>`;
-        }
+                </div>
+                
+                <div class="port-action">
+                    <div class="upgrade-preview">NEXT: ${nextMult.toFixed(2)}x</div>
+                    <div class="port-btn">
+                        OPTIMIZE $${formatNumber(cost)}
+                    </div>
+                </div>
+            </div>
+        `;
     });
-    container.innerHTML = ownedAny ? html : `<div class="portfolio-empty">NO ASSETS UNDER MANAGEMENT.</div>`;
+    
+    container.innerHTML = html;
 }
 window.renderPortfolio = renderPortfolio;
 

@@ -443,7 +443,48 @@ function gameLoop(currentTime) {
     requestAnimationFrame(gameLoop);
 }
 
+function getUpgradeCost(id) {
+    const level = (game.levels && game.levels[id]) ? game.levels[id] : 1;
+    // New Formula: Base * 25 * (1.5 ^ Level)
+    // This scales smoother than the old math, making high levels achievable.
+    return upgrades[id].baseCost * 25 * Math.pow(1.5, level - 1);
+}
+// Expose to window immediately
+window.getUpgradeCost = getUpgradeCost;
+
+function buyAssetUpgrade(id) {
+    const cost = getUpgradeCost(id);
+    
+    // Safety check for levels array
+    if (!game.levels) game.levels = Array(upgrades.length).fill(1);
+
+    if (game.money >= cost && game.counts[id] > 0) {
+        game.money -= cost;
+        game.levels[id]++;
+        
+        playSound('buy');
+        
+        // Gold Particle Explosion at mouse position if possible, else center
+        if (window.createParticle) {
+            for(let i=0; i<15; i++) createParticle(window.innerWidth/2, window.innerHeight/2, '', 'spark');
+        }
+
+        if (window.showToast) showToast(`Optimized ${upgrades[id].name} to Lv. ${game.levels[id]}`, 'success');
+        
+        // Instant UI Refresh
+        if (window.renderPortfolio) window.renderPortfolio();
+        if (window.updateUI) window.updateUI(0);
+        
+    } else if (game.counts[id] === 0) {
+        if (window.showToast) showToast("Acquire asset before optimizing.", "error");
+    } else {
+        if (window.showToast) showToast("Insufficient capital.", "error");
+    }
+}
+window.buyAssetUpgrade = buyAssetUpgrade;
+
 // Binds
 document.getElementById('main-btn').addEventListener('mousedown', clickAction);
 document.getElementById('main-btn').addEventListener('touchstart', clickAction);
 requestAnimationFrame(gameLoop);
+
