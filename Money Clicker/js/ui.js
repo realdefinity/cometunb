@@ -338,59 +338,20 @@ function renderRD() {
     });
 }
 
-
-function renderSkins() {
-    const container = document.getElementById('skins-container');
-    if (!container) return;
-    
-    // Header
-    let html = `<div style="font-weight:900; font-size:0.7rem; color:#444; letter-spacing:2px; margin-bottom:15px; text-align:center;">VISUAL FX MODULES</div>`;
-    
-    // Grid Container
-    html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px;">`;
-    
-    particleSkins.forEach(s => {
-        const active = game.activeSkin === s.id;
-        const borderCol = active ? s.color : '#222';
-        const bgCol = active ? 'rgba(255,255,255,0.05)' : 'transparent';
-        const textCol = active ? '#fff' : '#555';
-        
-        // Tile Item
-        html += `
-            <div onclick="game.activeSkin='${s.id}'; renderSkins(); playSound('click');" 
-                 style="
-                    border: 1px solid ${borderCol}; 
-                    background: ${bgCol};
-                    border-radius: 8px; 
-                    padding: 10px; 
-                    cursor: pointer; 
-                    text-align: center;
-                    transition: all 0.2s;
-                 "
-                 onmouseover="this.style.transform='translateY(-2px)'; this.style.background='rgba(255,255,255,0.03)'"
-                 onmouseout="this.style.transform='translateY(0)'; this.style.background='${bgCol}'"
-            >
-                <div style="font-size: 1.2rem; margin-bottom: 4px;">${s.char}</div>
-                <div style="font-size: 0.5rem; font-weight: 800; color: ${textCol}; letter-spacing: 0.5px;">${s.name.toUpperCase()}</div>
-            </div>`;
-    });
-    
-    html += `</div>`;
-    container.innerHTML = html;
-}
-
 function openAnalytics() { openModal('analytics-modal'); }
 window.openAnalytics = openAnalytics;
 
 function setShopTab(tab) {
-    window.currentShopTab = tab;
-    const tabs = ['markets', 'staff', 'rd', 'shadow', 'casino'];
+    currentShopTab = tab;
+    // Removed: 'portfolio', 'loans', 'skins'
+    const tabs = ['markets', 'staff', 'rd', 'shadow', 'casino', 'upgrades'];
     
     // Hide all containers and reset all buttons
     tabs.forEach(t => {
         const btn = document.getElementById(`btn-tab-${t}`);
         const cont = document.getElementById(`${t}-container`);
         const ctrl = document.getElementById(`${t}-controls`);
+        
         if (btn) btn.classList.remove('active');
         if (cont) cont.style.display = 'none';
         if (ctrl) ctrl.style.display = 'none';
@@ -398,29 +359,25 @@ function setShopTab(tab) {
 
     // Show selected
     const activeBtn = document.getElementById(`btn-tab-${tab}`);
-    const activeCont = document.getElementById(`${tab}-container`);
-    const activeCtrl = document.getElementById(`${tab}-controls`);
-    const shopContainer = document.getElementById('shop-container');
+    const activeCont = (tab === 'markets') ? document.getElementById('shop-container') : document.getElementById(`${tab}-container`);
+    const marketControls = document.getElementById('market-controls');
 
     if (activeBtn) activeBtn.classList.add('active');
     if (activeCont) activeCont.style.display = 'block';
-    if (activeCtrl) activeCtrl.style.display = 'block';
 
-    // Special case for markets
     if (tab === 'markets') {
-        if (shopContainer) shopContainer.style.display = 'block';
-        if (document.getElementById('market-controls')) document.getElementById('market-controls').style.display = 'block';
+        if (marketControls) marketControls.style.display = 'block';
     } else {
-        if (shopContainer) shopContainer.style.display = 'none';
-        if (document.getElementById('market-controls')) document.getElementById('market-controls').style.display = 'none';
+        if (marketControls) marketControls.style.display = 'none';
     }
 
-    // Call individual renderers
-    if (tab === 'rd') renderRD();
-    if (tab === 'skins') renderSkins();
+    // Trigger Renderer
     if (tab === 'staff') renderStaff();
+    if (tab === 'rd') renderRD();
     if (tab === 'shadow') renderShadow();
     if (tab === 'casino') renderCasino();
+    if (tab === 'upgrades') renderUpgrades();
+    if (tab === 'markets') updateShopUI(1 + (game.influence * 0.10));
 }
 
 window.setShopTab = setShopTab;
