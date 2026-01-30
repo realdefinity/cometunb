@@ -257,38 +257,23 @@ function renderRD() {
     const container = document.getElementById('rd-container');
     if (!container) return;
 
-    // 1. Structure
     container.innerHTML = `
-        <div style="margin-bottom:10px; font-size:0.65rem; color:#666; font-weight:700; text-align:center; letter-spacing:1px;">
-            RESEARCH TERMINAL
-        </div>
         <div class="rd-viewport" id="rd-viewport">
             <svg class="tech-tree-svg" id="tech-svg"></svg>
             <div id="tech-nodes-layer"></div>
         </div>
-        <div id="tech-details" style="
-            margin-top:15px; 
-            padding:16px; 
-            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.5) 100%); 
-            border-radius: 12px; 
-            border: 1px solid #222; 
-            text-align:center;
-            min-height: 80px;
-            display: flex; flex-direction: column; justify-content: center;
-        ">
-            <div id="tech-info-name" style="font-weight:900; color:#fff; font-size:0.9rem; letter-spacing:1px;">SELECT NODE</div>
-            <div id="tech-info-desc" style="font-size:0.75rem; color:#888; margin-top:6px; font-family:'JetBrains Mono';">Hover over a technology to view schematics.</div>
+        <div id="tech-details">
+            <div id="tech-info-name" style="font-weight:800; color:#fff; font-size:1rem; letter-spacing:1px; margin-bottom:4px;">R&D TERMINAL</div>
+            <div id="tech-info-desc" style="font-size:0.75rem; color:#666; font-family:'JetBrains Mono';">HOVER OVER A NODE TO DECRYPT DATA.</div>
         </div>
     `;
 
     const svg = document.getElementById('tech-svg');
     const nodesLayer = document.getElementById('tech-nodes-layer');
+    const detailsBox = document.getElementById('tech-details');
 
-    // 2. Build Tree
     techTree.forEach(tech => {
         const isResearched = game.researchedTech.includes(tech.id);
-        
-        // Logic: Available if no parents OR all parents are researched
         const parentsResearched = tech.parents.length === 0 || tech.parents.every(p => game.researchedTech.includes(p));
         const status = isResearched ? 'researched' : (parentsResearched ? 'available' : 'locked');
 
@@ -297,10 +282,8 @@ function renderRD() {
             const parent = techTree.find(t => t.id === pId);
             if (parent) {
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                
-                // Curved Lines (Bezier) for pro look
-                const midY = (parent.y + tech.y) / 2;
-                const d = `M ${parent.x} ${parent.y} C ${parent.x} ${midY}, ${tech.x} ${midY}, ${tech.x} ${tech.y}`;
+                // Smooth Curvature (S-Curve)
+                const d = `M ${parent.x} ${parent.y} C ${parent.x} ${(parent.y + tech.y)/2}, ${tech.x} ${(parent.y + tech.y)/2}, ${tech.x} ${tech.y}`;
                 
                 line.setAttribute("d", d);
                 line.setAttribute("class", `tech-line ${isResearched ? 'active' : ''}`);
@@ -314,24 +297,27 @@ function renderRD() {
         node.style.left = tech.x + 'px';
         node.style.top = tech.y + 'px';
         
-        // Dynamic Icon based on ID (You can customize these later)
-        let icon = '⬢';
-        if (isResearched) icon = '✔';
-        else if (status === 'locked') icon = '🔒';
+        let icon = '🔒';
+        if (status === 'available') icon = '⚡';
+        if (status === 'researched') icon = '◆';
 
-        node.innerHTML = `
-            <div class="tech-node-icon">${icon}</div>
-            <div class="tech-node-name">${tech.name.toUpperCase()}</div>
-        `;
+        node.innerHTML = `<div class="tech-node-icon">${icon}</div>`;
 
-        // Interaction
         node.onmouseenter = () => {
+            detailsBox.classList.add('active');
             const color = status === 'researched' ? '#22c55e' : (status === 'available' ? '#fff' : '#666');
+            
             document.getElementById('tech-info-name').style.color = color;
             document.getElementById('tech-info-name').innerText = tech.name.toUpperCase();
             
-            const costText = isResearched ? "STATUS: ACTIVE" : `COST: ${formatNumber(tech.cost)} INFLUENCE`;
-            document.getElementById('tech-info-desc').innerText = `${tech.desc} [${costText}]`;
+            const costTxt = isResearched ? "STATUS: ONLINE" : `REQUIRED: ${formatNumber(tech.cost)} INFLUENCE`;
+            document.getElementById('tech-info-desc').innerHTML = `${tech.desc}<br><span style="color:${color}; font-weight:700;">${costTxt}</span>`;
+            
+            if (window.playSound) playSound('click'); // Tiny feedback tick
+        };
+
+        node.onmouseleave = () => {
+            detailsBox.classList.remove('active');
         };
 
         node.onclick = () => {
@@ -340,14 +326,14 @@ function renderRD() {
                     game.influence -= tech.cost;
                     game.researchedTech.push(tech.id);
                     if (window.playSound) playSound('buy');
-                    showToast(`Research Complete: ${tech.name}`, "success");
-                    updateUI(0); // Refresh Influence UI
-                    renderRD(); // Re-render tree to animate lines
+                    showToast(`TECH UNLOCKED: ${tech.name}`, "success");
+                    updateUI(0);
+                    renderRD(); 
                 } else {
                     showToast("Insufficient Influence.", "error");
                 }
             } else if (status === 'locked') {
-                showToast("Prerequisite technology required.", "error");
+                showToast("Prerequisites missing.", "error");
             }
         };
 
