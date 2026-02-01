@@ -182,62 +182,59 @@ function update() {
                 if (dest < 0 || dest >= width * height) return false;
                 const tDest = cells[dest];
                 if (tDest === T.EMPTY) return true;
-                
                 const pDest = PROPS[tDest];
                 if (!pDest) return false;
 
                 if (props.state === 0 && pDest.state !== 0) return true;
                 if (props.state === 1 && pDest.state === 2) return true;
                 if (props.state === pDest.state && props.density > pDest.density) return true;
-                
                 return false;
             };
 
             const doMove = (dest) => move(i, dest);
+
+            const safeSide = leftFirst ? (i - 1) : (i + 1);
+            const canSlide = (leftFirst && x > 0) || (!leftFirst && x < width - 1);
 
             if (props.state === 0 && props.density > 0) {
                 const down = i + width;
                 if (canDisplace(down)) { doMove(down); continue; }
                 
                 if (props.loose) {
-                    const rDir = Math.random() < 0.5;
-                    const dl = down - 1, dr = down + 1;
-                    const first = rDir ? dl : dr;
-                    const second = rDir ? dr : dl;
+                    const rDir = Math.random() < 0.5 ? -1 : 1;
+                    const d1 = i + width + rDir;
+                    const d2 = i + width - rDir;
                     
-                    if (x > 0 && x < width-1 && canDisplace(first)) { doMove(first); continue; }
-                    if (x > 0 && x < width-1 && canDisplace(second)) { doMove(second); continue; }
+                    if (x + rDir >= 0 && x + rDir < width && canDisplace(d1)) { doMove(d1); continue; }
+                    if (x - rDir >= 0 && x - rDir < width && canDisplace(d2)) { doMove(d2); continue; }
                 }
             }
             else if (props.state === 1) {
                 const down = i + width;
                 if (canDisplace(down)) { doMove(down); continue; }
-
+                
                 if (props.flow && Math.random() > props.flow) continue;
 
-                const left = i - 1;
-                const right = i + 1;
-                const openL = (x > 0) && canDisplace(left);
-                const openR = (x < width - 1) && canDisplace(right);
+                const rDir = Math.random() < 0.5 ? -1 : 1;
+                const d1 = i + width + rDir;
+                const d2 = i + width - rDir;
+                if (x + rDir >= 0 && x + rDir < width && canDisplace(d1)) { doMove(d1); continue; }
+                if (x - rDir >= 0 && x - rDir < width && canDisplace(d2)) { doMove(d2); continue; }
 
-                if (leftFirst) {
-                    if (openL) doMove(left); 
-                } else {
-                    if (openR) doMove(right);
-                }
+                if (canSlide && canDisplace(safeSide)) doMove(safeSide);
             }
             else if (props.state === 2) {
-                if (Math.random() < 0.3) {
+                if (Math.random() < 0.5) {
                     const up = i - width;
                     if (canDisplace(up)) { doMove(up); continue; }
                     
-                    const ul = up - 1, ur = up + 1;
-                    if (x > 0 && canDisplace(ul)) { doMove(ul); continue; }
-                    if (x < width - 1 && canDisplace(ur)) { doMove(ur); continue; }
-                    
-                    const left = i - 1, right = i + 1;
-                    if (x > 0 && canDisplace(left)) { doMove(left); continue; }
-                    if (x < width - 1 && canDisplace(right)) { doMove(right); continue; }
+                    const rDir = Math.random() < 0.5 ? -1 : 1;
+                    const u1 = i - width + rDir;
+                    const u2 = i - width - rDir;
+                    if (x + rDir >= 0 && x + rDir < width && canDisplace(u1)) { doMove(u1); continue; }
+                    if (x - rDir >= 0 && x - rDir < width && canDisplace(u2)) { doMove(u2); continue; }
+
+                    if (canSlide && canDisplace(safeSide)) doMove(safeSide);
                 }
                 if (props.life) {
                     extra[i]--;
