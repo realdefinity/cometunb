@@ -184,82 +184,58 @@ function moveSolid(i, x, props) {
 function moveLiquid(i, x, props, leftFirst) {
     const down = i + width;
 
-    // --- 1. Gravity (Always Priority) ---
+    // 1. Gravity (Always Priority)
     if (canDisplace(down, props)) { 
         move(i, down); 
         return; 
     }
 
-    // --- 2. Flow & Viscosity (Early Exit) ---
-    // Thicker liquids (slime) move less often
+    // 2. Flow Rate (Viscosity)
     if (props.flow && Math.random() > props.flow) return;
 
-    // --- 3. Dispersion (The "Slope" Logic) ---
-    // This allows water to slide down pyramids/slopes.
-    // We check purely random diagonals to prevent bias.
-    const bias = Math.random() < 0.5 ? 1 : -1;
-    const downA = down + bias;
-    const downB = down - bias;
+    // 3. Determine Direction based on Loop Order
+    // If we are scanning Left->Right, we ONLY move Left.
+    // If we are scanning Right->Left, we ONLY move Right.
+    // This creates a perfect 50/50 balance over time.
+    const dir = leftFirst ? -1 : 1;
 
-    // Check bounds for diagonals
-    const xA = x + bias;
-    const xB = x - bias;
-
-    // Try primary diagonal
-    if (xA >= 0 && xA < width && canDisplace(downA, props)) {
-        move(i, downA);
-        return;
-    }
-    // Try secondary diagonal
-    if (xB >= 0 && xB < width && canDisplace(downB, props)) {
-        move(i, downB);
+    // 4. Diagonal Check (Dispersion)
+    // Only check the diagonal "against" the loop to prevent instant sliding
+    const downSide = i + width + dir;
+    if (canDisplace(downSide, props)) {
+        move(i, downSide);
         return;
     }
 
-    // --- 4. Lateral Flow (The Velocity Logic) ---
-    // Here is how we fix your "Strict Direction". 
-    // Instead of banning the "unsafe" direction, we limit it.
-    
-    // "Safe" direction is opposite to the loop. We can go FAST here.
-    // "Unsafe" direction is same as loop. We can only go 1px (to stop teleporting).
-    
-    const safeDir = leftFirst ? -1 : 1; 
-    
-    // Determine which way we WANT to go (randomly or towards emptiness)
-    // For simple water, random choice usually looks best to flatten piles.
-    const chosenDir = Math.random() < 0.5 ? safeDir : -safeDir;
-
-    // Determine max speed based on safety
-    // If we pick the unsafe direction, force speed to 1.
-    let maxSpeed = (props.flow || 1) === 1 ? 4 : 1; 
-    if (chosenDir !== safeDir) maxSpeed = 1;
+    // 5. Lateral Flow (Velocity)
+    // We only look in the 'dir' direction. 
+    // Since we are moving into "Safe" territory (already scanned), 
+    // we can move as far as we want without glitching.
+    const maxSpeed = (props.flow || 1) === 1 ? 4 : 1; // Water = 4, Slime = 1
 
     let bestSpot = -1;
-
+    
     for (let r = 1; r <= maxSpeed; r++) {
-        const targetX = x + (chosenDir * r);
+        const targetX = x + (dir * r);
+        
+        // Bounds check
         if (targetX < 0 || targetX >= width) break;
         
-        const targetI = i + (chosenDir * r);
+        const targetI = i + (dir * r);
         
         if (!canDisplace(targetI, props)) {
-            // --- 5. SPLASH / WAVE ---
-            // If we hit a wall moving fast, try to hop up
-            if (maxSpeed > 1 && r === 1) {
-                // Splash moves Up-Diagonal
-                const upSide = i - width + chosenDir;
-                // Check bounds and make sure we aren't tunneling through a ceiling
-                if (targetX >= 0 && targetX < width && 
-                    canDisplace(upSide, props) && 
-                    cells[i - width] === T.EMPTY) {
-                        move(i, upSide);
-                        return;
+             // 6. Splash / Climb
+             // If water hits a wall moving fast, try to hop up & over
+             if (maxSpeed > 1 && r === 1) {
+                const upSide = i - width + dir;
+                // Check if the spot above the wall is open
+                if (canDisplace(upSide, props) && cells[i - width] === T.EMPTY) {
+                    move(i, upSide);
+                    return;
                 }
-            }
-            break; 
+             }
+             break;
         }
-        
-        // Valid spot found, keep looking for a further one
         bestSpot = targetI;
     }
 
