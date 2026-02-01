@@ -184,64 +184,89 @@ function moveSolid(i, x, props) {
 function moveLiquid(i, x, props, leftFirst) {
     const down = i + width;
 
-    // 1. Gravity (Always Priority)
-    // If we can fall, we fall. Gravity doesn't care about left/right.
+    // --- 1. Gravity (Always Priority) ---
     if (canDisplace(down, props)) { 
         move(i, down); 
         return; 
     }
 
-    // 2. The Fix: Strict Directional Flow
-    // If the loop is scanning Left->Right, we can ONLY move Left (Safe Zone).
-    // If the loop is scanning Right->Left, we can ONLY move Right (Safe Zone).
-    // This mathematically guarantees no infinite sliding or teleporting.
-    const dir = leftFirst ? -1 : 1;
-    
-    // Bounds check
-    if ((dir === -1 && x === 0) || (dir === 1 && x === width - 1)) return;
-
-    // 3. Flow & Viscosity
-    // Randomly skip movement for thicker liquids (slime/lava)
+    // --- 2. Flow & Viscosity (Early Exit) ---
+    // Thicker liquids (slime) move less often
     if (props.flow && Math.random() > props.flow) return;
 
-    // 4. Multi-Pixel Speed (Simulates Velocity)
-    // Instead of moving 1px, we check up to 4px ahead.
-    // This makes the water feel "fast" even though we restricted its direction.
+    // --- 3. Dispersion (The "Slope" Logic) ---
+    // This allows water to slide down pyramids/slopes.
+    // We check purely random diagonals to prevent bias.
+    const bias = Math.random() < 0.5 ? 1 : -1;
+    const downA = down + bias;
+    const downB = down - bias;
+
+    // Check bounds for diagonals
+    const xA = x + bias;
+    const xB = x - bias;
+
+    // Try primary diagonal
+    if (xA >= 0 && xA < width && canDisplace(downA, props)) {
+        move(i, downA);
+        return;
+    }
+    // Try secondary diagonal
+    if (xB >= 0 && xB < width && canDisplace(downB, props)) {
+        move(i, downB);
+        return;
+    }
+
+    // --- 4. Lateral Flow (The Velocity Logic) ---
+    // Here is how we fix your "Strict Direction". 
+    // Instead of banning the "unsafe" direction, we limit it.
+    
+    // "Safe" direction is opposite to the loop. We can go FAST here.
+    // "Unsafe" direction is same as loop. We can only go 1px (to stop teleporting).
+    
+    const safeDir = leftFirst ? -1 : 1; 
+    
+    // Determine which way we WANT to go (randomly or towards emptiness)
+    // For simple water, random choice usually looks best to flatten piles.
+    const chosenDir = Math.random() < 0.5 ? safeDir : -safeDir;
+
+    // Determine max speed based on safety
+    // If we pick the unsafe direction, force speed to 1.
+    let maxSpeed = (props.flow || 1) === 1 ? 4 : 1; 
+    if (chosenDir !== safeDir) maxSpeed = 1;
+
     let bestSpot = -1;
-    const maxSpeed = (props.flow || 1) === 1 ? 4 : 1; // Water = 4px, Slime = 1px
 
     for (let r = 1; r <= maxSpeed; r++) {
-        const targetX = x + (dir * r);
+        const targetX = x + (chosenDir * r);
         if (targetX < 0 || targetX >= width) break;
         
-        const targetI = i + (dir * r);
+        const targetI = i + (chosenDir * r);
         
-        // If we hit a wall, stop looking further
         if (!canDisplace(targetI, props)) {
-            // 5. WAVE / SPLASH LOGIC
-            // If we hit a wall and we are water (fast), try to climb UP
+            // --- 5. SPLASH / WAVE ---
+            // If we hit a wall moving fast, try to hop up
             if (maxSpeed > 1 && r === 1) {
-                const upSide = i - width + dir;
-                // Only climb if space above us is empty (don't tunnel through ceilings)
-                if (canDisplace(upSide, props) && cells[i-width] === T.EMPTY) {
-                    move(i, upSide); // Splash up
-                    return;
+                // Splash moves Up-Diagonal
+                const upSide = i - width + chosenDir;
+                // Check bounds and make sure we aren't tunneling through a ceiling
+                if (targetX >= 0 && targetX < width && 
+                    canDisplace(upSide, props) && 
+                    cells[i - width] === T.EMPTY) {
+                        move(i, upSide);
+                        return;
                 }
             }
             break; 
         }
         
-        // If we found a valid spot, remember it and keep checking further
-        // (We want to move to the furthest open spot to flatten out fast)
+        // Valid spot found, keep looking for a further one
         bestSpot = targetI;
     }
 
-    // Apply the move
     if (bestSpot !== -1) {
         move(i, bestSpot);
     }
 }
-
 function moveGas(i, x, props, leftFirst) {
     if (Math.random() < 0.3) {
         const up = i - width;
