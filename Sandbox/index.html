@@ -16,57 +16,35 @@
     <button id="ui-toggle" onclick="toggleUI()">⬇️</button>
     
     <div id="toolbar">
-        <div class="tool" style="color:#ff5252; --dot:#ff5252" data-id="clear" data-name="Clear">🗑️</div>
-        <div class="tool" id="pauseBtn" style="color:#ffd740; --dot:#ffd740" data-id="pause" data-name="Pause">⏸️</div>
-        <div class="tool" style="color:#fff; --dot:#fff" data-id="0" data-name="Eraser">🧹</div>
+        <div class="tool" style="color:#ff5252; --dot:#ff5252" onclick="clearSim()" data-id="clear" data-name="Clear All">🗑️</div>
+        <div class="tool" id="pauseBtn" style="color:#ffd740; --dot:#ffd740" onclick="togglePause()" data-id="pause" data-name="Pause">⏸️</div>
+        <div class="tool" style="color:#fff; --dot:#fff" onclick="setTool(0)" data-id="0" data-name="Eraser">🧹</div>
 
         <div class="vr"></div>
 
-        <div class="tool c-solid active" data-id="1" data-name="Sand"><div class="cat-dot"></div>🏜️</div>
-        <div class="tool c-solid" data-id="20" data-name="Dirt"><div class="cat-dot"></div>🟤</div>
-        <div class="tool c-solid" data-id="3" data-name="Stone"><div class="cat-dot"></div>🗿</div>
-        <div class="tool c-solid" data-id="26" data-name="Brick"><div class="cat-dot"></div>🧱</div>
-        <div class="tool c-solid" data-id="27" data-name="Concrete"><div class="cat-dot"></div>🏢</div>
-        <div class="tool c-solid" data-id="7" data-name="Metal"><div class="cat-dot"></div>⛓️</div>
-        <div class="tool c-solid" data-id="16" data-name="Glass"><div class="cat-dot"></div>🧊</div>
-        <div class="tool c-solid" data-id="28" data-name="Wax"><div class="cat-dot"></div>🕯️</div>
-
-        <div class="vr"></div>
-
-        <div class="tool c-liquid" data-id="2" data-name="Water"><div class="cat-dot"></div>💧</div>
-        <div class="tool c-liquid" data-id="25" data-name="Salt Water"><div class="cat-dot"></div>🌊</div>
-        <div class="tool c-liquid" data-id="21" data-name="Mud"><div class="cat-dot"></div>💩</div>
-        <div class="tool c-liquid" data-id="23" data-name="Slime"><div class="cat-dot"></div>🦠</div>
-        <div class="tool c-liquid" data-id="11" data-name="Oil"><div class="cat-dot"></div>🛢️</div>
-        <div class="tool c-liquid" data-id="5" data-name="Acid"><div class="cat-dot"></div>🧪</div>
-        <div class="tool c-liquid" data-id="24" data-name="Nitro"><div class="cat-dot"></div>🍾</div>
+        <div class="tool c-solid active" onclick="setTool(1)" data-id="1" data-name="Sand"><div class="cat-dot"></div>🏜️</div>
+        <div class="tool c-solid" onclick="setTool(3)" data-id="3" data-name="Stone"><div class="cat-dot"></div>🗿</div>
+        <div class="tool c-solid" onclick="setTool(7)" data-id="7" data-name="Metal"><div class="cat-dot"></div>⛓️</div>
+        <div class="tool c-solid" onclick="setTool(16)" data-id="16" data-name="Glass"><div class="cat-dot"></div>🧊</div>
         
-        <div class="vr"></div>
+        <div class="tool c-nature" onclick="setTool(8)" data-id="8" data-name="Wood"><div class="cat-dot"></div>🪵</div>
+        <div class="tool c-nature" onclick="setTool(9)" data-id="9" data-name="Plant"><div class="cat-dot"></div>🌿</div>
+        <div class="tool c-nature" onclick="setTool(15)" data-id="15" data-name="Fuse"><div class="cat-dot"></div>🧶</div>
+        <div class="tool c-fire" onclick="setTool(14)" data-id="14" data-name="Gunpowder"><div class="cat-dot"></div>⚫</div>
+        <div class="tool c-fire" onclick="setTool(12)" data-id="12" data-name="C-4"><div class="cat-dot"></div>🧨</div>
 
-        <div class="tool c-nature" data-id="8" data-name="Wood"><div class="cat-dot"></div>🪵</div>
-        <div class="tool c-nature" data-id="9" data-name="Plant"><div class="cat-dot"></div>🌿</div>
-        <div class="tool c-nature" data-id="30" data-name="Spores"><div class="cat-dot"></div>🍄</div>
-        <div class="tool c-nature" style="color:#b388ff; --dot:#b388ff" data-id="29" data-name="Virus"><div class="cat-dot"></div>🟣</div>
-        <div class="tool c-solid" style="color:#80d8ff; --dot:#80d8ff" data-id="32" data-name="Ice"><div class="cat-dot"></div>❄️</div>
-        <div class="tool c-solid" style="color:#fff; --dot:#fff" data-id="33" data-name="Snow"><div class="cat-dot"></div>🌨️</div>
+        <div class="tool c-liquid" onclick="setTool(2)" data-id="2" data-name="Water"><div class="cat-dot"></div>💧</div>
+        <div class="tool c-liquid" onclick="setTool(11)" data-id="11" data-name="Oil"><div class="cat-dot"></div>🛢️</div>
+        <div class="tool c-liquid" onclick="setTool(5)" data-id="5" data-name="Acid"><div class="cat-dot"></div>🧪</div>
+        <div class="tool c-liquid" style="color:#ffb74d; --dot:#ffb74d" onclick="setTool(13)" data-id="13" data-name="Lava"><div class="cat-dot"></div>🌋</div>
 
-        <div class="vr"></div>
-
-        <div class="tool c-fire" data-id="4" data-name="Fire"><div class="cat-dot"></div>🔥</div>
-        <div class="tool c-fire" style="color:#ffb74d; --dot:#ffb74d" data-id="13" data-name="Lava"><div class="cat-dot"></div>🌋</div>
-        <div class="tool c-fire" data-id="31" data-name="Thermite"><div class="cat-dot"></div>🎇</div>
-        <div class="tool c-fire" data-id="14" data-name="Gunpowder"><div class="cat-dot"></div>⚫</div>
-        <div class="tool c-fire" data-id="12" data-name="C-4"><div class="cat-dot"></div>🧨</div>
-        <div class="tool c-fire" data-id="34" data-name="Methane"><div class="cat-dot"></div>💨</div>
-        <div class="tool c-fire" style="color:#ff4081; --dot:#ff4081" data-id="35" data-name="Helium"><div class="cat-dot"></div>🎈</div>
-        
-        <div class="vr"></div>
-
-        <div class="tool" style="color:#000; background:#fff; --dot:#000" data-id="36" data-name="Antimatter">❌</div>
+        <div class="tool c-fire" onclick="setTool(4)" data-id="4" data-name="Fire"><div class="cat-dot"></div>🔥</div>
+        <div class="tool c-fire" style="color:#e040fb; --dot:#e040fb" onclick="setTool(17)" data-id="17" data-name="Methane"><div class="cat-dot"></div>💨</div>
     </div>
 </div>
 
 <div id="global-tooltip">Tooltip</div>
+
 <canvas id="simCanvas"></canvas>
 
 <script src="js/state.js"></script>
@@ -74,5 +52,6 @@
 <script src="js/render.js"></script>
 <script src="js/input.js"></script>
 <script src="js/main.js"></script>
+
 </body>
 </html>
