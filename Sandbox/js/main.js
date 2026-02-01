@@ -1,3 +1,5 @@
+let isPaused = false;
+
 function resize() {
     canvas = document.getElementById('simCanvas');
     if (!canvas) return;
@@ -22,6 +24,38 @@ function init() {
     if (window.animId) cancelAnimationFrame(window.animId);
     window.animId = requestAnimationFrame(draw);
 }
+
+// --- SYSTEM FUNCTIONS ---
+
+function toggleUI() {
+    const ui = document.getElementById('ui-container');
+    ui.classList.toggle('minimized');
+    const btn = document.getElementById('ui-toggle');
+    // Change icon based on state
+    if(ui.classList.contains('minimized')) btn.innerText = "⬆️";
+    else btn.innerText = "⬇️";
+}
+
+function togglePause() {
+    isPaused = !isPaused;
+    const btn = document.getElementById('pauseBtn');
+    btn.innerText = isPaused ? "▶️" : "⏸️";
+    btn.style.background = isPaused ? "rgba(255, 215, 64, 0.2)" : "";
+}
+
+function clearSim() {
+    if(!cells) return;
+    // Fast clear
+    cells.fill(T.EMPTY);
+    pixels.fill(0xFF080808);
+    extra.fill(0);
+    temp.fill(22);
+}
+
+// Make functions global so HTML can see them
+window.toggleUI = toggleUI;
+window.togglePause = togglePause;
+window.clearSim = clearSim;
 
 // Boot
 init();

@@ -35,23 +35,20 @@ function genPal(r, g, b, varAmt) {
 }
 
 function draw() {
-    // 1. Render the pixels
     const ctx = document.getElementById('simCanvas').getContext('2d');
     ctx.putImageData(new ImageData(new Uint8ClampedArray(pixels.buffer), width, height), 0, 0);
     
-    // 2. Handle Mouse Input (Continuous Drawing)
     if (window.processInput) window.processInput();
 
-    // 3. Update Physics
-    update();
+    // ONLY UPDATE IF NOT PAUSED
+    if (!window.isPaused) {
+        update();
+    }
     
-    // 4. Update Stats
     frameCount++;
     const stats = document.getElementById('stats');
     if(stats && frameCount % 20 === 0 && mouse.y < height && mouse.x < width) {
         stats.innerText = `FPS: 60 | Temp: ${temp[mouse.y*width+mouse.x]}°C`;
     }
-    
-    // 5. Loop
     window.animId = requestAnimationFrame(draw);
 }

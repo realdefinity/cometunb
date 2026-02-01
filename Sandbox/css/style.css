@@ -1,8 +1,7 @@
 :root {
     --bg-color: #080808;
-    --glass-bg: rgba(30, 30, 35, 0.4);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shine: rgba(255, 255, 255, 0.05);
+    --glass-bg: rgba(20, 20, 25, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
     --accent: #00f2ff;
 }
 
@@ -22,127 +21,175 @@ canvas {
     image-rendering: pixelated;
 }
 
-/* --- LIQUID GLASS UI --- */
+/* --- UI CONTAINER & ANIMATION --- */
 #ui-container {
     position: absolute;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    width: 90%;
-    max-width: 800px;
+    width: auto;
+    max-width: 95%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
     pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 100;
 }
 
+/* Hidden State: Slide down */
+#ui-container.minimized {
+    transform: translateX(-50%) translateY(140px); /* Pushes bar off screen */
+}
+
+/* Toggle Button */
+#ui-toggle {
+    pointer-events: auto;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: rgba(255,255,255,0.7);
+    width: 40px;
+    height: 24px;
+    border-radius: 12px 12px 0 0;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: -1px; /* Connect to toolbar */
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+}
+
+#ui-toggle:hover {
+    background: rgba(255,255,255,0.15);
+    color: white;
+}
+
+/* Rotate arrow when hidden */
+#ui-container.minimized #ui-toggle {
+    transform: translateY(-50px) rotate(180deg); /* Move button up so it stays visible */
+    border-radius: 50%;
+    width: 40px; height: 40px;
+}
+
+/* --- TOOLBAR --- */
 #toolbar {
     pointer-events: auto;
     background: var(--glass-bg);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 10px 20px;
-    box-shadow: 
-        0 4px 30px rgba(0, 0, 0, 0.5),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 10px 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    align-items: center;
     gap: 8px;
-    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Hide scrollbar */
+#toolbar::-webkit-scrollbar { display: none; }
+
+.category-label {
+    display: none; /* Hide labels to save space, tooltips are enough */
+}
+
+.vr {
+    width: 1px;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+    margin: 0 5px;
 }
 
 .tool {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 22px;
+    font-size: 20px;
     transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid transparent;
     position: relative;
-    overflow: hidden;
+    flex-shrink: 0;
 }
 
 .tool:hover {
-    transform: translateY(-4px);
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.12);
 }
 
-.tool:active { transform: scale(0.95); }
+.tool:active { transform: scale(0.92); }
 
 .tool.active {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255,255,255,0.3);
-    box-shadow: 
-        0 0 20px rgba(255, 255, 255, 0.1),
-        inset 0 0 10px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
+/* Tooltip */
 .tool::before {
     content: attr(data-name);
     position: absolute;
-    top: -35px;
+    top: -40px;
     left: 50%;
     transform: translateX(-50%) translateY(10px);
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 4px 10px;
+    padding: 6px 12px;
     font-size: 12px;
-    border-radius: 6px;
+    border-radius: 8px;
     opacity: 0;
     pointer-events: none;
     transition: all 0.2s ease;
     white-space: nowrap;
-    font-weight: 500;
-    backdrop-filter: blur(4px);
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 .tool:hover::before { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 .cat-dot {
     position: absolute;
-    bottom: 4px;
+    bottom: 5px;
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    opacity: 0.7;
+    opacity: 0.6;
+    background-color: var(--dot);
 }
 
 .c-nature { color: #4caf50; --dot: #4caf50; }
 .c-liquid { color: #29b6f6; --dot: #29b6f6; }
 .c-fire { color: #ff5722; --dot: #ff5722; }
-.c-tech { color: #ffeb3b; --dot: #ffeb3b; }
-.c-solid { color: #9e9e9e; --dot: #9e9e9e; }
-
-.tool .cat-dot { background-color: var(--dot); }
+.c-solid { color: #bdbdbd; --dot: #bdbdbd; }
 
 #stats {
     position: absolute;
     top: 20px;
     left: 20px;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.5);
     font-family: monospace;
     font-size: 12px;
     pointer-events: none;
-    background: rgba(0,0,0,0.5);
-    padding: 5px 10px;
+    background: rgba(0,0,0,0.6);
+    padding: 6px 12px;
     border-radius: 8px;
+    backdrop-filter: blur(4px);
 }
 
 #info {
     position: absolute;
     top: 20px;
     right: 20px;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.5);
     text-align: right;
     font-size: 12px;
     pointer-events: none;
+    line-height: 1.5;
 }
