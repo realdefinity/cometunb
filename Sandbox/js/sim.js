@@ -67,6 +67,26 @@ function update() {
             const props = PROPS[type];
             if (!props) continue;
 
+            // Acid Logic
+            if (type === T.ACID) {
+                const nbs = [i+1, i-1, i+width, i-width];
+                for (let n of nbs) {
+                    if (n >= 0 && n < width * height) {
+                        const neighbor = cells[n];
+                        if (neighbor !== T.EMPTY && neighbor !== T.ACID && neighbor !== T.GLASS && neighbor !== T.SMOKE && neighbor !== T.FIRE) {
+                            if (Math.random() < 0.15) {
+                                setCell(n, T.SMOKE); // Dissolve neighbor into smoke
+                                // Chance for acid to be neutralized
+                                if (Math.random() < 0.2) {
+                                    setCell(i, T.SMOKE); 
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Fire/Lava Logic
             if (type === T.FIRE || type === T.LAVA) {
                 temp[i] += (type === T.FIRE ? 10 : 2);
