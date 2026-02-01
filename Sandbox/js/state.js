@@ -19,19 +19,20 @@ const PROPS = {
     [T.ACID]: { density: 6, state: 1, flow: 0.5 },
     [T.STEAM]: { density: -2, state: 2, life: 300, temp: 150 },
     [T.METAL]: { density: 100, state: 0 },
-    [T.WOOD]: { density: 20, state: 0, burn: 300, burnTo: T.FIRE },
-    [T.PLANT]: { density: 15, state: 0, burn: 200, burnTo: T.FIRE },
+    // Density 0 means it won't fall (Static)
+    [T.WOOD]: { density: 0, state: 0, burn: 300, burnTo: T.FIRE },
+    [T.PLANT]: { density: 0, state: 0, burn: 200, burnTo: T.FIRE },
+    [T.BATTERY]: { density: 0, state: 0 }, 
     [T.OIL]: { density: 4, state: 1, burn: 250, burnTo: T.FIRE },
-    [T.C4]: { density: 20, state: 0, burn: 1, explosive: true },
+    [T.C4]: { density: 0, state: 0, burn: 1, explosive: true }, // C4 should stick too
     [T.LAVA]: { density: 50, state: 1, flow: 0.1, temp: 1000 },
     [T.GUNPOWDER]: { density: 12, state: 0, loose: true, burn: 50, burnTo: T.FIRE },
-    [T.FUSE]: { density: 20, state: 0, burn: 280, burnTo: T.FIRE },
-    [T.GLASS]: { density: 100, state: 0 },
+    [T.FUSE]: { density: 0, state: 0, burn: 280, burnTo: T.FIRE },
+    [T.GLASS]: { density: 0, state: 0 }, // Glass usually shouldn't fall either
     [T.GAS]: { density: -1, state: 2, burn: 50, burnTo: T.FIRE },
     [T.SMOKE]: { density: -1, state: 2, life: 150 },
     [T.EMBER]: { density: 1, state: 0, loose: true, temp: 600, life: 100 }
 };
-
 // --- GLOBAL STATE ---
 let width, height;
 let cells, pixels, extra, temp;
