@@ -11,7 +11,7 @@ function initPalettes() {
         [T.SLIME]: p(100, 230, 100, 20),
         [T.ACID]: p(180, 255, 50, 20),
         [T.OIL]: p(50, 40, 20, 10),
-        [T.NITRO]: p(200, 255, 100, 30), // Bright Greenish
+        [T.NITRO]: p(200, 255, 100, 30), 
         
         [T.STONE]: p(120, 120, 130, 20),
         [T.BRICK]: p(180, 80, 60, 15),
@@ -23,7 +23,7 @@ function initPalettes() {
         [T.WOOD]: p(100, 70, 40, 15),
         [T.PLANT]: p(60, 200, 60, 30),
         [T.SPORE]: p(180, 200, 50, 50),
-        [T.VIRUS]: p(150, 0, 150, 40), // Purple infection
+        [T.VIRUS]: p(150, 0, 150, 40),
         
         [T.ICE]: p(180, 220, 255, 10),
         [T.SNOW]: p(240, 240, 255, 5),
@@ -41,7 +41,7 @@ function initPalettes() {
         [T.STEAM]: p(210, 220, 230, 10),
         [T.SMOKE]: p(120, 120, 120, 15),
         
-        [T.ANTIMATTER]: p(20, 0, 40, 5) // Dark void
+        [T.ANTIMATTER]: p(20, 0, 40, 5)
     };
 }
 
@@ -58,20 +58,26 @@ function genPal(r, g, b, varAmt) {
 }
 
 function draw() {
-    const ctx = document.getElementById('simCanvas').getContext('2d');
+    const cvs = document.getElementById('simCanvas');
+    if(!cvs) { window.animId = requestAnimationFrame(draw); return; }
+    
+    const ctx = cvs.getContext('2d');
     ctx.putImageData(new ImageData(new Uint8ClampedArray(pixels.buffer), width, height), 0, 0);
     
+    // Process input (Drawing)
     if (window.processInput) window.processInput();
 
-    // ONLY UPDATE IF NOT PAUSED
-    if (!window.isPaused) {
+    // Update Simulation (if not paused)
+    if (!window.isPaused && window.update) {
         update();
     }
     
     frameCount++;
     const stats = document.getElementById('stats');
     if(stats && frameCount % 20 === 0 && mouse.y < height && mouse.x < width) {
-        stats.innerText = `FPS: 60 | Temp: ${temp[mouse.y*width+mouse.x]}°C`;
+        // Safe access to temp
+        const tVal = temp ? temp[mouse.y*width+mouse.x] : 0;
+        stats.innerText = `FPS: 60 | Temp: ${tVal}°C`;
     }
     window.animId = requestAnimationFrame(draw);
 }
