@@ -183,82 +183,62 @@ function moveSolid(i, x, props) {
 
 function moveLiquid(i, x, props, leftFirst) {
     const down = i + width;
-    
-    // 1. Gravity (Fall Down)
+
+    // 1. Gravity (Always Priority)
+    // If we can fall, we fall. Gravity doesn't care about left/right.
     if (canDisplace(down, props)) { 
         move(i, down); 
-        // Reset velocity when falling (gravity takes over)
-        extra[down] = 0; 
         return; 
     }
 
-    // 2. Momentum & Flow Logic
-    // We use extra[i] to store horizontal velocity.
-    // 0 = stationary
-    // 1 to 10 = Moving Left (1=Slow, 10=Fast)
-    // 20 to 30 = Moving Right (20=Slow, 30=Fast)
+    // 2. The Fix: Strict Directional Flow
+    // If the loop is scanning Left->Right, we can ONLY move Left (Safe Zone).
+    // If the loop is scanning Right->Left, we can ONLY move Right (Safe Zone).
+    // This mathematically guarantees no infinite sliding or teleporting.
+    const dir = leftFirst ? -1 : 1;
     
-    let vel = extra[i];
-    
-    // If stationary, pick a random direction to start flowing
-    if (vel === 0) {
-        vel = Math.random() < 0.5 ? 1 : 20; 
+    // Bounds check
+    if ((dir === -1 && x === 0) || (dir === 1 && x === width - 1)) return;
+
+    // 3. Flow & Viscosity
+    // Randomly skip movement for thicker liquids (slime/lava)
+    if (props.flow && Math.random() > props.flow) return;
+
+    // 4. Multi-Pixel Speed (Simulates Velocity)
+    // Instead of moving 1px, we check up to 4px ahead.
+    // This makes the water feel "fast" even though we restricted its direction.
+    let bestSpot = -1;
+    const maxSpeed = (props.flow || 1) === 1 ? 4 : 1; // Water = 4px, Slime = 1px
+
+    for (let r = 1; r <= maxSpeed; r++) {
+        const targetX = x + (dir * r);
+        if (targetX < 0 || targetX >= width) break;
+        
+        const targetI = i + (dir * r);
+        
+        // If we hit a wall, stop looking further
+        if (!canDisplace(targetI, props)) {
+            // 5. WAVE / SPLASH LOGIC
+            // If we hit a wall and we are water (fast), try to climb UP
+            if (maxSpeed > 1 && r === 1) {
+                const upSide = i - width + dir;
+                // Only climb if space above us is empty (don't tunnel through ceilings)
+                if (canDisplace(upSide, props) && cells[i-width] === T.EMPTY) {
+                    move(i, upSide); // Splash up
+                    return;
+                }
+            }
+            break; 
+        }
+        
+        // If we found a valid spot, remember it and keep checking further
+        // (We want to move to the furthest open spot to flatten out fast)
+        bestSpot = targetI;
     }
 
-    // Decode velocity
-    const movingRight = vel >= 20;
-    const speed = movingRight ? (vel - 20) : vel;
-    const dir = movingRight ? 1 : -1;
-    
-    // Calculate targets
-    const side = i + dir;
-    const targetX = x + dir;
-
-    // BOUNDS CHECK
-    if (targetX >= 0 && targetX < width) {
-        
-        // A. TRY MOVE SIDEWAYS (Flow)
-        if (canDisplace(side, props)) {
-            // "Teleport Fix": To prevent water zooming infinitely in one frame:
-            // If we are scanning L->R, moving Right is "risky" (teleport).
-            // We add a chance check to slow it down to realistic speeds.
-            const isRisky = (leftFirst && dir === 1) || (!leftFirst && dir === -1);
-            
-            if (!isRisky || Math.random() < 0.4) {
-                move(i, side);
-                // Accelerate slightly (max speed 8)
-                const newSpeed = Math.min(speed + 1, 8);
-                extra[side] = movingRight ? (20 + newSpeed) : newSpeed;
-                return;
-            }
-        } 
-        
-        // B. SPLASH / WAVE (Hit a wall)
-        // If we are moving fast and hit a wall, try to jump UP-DIAGONAL
-        else if (speed > 4) {
-            const upSide = i - width + dir; // Diagonal Up
-            
-            // Only splash if the space above is empty (don't tunnel through ceilings)
-            if (canDisplace(upSide, props) && cells[i-width] === T.EMPTY) {
-                move(i, upSide);
-                // Lose some energy on splash
-                const dampSpeed = Math.floor(speed / 2);
-                extra[upSide] = movingRight ? (20 + dampSpeed) : dampSpeed;
-                return;
-            }
-            
-            // If we can't splash, BOUNCE off the wall
-            // Reverse direction, cut speed in half
-            const bounceSpeed = Math.floor(speed / 2);
-            extra[i] = movingRight ? bounceSpeed : (20 + bounceSpeed);
-        }
-        else {
-            // Hit wall slowly? Just stop.
-            extra[i] = 0;
-        }
-    } else {
-        // Hit edge of screen
-        extra[i] = 0;
+    // Apply the move
+    if (bestSpot !== -1) {
+        move(i, bestSpot);
     }
 }
 
