@@ -227,17 +227,18 @@ function update() {
                 }
             }
             else if (props.state === 2) {
-                const up = i - width;
-                if (canDisplace(up)) { doMove(up); continue; }
-                
-                const ul = up - 1, ur = up + 1;
-                if (x > 0 && canDisplace(ul)) { doMove(ul); continue; }
-                if (x < width - 1 && canDisplace(ur)) { doMove(ur); continue; }
-                
-                const left = i - 1, right = i + 1;
-                if (x > 0 && canDisplace(left)) { doMove(left); continue; }
-                if (x < width - 1 && canDisplace(right)) { doMove(right); continue; }
-
+                if (Math.random() < 0.3) {
+                    const up = i - width;
+                    if (canDisplace(up)) { doMove(up); continue; }
+                    
+                    const ul = up - 1, ur = up + 1;
+                    if (x > 0 && canDisplace(ul)) { doMove(ul); continue; }
+                    if (x < width - 1 && canDisplace(ur)) { doMove(ur); continue; }
+                    
+                    const left = i - 1, right = i + 1;
+                    if (x > 0 && canDisplace(left)) { doMove(left); continue; }
+                    if (x < width - 1 && canDisplace(right)) { doMove(right); continue; }
+                }
                 if (props.life) {
                     extra[i]--;
                     if (extra[i] <= 0) setCell(i, T.EMPTY);
