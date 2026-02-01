@@ -1,3 +1,5 @@
+// --- CORE SIMULATION ---
+
 function setCell(i, type) {
     if (i < 0 || i >= width * height) return;
     cells[i] = type;
@@ -50,17 +52,20 @@ function canDisplace(i, sourceProps) {
     if (t === T.EMPTY) return true;
     const p = PROPS[t];
     if (!p) return false;
+    // Solid beats Liquid/Gas
     if (sourceProps.state === 0 && p.state !== 0) return true;
+    // Liquid beats Gas
     if (sourceProps.state === 1 && p.state === 2) return true;
-    if (sourceProps.state === sourceProps.state && sourceProps.density > p.density) return true;
+    // Heavier beats Lighter (same state)
+    if (sourceProps.state === p.state && sourceProps.density > p.density) return true;
     return false;
 }
 
-// --- BEHAVIOR FUNCTIONS ---
+// --- BEHAVIORS ---
 
 function processThermodynamics(i) {
     if (temp[i] === 22) return;
-    temp[i] += (22 - temp[i]) * 0.1;
+    temp[i] += (22 - temp[i]) * 0.1; // Return to ambient
     const nDir = [i-1, i+1, i-width, i+width][Math.floor(Math.random()*4)];
     if (nDir >= 0 && nDir < width*height) {
         const diff = (temp[i] - temp[nDir]) * 0.2;
@@ -160,7 +165,7 @@ function processAntimatter(i) {
     }
 }
 
-// --- MOVEMENT FUNCTIONS ---
+// --- PHYSICS MOVEMENT ---
 
 function moveSolid(i, x, props) {
     const down = i + width;
@@ -178,21 +183,41 @@ function moveSolid(i, x, props) {
 
 function moveLiquid(i, x, props, leftFirst) {
     const down = i + width;
+    // 1. Gravity First
     if (canDisplace(down, props)) { move(i, down); return; }
 
-    if (props.flow && Math.random() > props.flow) return;
-
+    // 2. Diagonals (If blocked, try to slide down slope)
     const rDir = Math.random() < 0.5 ? -1 : 1;
     const d1 = i + width + rDir;
     const d2 = i + width - rDir;
     
+    // Check random diagonal first to prevent stacking bias
     if (x + rDir >= 0 && x + rDir < width && canDisplace(d1, props)) { move(i, d1); return; }
     if (x - rDir >= 0 && x - rDir < width && canDisplace(d2, props)) { move(i, d2); return; }
 
-    const safeSide = leftFirst ? (i - 1) : (i + 1);
-    const canSlide = (leftFirst && x > 0) || (!leftFirst && x < width - 1);
+    // 3. Horizontal Equalization (The Fix)
+    // We only move in the "Safe Direction" (behind the scan) to prevent teleporting.
+    // But we scan AHEAD in that direction to allow "fast" flow.
     
-    if (canSlide && canDisplace(safeSide, props)) move(i, safeSide);
+    const flowSpeed = (props.flow || 1) === 1 ? 5 : 1; // Water flows 5px, Slime 1px
+    const dir = leftFirst ? -1 : 1; // Left on L->R scan, Right on R->L scan
+    
+    // Try to find the furthest empty spot in safe direction
+    let target = -1;
+    for(let r = 1; r <= flowSpeed; r++) {
+        const checkX = x + (dir * r);
+        if(checkX < 0 || checkX >= width) break;
+        
+        const checkIdx = i + (dir * r);
+        if(canDisplace(checkIdx, props)) {
+            target = checkIdx;
+        } else {
+            // Blocked by wall/solid, stop looking
+            break; 
+        }
+    }
+    
+    if (target !== -1) move(i, target);
 }
 
 function moveGas(i, x, props, leftFirst) {
@@ -216,14 +241,17 @@ function moveGas(i, x, props, leftFirst) {
     }
 }
 
-// --- MAIN LOOP ---
+// --- UPDATE LOOP ---
 
 function update() {
     if (!cells) return;
+    
+    // Toggle scan direction every frame
     const leftFirst = frameCount % 2 === 0;
 
     for (let y = height - 1; y >= 0; y--) {
         for (let iX = 0; iX < width; iX++) {
+            // Correctly iterate 0->width OR width->0
             const x = leftFirst ? iX : (width - 1 - iX);
             const i = y * width + x;
             const type = cells[i];
@@ -231,25 +259,26 @@ function update() {
             if (type === T.EMPTY) continue;
             const props = PROPS[type];
 
-            // 1. General Physics
+            // 1. Environment
             processThermodynamics(i);
             
             if (props) {
                 processPhaseChanges(i, type, props);
                 
-                // 2. Specific Behaviors
+                // 2. Specific Interactions
                 if (type === T.FIRE || type === T.LAVA || type === T.THERMITE) processFire(i, type);
                 else if (type === T.PLANT || type === T.SPORE) processPlant(i, type);
                 else if (type === T.VIRUS) processVirus(i);
                 else if (type === T.ACID) processAcid(i);
                 else if (type === T.ANTIMATTER) processAntimatter(i);
 
+                // Heat Color
                 if (type === T.METAL || type === T.STONE || type === T.BRICK) {
                     if (temp[i] > 300) pixels[i] = 0xFF0000FF;
                     else if (temp[i] > 100 && frameCount%10===0) pixels[i] = PALETTES[type][0];
                 }
 
-                // 3. Movement Physics
+                // 3. Physics Movement
                 if (props.state === 0 && props.density > 0) moveSolid(i, x, props);
                 else if (props.state === 1) moveLiquid(i, x, props, leftFirst);
                 else if (props.state === 2) moveGas(i, x, props, leftFirst);
