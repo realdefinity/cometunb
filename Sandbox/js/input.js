@@ -7,7 +7,6 @@ const updateMouse = (e) => {
     const cx = e.touches ? e.touches[0].clientX : e.clientX;
     const cy = e.touches ? e.touches[0].clientY : e.clientY;
     
-    // Update coordinates, but don't draw yet
     mouse.x = Math.floor((cx - rect.left) / (rect.width) * width);
     mouse.y = Math.floor((cy - rect.top) / (rect.height) * height);
 };
@@ -20,60 +19,47 @@ const handleStart = (e) => {
         mouse.down = true; // Touch
     }
     updateMouse(e);
-    // Snap 'last' position to current so we don't draw a line from the previous stroke
     mouse.lastX = mouse.x;
     mouse.lastY = mouse.y;
 };
 
 const handleMove = (e) => { 
     updateMouse(e); 
-    // We don't spawn here anymore. The game loop handles it via processInput()
 };
 
 const handleEnd = () => { mouse.down = false; mouse.right = false; };
 
-// --- MAIN INPUT LOOP (Called by render.js) ---
+// --- MAIN INPUT LOOP ---
 window.processInput = function() {
     if (mouse.down || mouse.right) {
-        // Draw line from previous frame's position to current position
-        // This handles both "standing still" (distance 0) and "moving fast" (interpolation)
         drawLine(mouse.lastX, mouse.lastY, mouse.x, mouse.y);
     }
-    
-    // Update history
     mouse.lastX = mouse.x;
     mouse.lastY = mouse.y;
 };
 
-// --- DRAWING LOGIC ---
+// --- DRAWING LOGIC (Bresenham) ---
 function drawLine(x0, y0, x1, y1) {
     const dx = Math.abs(x1 - x0);
     const dy = Math.abs(y1 - y0);
     const sx = (x0 < x1) ? 1 : -1;
     const sy = (y0 < y1) ? 1 : -1;
     let err = dx - dy;
-
-    // Safety Loop Break (max 1000 pixels) to prevent freezing on glitches
     let safety = 0; 
 
     while (true) {
         spawn(x0, y0);
         if (x0 === x1 && y0 === y1) break;
-        
         const e2 = 2 * err;
         if (e2 > -dy) { err -= dy; x0 += sx; }
         if (e2 < dx) { err += dx; y0 += sy; }
-        
         safety++;
         if(safety > 1000) break;
     }
 }
 
 function spawn(mx, my) {
-    // Determine Type
     const type = mouse.right ? T.EMPTY : currentTool;
-    
-    // Brush Size
     const r = brushSize; 
     const rSq = r * r;
 
@@ -83,27 +69,16 @@ function spawn(mx, my) {
                 const px = mx + x;
                 const py = my + y;
                 
-                // Bounds Check
                 if (px >= 0 && px < width && py >= 0 && py < height) {
                     const i = py * width + px;
-                    
-                    // Optimization: Don't replace a pixel with itself
                     if (cells[i] === type) continue;
 
-                    // Probability / Noise (Makes sand/liquids feel natural)
-                    // We reduce noise for Stone/C4/Glass/Empty so they draw solid
                     const isSolidDraw = (type === T.STONE || type === T.C4 || type === T.GLASS || type === T.EMPTY);
                     if (!isSolidDraw && Math.random() < 0.1) continue;
 
-                    // Overwrite Logic
                     const targetProp = PROPS[cells[i]];
                     const isTargetSolid = targetProp && targetProp.state === 0;
                     
-                    // We can overwrite if:
-                    // 1. We are erasing (type is EMPTY)
-                    // 2. The target is EMPTY
-                    // 3. The target is NOT solid (we can paint over water/gas)
-                    // 4. We are painting a solid (Solids force their way in)
                     if (type === T.EMPTY || cells[i] === T.EMPTY || !isTargetSolid || (PROPS[type] && PROPS[type].state === 0)) {
                         setCell(i, type);
                     }
@@ -113,18 +88,52 @@ function spawn(mx, my) {
     }
 }
 
+// --- UI LOGIC ---
+
+// 1. Tool Selection (Fixed)
 function setTool(id) {
     currentTool = id;
     document.querySelectorAll('.tool').forEach(e => e.classList.remove('active'));
-    const btn = document.querySelector(`.tool[onclick*="${id}"]`);
+    // Strict Selector using data-id
+    const btn = document.querySelector(`.tool[data-id="${id}"]`);
     if(btn) btn.classList.add('active');
 }
 
-// --- BINDINGS ---
+// 2. Tooltip Logic
+const tooltip = document.getElementById('global-tooltip');
+
+const showTooltip = (e) => {
+    const name = e.target.getAttribute('data-name');
+    if(!name) return;
+    
+    // Get button position
+    const rect = e.target.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const topY = rect.top;
+
+    tooltip.innerText = name;
+    tooltip.style.left = `${centerX}px`;
+    tooltip.style.top = `${topY}px`;
+    tooltip.classList.add('visible');
+};
+
+const hideTooltip = () => {
+    tooltip.classList.remove('visible');
+};
+
+// Bind Tooltip Events
+document.querySelectorAll('.tool').forEach(t => {
+    t.addEventListener('mouseenter', showTooltip);
+    t.addEventListener('mouseleave', hideTooltip);
+    // Also update on click in case layout shifts
+    t.addEventListener('click', showTooltip); 
+});
+
+// Bind Input Events
 window.addEventListener('mousedown', handleStart);
 window.addEventListener('mousemove', handleMove);
 window.addEventListener('mouseup', handleEnd);
-window.addEventListener('blur', handleEnd); // Stop drawing if tab loses focus
+window.addEventListener('blur', handleEnd);
 window.addEventListener('touchstart', handleStart, {passive:false});
 window.addEventListener('touchmove', handleMove, {passive:false});
 window.addEventListener('touchend', handleEnd);
