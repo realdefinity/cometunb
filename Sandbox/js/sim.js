@@ -183,41 +183,83 @@ function moveSolid(i, x, props) {
 
 function moveLiquid(i, x, props, leftFirst) {
     const down = i + width;
-    // 1. Gravity First
-    if (canDisplace(down, props)) { move(i, down); return; }
-
-    // 2. Diagonals (If blocked, try to slide down slope)
-    const rDir = Math.random() < 0.5 ? -1 : 1;
-    const d1 = i + width + rDir;
-    const d2 = i + width - rDir;
     
-    // Check random diagonal first to prevent stacking bias
-    if (x + rDir >= 0 && x + rDir < width && canDisplace(d1, props)) { move(i, d1); return; }
-    if (x - rDir >= 0 && x - rDir < width && canDisplace(d2, props)) { move(i, d2); return; }
-
-    // 3. Horizontal Equalization (The Fix)
-    // We only move in the "Safe Direction" (behind the scan) to prevent teleporting.
-    // But we scan AHEAD in that direction to allow "fast" flow.
-    
-    const flowSpeed = (props.flow || 1) === 1 ? 5 : 1; // Water flows 5px, Slime 1px
-    const dir = leftFirst ? -1 : 1; // Left on L->R scan, Right on R->L scan
-    
-    // Try to find the furthest empty spot in safe direction
-    let target = -1;
-    for(let r = 1; r <= flowSpeed; r++) {
-        const checkX = x + (dir * r);
-        if(checkX < 0 || checkX >= width) break;
-        
-        const checkIdx = i + (dir * r);
-        if(canDisplace(checkIdx, props)) {
-            target = checkIdx;
-        } else {
-            // Blocked by wall/solid, stop looking
-            break; 
-        }
+    // 1. Gravity (Fall Down)
+    if (canDisplace(down, props)) { 
+        move(i, down); 
+        // Reset velocity when falling (gravity takes over)
+        extra[down] = 0; 
+        return; 
     }
+
+    // 2. Momentum & Flow Logic
+    // We use extra[i] to store horizontal velocity.
+    // 0 = stationary
+    // 1 to 10 = Moving Left (1=Slow, 10=Fast)
+    // 20 to 30 = Moving Right (20=Slow, 30=Fast)
     
-    if (target !== -1) move(i, target);
+    let vel = extra[i];
+    
+    // If stationary, pick a random direction to start flowing
+    if (vel === 0) {
+        vel = Math.random() < 0.5 ? 1 : 20; 
+    }
+
+    // Decode velocity
+    const movingRight = vel >= 20;
+    const speed = movingRight ? (vel - 20) : vel;
+    const dir = movingRight ? 1 : -1;
+    
+    // Calculate targets
+    const side = i + dir;
+    const targetX = x + dir;
+
+    // BOUNDS CHECK
+    if (targetX >= 0 && targetX < width) {
+        
+        // A. TRY MOVE SIDEWAYS (Flow)
+        if (canDisplace(side, props)) {
+            // "Teleport Fix": To prevent water zooming infinitely in one frame:
+            // If we are scanning L->R, moving Right is "risky" (teleport).
+            // We add a chance check to slow it down to realistic speeds.
+            const isRisky = (leftFirst && dir === 1) || (!leftFirst && dir === -1);
+            
+            if (!isRisky || Math.random() < 0.4) {
+                move(i, side);
+                // Accelerate slightly (max speed 8)
+                const newSpeed = Math.min(speed + 1, 8);
+                extra[side] = movingRight ? (20 + newSpeed) : newSpeed;
+                return;
+            }
+        } 
+        
+        // B. SPLASH / WAVE (Hit a wall)
+        // If we are moving fast and hit a wall, try to jump UP-DIAGONAL
+        else if (speed > 4) {
+            const upSide = i - width + dir; // Diagonal Up
+            
+            // Only splash if the space above is empty (don't tunnel through ceilings)
+            if (canDisplace(upSide, props) && cells[i-width] === T.EMPTY) {
+                move(i, upSide);
+                // Lose some energy on splash
+                const dampSpeed = Math.floor(speed / 2);
+                extra[upSide] = movingRight ? (20 + dampSpeed) : dampSpeed;
+                return;
+            }
+            
+            // If we can't splash, BOUNCE off the wall
+            // Reverse direction, cut speed in half
+            const bounceSpeed = Math.floor(speed / 2);
+            extra[i] = movingRight ? bounceSpeed : (20 + bounceSpeed);
+        }
+        else {
+            // Hit wall slowly? Just stop.
+            extra[i] = 0;
+        }
+    } else {
+        // Hit edge of screen
+        extra[i] = 0;
+    }
 }
 
 function moveGas(i, x, props, leftFirst) {
