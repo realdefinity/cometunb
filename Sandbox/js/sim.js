@@ -57,8 +57,9 @@ function update() {
             if (type === T.EMPTY) continue;
 
             // --- THERMODYNAMICS ---
+            // Ambient cooling and heat diffusion
             if (temp[i] > 22) {
-                temp[i] -= 0.5;
+                temp[i] -= 0.5; 
                 const nDir = [i-1, i+1, i-width, i+width][Math.floor(Math.random()*4)];
                 if (nDir >= 0 && nDir < width*height && temp[i] > temp[nDir]) {
                     const diff = (temp[i] - temp[nDir]) * 0.15;
@@ -68,43 +69,80 @@ function update() {
 
             // --- ELEMENT LOGIC ---
             
-            // 1. PLANT GROWTH
-            if (type === T.PLANT) {
-                // Check neighbors for water to "drink"
-                if (Math.random() < 0.1) { // Growth tick rate
-                    const nbs = [i-width, i-1, i+1, i+width]; // Up, Left, Right, Down
-                    let drank = false;
+            // 1. FIRE & LAVA (The New Logic)
+            if (type === T.FIRE || type === T.LAVA) {
+                // A. ANIMATION (Flicker Effect)
+                // Re-roll the color every frame to make it look like blazing fire
+                if (Math.random() < 0.5) {
+                    const pal = PALETTES[type];
+                    pixels[i] = pal[Math.floor(Math.random() * pal.length)];
+                }
+
+                // B. HEAT GENERATION
+                temp[i] = Math.min(temp[i] + (type === T.FIRE ? 20 : 5), 2500);
+
+                // C. BURNING NEIGHBORS
+                // Check a random neighbor to ignite
+                const nbs = [i-1, i+1, i-width, i+width];
+                const rNb = nbs[Math.floor(Math.random() * nbs.length)];
+                
+                if (rNb >= 0 && rNb < width*height) {
+                    // Transfer Heat
+                    temp[rNb] += (type === T.FIRE ? 40 : 10);
                     
+                    const nt = cells[rNb];
+                    if (nt !== T.FIRE && nt !== T.EMPTY && nt !== T.SMOKE) {
+                        const nProp = PROPS[nt];
+                        // Check ignition threshold
+                        if (nProp && nProp.burn && temp[rNb] > nProp.burn) {
+                            if (nt === T.C4) explode(rNb);
+                            else if (nt === T.GUNPOWDER) setCell(rNb, T.FIRE);
+                            else {
+                                // Burn it!
+                                setCell(rNb, nProp.burnTo || T.FIRE);
+                                // Transfer some life to the new fire so it sustains
+                                extra[rNb] = (PROPS[T.FIRE].life || 10) + Math.random() * 20;
+                            }
+                        }
+                        // State Changes (Sand->Glass, Water->Steam)
+                        if (nt === T.SAND && temp[rNb] > 500) setCell(rNb, T.GLASS);
+                        if (nt === T.WATER && temp[rNb] > 100) setCell(rNb, T.STEAM);
+                    }
+                }
+
+                // D. LIFE CYCLE
+                if (type === T.FIRE) {
+                    // Random decay - some pixels last longer than others
+                    extra[i] -= Math.random(); 
+                    if (extra[i] <= 0) {
+                        // 40% chance to turn into Smoke, otherwise just disappear
+                        setCell(i, Math.random() < 0.4 ? T.SMOKE : T.EMPTY);
+                    }
+                }
+            }
+
+            // 2. PLANT GROWTH (Preserved)
+            if (type === T.PLANT) {
+                if (Math.random() < 0.1) {
+                    const nbs = [i-width, i-1, i+1, i+width];
+                    let drank = false;
                     for (let n of nbs) {
                         if (n >= 0 && n < width*height && cells[n] === T.WATER) {
-                            // Turn the water into plant immediately (Roots/Spreading)
-                            setCell(n, T.PLANT); 
-                            drank = true;
-                            // Only drink one pixel per tick per plant pixel
+                            setCell(n, T.PLANT); drank = true;
                             if(Math.random() < 0.5) break; 
                         }
                     }
-
-                    // If we drank (or randomly anyway), try to grow into empty air (Vines/Stems)
-                    // We need water nearby to support air-growth
                     if (drank || Math.random() < 0.02) {
-                        const up = i - width;
-                        const upL = i - width - 1;
-                        const upR = i - width + 1;
-                        const growOptions = [up, upL, upR, i-1, i+1];
+                        const growOptions = [i-width, i-width-1, i-width+1, i-1, i+1];
                         const target = growOptions[Math.floor(Math.random() * growOptions.length)];
-                        
                         if (target >= 0 && target < width*height && cells[target] === T.EMPTY) {
-                            // Only grow into air if we have a "water source" nearby or pure luck
-                            // Use a simple heat check or neighbor check to limit infinite growth?
-                            // For now, let's let them grow wild if water was consumed.
                             if (drank) setCell(target, T.PLANT);
                         }
                     }
                 }
             }
 
-            // 2. ACID LOGIC
+            // 3. ACID LOGIC (Preserved)
             if (type === T.ACID) {
                 const nbs = [i+1, i-1, i+width, i-width];
                 for (let n of nbs) {
@@ -119,33 +157,8 @@ function update() {
                     }
                 }
             }
-
-            // 3. FIRE / LAVA
-            if (type === T.FIRE || type === T.LAVA) {
-                const heat = type === T.FIRE ? 10 : 2;
-                temp[i] += heat;
-                const nbs = [i-1, i+1, i-width, i+width];
-                for(let n of nbs) {
-                    if (n >= 0 && n < width*height) {
-                        temp[n] += (type === T.FIRE ? 30 : 5);
-                        const nt = cells[n];
-                        if (PROPS[nt] && PROPS[nt].burn && temp[n] > PROPS[nt].burn) {
-                            if (nt === T.C4) explode(n);
-                            else if (nt === T.GUNPOWDER) setCell(n, T.FIRE);
-                            else if (Math.random() < 0.15) setCell(n, PROPS[nt].burnTo || T.FIRE);
-                        }
-                        if (nt === T.SAND && temp[n] > 500) setCell(n, T.GLASS);
-                        if (nt === T.WATER && temp[n] > 100) setCell(n, T.STEAM);
-                    }
-                }
-                if (type === T.FIRE) {
-                    extra[i]--;
-                    if (Math.random() < 0.05) setCell(i, T.SMOKE);
-                    if (extra[i] <= 0) setCell(i, T.EMPTY);
-                }
-            }
             
-            // Heat Color
+            // Heat Color for Metals/Stones
             if (type === T.METAL || type === T.STONE || type === T.GLASS) {
                 if (temp[i] > 300) pixels[i] = 0xFF0000FF;
                 else if (temp[i] > 100 && frameCount%10===0) pixels[i] = PALETTES[type][0];
@@ -166,7 +179,6 @@ function update() {
             };
 
             // 1. SOLIDS & LIQUIDS (Gravity Down)
-            // Note: density > 0 ensures plants/wood/glass (density 0) don't fall
             if (props.state !== 2 && props.density > 0) { 
                 const below = i + width;
                 if (canMoveTo(below)) {
@@ -181,7 +193,7 @@ function update() {
                         else if (canMoveTo(second)) { move(i, second); moved = true; }
                     }
                 }
-                if (!moved && props.state === 1) {
+                if (!moved && props.state === 1) { // Liquid flow
                     const rDir = Math.random() < 0.5;
                     const left = i - 1, right = i + 1;
                     const first = rDir ? left : right;
@@ -195,27 +207,36 @@ function update() {
             // 2. GASES (Gravity Up)
             else if (props.state === 2) { 
                 const above = i - width;
-                if (canMoveTo(above)) { move(i, above); moved = true; }
-                else {
-                    const rDir = Math.random() < 0.5;
-                    const al = above - 1, ar = above + 1;
-                    const first = rDir ? al : ar;
-                    const second = rDir ? ar : al;
-                    if (x > 0 && x < width - 1) {
-                        if (canMoveTo(first)) { move(i, first); moved = true; }
-                        else if (canMoveTo(second)) { move(i, second); moved = true; }
-                    }
-                    if (!moved) {
-                         const left = i - 1, right = i + 1;
-                         const sideFirst = rDir ? left : right;
-                         const sideSecond = rDir ? right : left;
-                         if (x > 0 && x < width -1) {
-                             if(canMoveTo(sideFirst)) move(i, sideFirst);
-                             else if(canMoveTo(sideSecond)) move(i, sideSecond);
-                         }
+                
+                // Fire Specific: Turbulence
+                // Fire sometimes moves side-to-side before going up, creating a "wavy" look
+                let gasMoved = false;
+                
+                if (type === T.FIRE && Math.random() < 0.3) {
+                     const rDir = Math.random() < 0.5;
+                     const s1 = i - 1, s2 = i + 1;
+                     const side = rDir ? s1 : s2;
+                     if(x > 0 && x < width-1 && canMoveTo(side)) {
+                         move(i, side); gasMoved = true;
+                     }
+                }
+
+                if (!gasMoved) {
+                    if (canMoveTo(above)) { move(i, above); }
+                    else {
+                        const rDir = Math.random() < 0.5;
+                        const al = above - 1, ar = above + 1;
+                        const first = rDir ? al : ar;
+                        const second = rDir ? ar : al;
+                        if (x > 0 && x < width - 1) {
+                            if (canMoveTo(first)) { move(i, first); }
+                            else if (canMoveTo(second)) { move(i, second); }
+                        }
                     }
                 }
-                if (props.life) {
+                
+                // Gas Life Cycle
+                if (props.life && type !== T.FIRE) { // Fire handles its own life above
                     extra[i]--;
                     if (extra[i] <= 0) setCell(i, T.EMPTY);
                 }
