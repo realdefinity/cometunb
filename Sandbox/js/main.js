@@ -1,6 +1,7 @@
 function resize() {
-    const canvas = document.getElementById('simCanvas');
+    canvas = document.getElementById('simCanvas');
     if (!canvas) return;
+    ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     
     width = Math.ceil(window.innerWidth / SCALE);
     height = Math.ceil(window.innerHeight / SCALE);

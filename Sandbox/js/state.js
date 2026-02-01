@@ -10,7 +10,6 @@ const T = {
 };
 
 // --- PROPERTIES ---
-// state: 0=Solid, 1=Liquid, 2=Gas
 const PROPS = {
     [T.EMPTY]: { density: 0, state: 2 },
     [T.SAND]: { density: 15, state: 0, loose: true },
@@ -40,3 +39,6 @@ let PALETTES = {};
 let frameCount = 0;
 let brushSize = 6;
 let currentTool = T.SAND;
+// Define global canvas and context variables here
+let canvas;
+let ctx;
