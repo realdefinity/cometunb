@@ -73,11 +73,16 @@ function onDrag(e) {
 
 function dragLoop() {
     if (!window.state.dragItem) return;
-    const rotX = Math.max(-20, Math.min(20, window.state.velocity.x * 1.5));
-    // const rotY = Math.max(-10, Math.min(10, -window.state.velocity.y * 1.5)); // Unused
-    window.state.dragItem.style.transform = `translate(-50%, -50%) rotate(${rotX}deg) scale(1.1)`;
-    window.state.velocity.x *= 0.8;
-    window.state.velocity.y *= 0.8;
+
+    const rotX = Math.max(-25, Math.min(25, window.state.velocity.x * 1.2));
+    const rotY = Math.max(-25, Math.min(25, window.state.velocity.y * 1.2));
+
+    window.state.dragItem.style.transform = 
+        `translate(-50%, -50%) perspective(800px) rotateY(${rotX}deg) rotateX(${-rotY}deg) scale(1.15)`;
+
+    window.state.velocity.x *= 0.85;
+    window.state.velocity.y *= 0.85;
+
     window.state.dragFrame = requestAnimationFrame(dragLoop);
 }
 
