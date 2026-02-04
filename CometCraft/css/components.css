@@ -131,3 +131,26 @@
 .particle { position: absolute; pointer-events: none; border-radius: 50%; z-index: 2000; }
 .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
 @keyframes shake { 10%, 90% { transform: translate3d(-1px, 1px, 0); } 20%, 80% { transform: translate3d(2px, -1px, 0); } 30%, 50%, 70% { transform: translate3d(-3px, 2px, 0); } 40%, 60% { transform: translate3d(3px, -2px, 0); } }
+
+/* --- MULTI-SELECT & HINTS --- */
+.selection-box {
+    position: absolute;
+    background: rgba(129, 140, 248, 0.15);
+    border: 1px solid rgba(129, 140, 248, 0.6);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 9999;
+    display: none; /* Hidden by default */
+}
+
+.element.selected {
+    box-shadow: 0 0 0 2px #818cf8, 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 100; /* Pop above others */
+}
+
+.element.hint {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 255, 255, 0.3) !important;
+    transform: translate(-50%, -50%) scale(1.1) !important;
+    z-index: 90;
+    transition: all 0.2s ease-out;
+}

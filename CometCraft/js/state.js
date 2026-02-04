@@ -1,4 +1,3 @@
-// Global State Management
 window.state = {
     starterItems: [
         { name: "Water", icon: "💧", date: 0 },
@@ -9,16 +8,17 @@ window.state = {
     discovered: [],
     sortMode: 'az',
     
-    // Canvas Physics
+    // Physics & Selection
+    selection: [], // Array of selected DOM elements
+    isSelecting: false,
+    selectionStart: { x: 0, y: 0 },
+    
     dragItem: null,
-    dragOffset: { x: 0, y: 0 },
-    velocity: { x: 0, y: 0 },
     lastMouse: { x: 0, y: 0 },
-    mergeTarget: null,
-    dragFrame: null
+    mergeTarget: null
 };
 
-// Initialize or Load
+// Initialize
 window.state.discovered = JSON.parse(localStorage.getItem('ic_cosmos_items')) || [...window.state.starterItems];
 
 window.saveGame = () => {
