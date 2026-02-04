@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Void Breaker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+    <div class="crt-overlay"></div>
+
+    <!-- HUD -->
+    <div id="ui-layer">
+        <div class="flex justify-between w-full items-start">
+            <!-- Stats -->
+            <div class="glass-panel" style="width: 260px;">
+                <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
+                    <span>Integrity</span>
+                    <span id="hp-text">100/100</span>
+                </div>
+                <div class="bar-container mb-3">
+                    <div id="health-bar" class="bar-fill bg-emerald-500" style="width: 100%"></div>
+                </div>
+                
+                <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
+                    <span>Level <span id="level-display" class="text-white">1</span></span>
+                </div>
+                <div class="bar-container">
+                    <div id="xp-bar" class="bar-fill bg-indigo-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Score -->
+            <div class="glass-panel flex flex-col items-end">
+                <div class="text-slate-400 text-xs font-bold uppercase">Score</div>
+                <div id="scoreDisplay" class="text-4xl font-bold text-white leading-none">0</div>
+                <div id="kill-streak" class="text-sm font-bold text-yellow-400 mt-1 h-4"></div>
+            </div>
+        </div>
+        
+        <!-- Boss Bar -->
+        <div id="boss-hud">
+            <div class="text-center text-red-500 font-bold tracking-[0.3em] mb-1 text-sm text-shadow">VOID TITAN DETECTED</div>
+            <div class="boss-bar-bg"><div id="boss-hp-bar" class="boss-bar-fill"></div></div>
+        </div>
+
+        <div id="ability-display">
+            <div class="z-10">DASH</div>
+            <div class="z-10 text-[10px] text-slate-400 mt-1">SPACE</div>
+            <div id="dash-cooldown" class="cooldown-overlay"></div>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="start-screen" class="glass-dark">
+        <div class="currency-badge">
+            <span class="text-slate-400 mr-1">$</span><span id="menu-credits">0</span>
+        </div>
+
+        <div class="scroll-content">
+            <h1 class="text-7xl mb-1 mt-8">VOID BREAKER</h1>
+            <p class="text-slate-400 mb-10 text-xl tracking-widest font-light">ARSENAL</p>
+            
+            <div id="weapon-grid" class="weapon-grid">
+                <!-- Generated via JS -->
+            </div>
+
+            <button id="start-btn" class="modern-btn">Start Mission</button>
+            <div class="text-xs text-slate-500 mt-4">v2.1 Titan Protocol</div>
+        </div>
+    </div>
+
+    <!-- Upgrade Screen -->
+    <div id="upgrade-screen" class="hidden">
+        <h2 class="text-6xl font-bold text-white mb-2 tracking-tighter">SYSTEM UPGRADE</h2>
+        <p class="text-slate-400 mb-10 text-lg">Select Augmentation</p>
+        <div id="upgrade-container" class="upgrade-grid">
+            <!-- Generated via JS -->
+        </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="game-over-screen" class="hidden glass-dark">
+        <h2 class="text-6xl font-bold text-red-500 mb-4 tracking-tighter">CRITICAL FAILURE</h2>
+        <div class="flex gap-8 mt-4 bg-black/40 p-8 rounded-2xl border border-white/5">
+            <div class="text-center">
+                <div class="text-sm text-slate-400 mb-2 uppercase tracking-widest">Score</div>
+                <div id="final-score" class="text-5xl font-mono font-bold text-white">0</div>
+            </div>
+            <div class="w-px bg-white/10"></div>
+            <div class="text-center">
+                <div class="text-sm text-yellow-500 mb-2 uppercase tracking-widest">Credits</div>
+                <div id="earned-credits" class="text-5xl font-mono font-bold text-yellow-400">+0</div>
+            </div>
+        </div>
+        <button id="restart-btn" class="modern-btn">Return to Base</button>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls">
+        <div id="stick-left" class="joystick-zone"><div class="joystick-knob"></div></div>
+        <div id="stick-right" class="joystick-zone"><div class="joystick-knob"></div></div>
+        <div id="mobile-dash-btn">DASH</div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
