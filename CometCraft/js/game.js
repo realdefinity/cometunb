@@ -132,28 +132,44 @@ function triggerMerge(el1, el2) {
     const key = [n1, n2].sort().join('+');
     const result = window.recipes[key];
 
+    // 1. Calculate Center Point
     const r1 = el1.getBoundingClientRect();
+    const r2 = el2.getBoundingClientRect();
     const cRect = canvas.getBoundingClientRect();
-    const midX = (r1.left - cRect.left) + r1.width / 2; // Approximate mid for effect
-    const midY = (r1.top - cRect.top) + r1.height / 2;
+    const midX = ((r1.left + r2.left) / 2 - cRect.left) + r1.width / 2;
+    const midY = ((r1.top + r2.top) / 2 - cRect.top) + r1.height / 2;
 
-    el1.style.pointerEvents = 'none';
-    el2.style.pointerEvents = 'none';
-    el1.style.transition = el2.style.transition = "all 0.1s ease-out";
+    // 2. Lock Elements & Move to Center
+    el1.style.pointerEvents = 'none'; el2.style.pointerEvents = 'none';
+    el1.style.transition = el2.style.transition = "left 0.3s ease-in, top 0.3s ease-in";
     el1.style.left = el2.style.left = midX + 'px';
     el1.style.top = el2.style.top = midY + 'px';
-    el1.style.transform = "translate(-50%, -50%) scale(0.9)";
 
+    // 3. Play "Vortex" Animation (Spin & Shrink)
+    const anim = [
+        { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
+        { transform: 'translate(-50%, -50%) scale(0.1) rotate(180deg)', opacity: 0.5 }
+    ];
+    const timing = { duration: 300, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+    
+    el1.animate(anim, timing);
+    el2.animate(anim, timing);
+
+    // 4. Resolve Match
     setTimeout(() => {
-        el1.remove();
-        el2.remove();
+        el1.remove(); el2.remove();
+        
         if (result) {
-            // SUCCESS
+            // SUCCESS: Flash + Screen Shake + Particles
             canvas.classList.add('shake');
             setTimeout(() => canvas.classList.remove('shake'), 300);
-            explode(midX, midY, '#818cf8', 30, 100);
-            spawn(result.name, result.icon, midX, midY, true);
+            
+            window.explode(midX, midY, '#ffffff', 20, 80); // White flash
+            window.explode(midX, midY, '#818cf8', 40, 150); // Color explosion
+            
+            window.spawn(result.name, result.icon, midX, midY, true);
 
+            // Save if new
             if (!window.state.discovered.some(d => d.name === result.name)) {
                 window.state.discovered.push({ ...result, date: Date.now() });
                 window.saveGame();
@@ -161,12 +177,12 @@ function triggerMerge(el1, el2) {
                 window.showModal(result);
             }
         } else {
-            // FAIL
-            explode(midX, midY, '#64748b', 15, 60);
-            spawn(n1, el1.dataset.icon, midX - 40, midY, true);
-            spawn(n2, el2.dataset.icon, midX + 40, midY, true);
+            // FAILURE: Grey Puff + Bounce Back
+            window.explode(midX, midY, '#94a3b8', 15, 60);
+            window.spawn(n1, el1.dataset.icon, midX - 35, midY, true);
+            window.spawn(n2, el2.dataset.icon, midX + 35, midY, true);
         }
-    }, 120);
+    }, 300);
 }
 
 // FX: Explode
@@ -175,7 +191,7 @@ window.explode = (x, y, color, count, spread) => {
         const p = document.createElement('div');
         p.className = 'particle';
         p.style.backgroundColor = color;
-        p.style.width = Math.random() * 6 + 3 + 'px';
+        p.style.width = Math.random() * 10 + 4 + 'px';
         p.style.height = p.style.width;
         p.style.left = x + 'px';
         p.style.top = y + 'px';
