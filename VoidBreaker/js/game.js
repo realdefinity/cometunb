@@ -111,10 +111,39 @@ window.Game = {
 
         this.enemies = this.enemies.filter(e => { e.update(); e.draw(this.ctx); return !e.marked; });
         
+        // --- BULLET LOGIC FIX ---
         this.bullets = this.bullets.filter(b => { 
             b.update(); b.draw(this.ctx);
-            // Logic for collisions inside update/loop is cleaner, but keeping it inside filter for speed
-            // Collision logic handled in bullet class for self-containment in this structure
+            
+            // Standard Bullet Collision
+            if(b.life > 0 && b.x > 0 && b.x < this.width && b.y > 0 && b.y < this.height && !b.ricochet) {
+                for(let e of this.enemies) {
+                    if(b.hitList.includes(e.id)) continue;
+                    if(Math.hypot(b.x - e.x, b.y - e.y) < e.r + 5) {
+                        const isCrit = Math.random() < this.player.critChance;
+                        const dmg = isCrit ? b.damage * this.player.critMult : b.damage;
+                        e.takeDamage(dmg, isCrit);
+                        b.hitList.push(e.id);
+                        this.createExplosion(b.x, b.y, 3, b.color);
+                        if(b.pierce <= 0) { b.life = 0; break; }
+                        b.pierce--;
+                    }
+                }
+            }
+            // Ricochet Bullet Collision
+            else if (b.ricochet && b.life > 0) {
+                for(let e of this.enemies) {
+                    if(b.hitList.includes(e.id)) continue;
+                    if(Math.hypot(b.x - e.x, b.y - e.y) < e.r + 5) {
+                        e.takeDamage(b.damage, false);
+                        b.hitList.push(e.id);
+                        this.createExplosion(b.x, b.y, 3, b.color);
+                        b.life = 0; 
+                        break;
+                    }
+                }
+            }
+            
             return b.life > 0;
         });
         
@@ -411,7 +440,7 @@ class Enemy {
 
         if(dist < this.r + 15) {
             window.Game.player.takeDamage(10);
-            if(this.type !== 'tank' && this.type !== 'boss') this.takeDamage(999, false);
+            // COLLISION DAMAGE REMOVED TO PREVENT INSTA-KILL
         }
     }
 
