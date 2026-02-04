@@ -17,6 +17,7 @@ window.Game = {
     mouseX: 0,
     shakesLeft: window.SETTINGS.maxShakes,
     time: 0,
+    isImmersive: true, // Default to Fullscreen
     
     particles: [],
     popups: [],
@@ -28,6 +29,9 @@ window.Game = {
         
         const root = document.getElementById('game-root');
         
+        // Ensure immersive mode by default
+        if(this.isImmersive) root.classList.add('immersive');
+
         const moveHandler = (e) => {
             if (this.state !== 'PLAYING') return;
             const rect = root.getBoundingClientRect();
@@ -45,12 +49,12 @@ window.Game = {
         root.addEventListener('touchmove', (e) => { e.preventDefault(); moveHandler(e); }, { passive: false });
 
         const dropHandler = (e) => {
-            if (e.target.closest('button')) return;
+            if (e.target.closest('button') || e.target.closest('.hud-icon')) return;
             this.drop();
         };
         root.addEventListener('mousedown', dropHandler);
         root.addEventListener('touchstart', (e) => {
-            if(!e.target.closest('button')) e.preventDefault();
+            if(!e.target.closest('button') && !e.target.closest('.hud-icon')) e.preventDefault();
             dropHandler(e);
         }, { passive: false });
 
@@ -61,8 +65,24 @@ window.Game = {
         Events.on(window.engine, 'collisionStart', (e) => this.handleCollisions(e));
         Events.on(window.engine, 'beforeUpdate', () => this.updateBodies());
         
-        // Start Render Loop
         requestAnimationFrame(window.loop);
+    },
+
+    toggleView() {
+        this.isImmersive = !this.isImmersive;
+        const root = document.getElementById('game-root');
+        const icon = document.getElementById('viewIcon');
+        
+        if(this.isImmersive) {
+            root.classList.add('immersive');
+            icon.innerHTML = '🔲'; // Icon for "Windowed"
+        } else {
+            root.classList.remove('immersive');
+            icon.innerHTML = '🖥️'; // Icon for "Fullscreen"
+        }
+        
+        // Slight delay to let CSS transition finish before resizing physics bounds
+        setTimeout(() => this.resize(), 100);
     },
 
     resize() {
@@ -73,14 +93,22 @@ window.Game = {
         canvas.width = this.width;
         canvas.height = this.height;
 
+        // Rebuild Walls (preserve orbs if playing)
+        const bodies = Composite.allBodies(window.engine.world);
+        const orbs = bodies.filter(b => !b.isStatic);
+        
         World.clear(window.engine.world);
         Engine.clear(window.engine);
 
+        // Add Orbs back
+        World.add(window.engine.world, orbs);
+
         const thick = 200;
-        const floorOffset = 110;
+        // Floor needs to be slightly higher in immersive mode to avoid being cut off
+        const floorOffset = this.isImmersive ? 40 : 110; 
         
         const walls = [
-            Bodies.rectangle(this.width/2, this.height - floorOffset + thick/2, this.width, thick, { isStatic: true, friction: 1, label: 'ground' }),
+            Bodies.rectangle(this.width/2, this.height + thick/2 - floorOffset, this.width, thick, { isStatic: true, friction: 1, label: 'ground' }),
             Bodies.rectangle(-thick/2, this.height/2, thick, this.height*4, { isStatic: true, friction: 0 }),
             Bodies.rectangle(this.width+thick/2, this.height/2, thick, this.height*4, { isStatic: true, friction: 0 })
         ];
@@ -111,6 +139,11 @@ window.Game = {
         this.particles = [];
         this.popups = [];
         this.shockwaves = [];
+        
+        // Clear old orbs
+        World.clear(window.engine.world);
+        Engine.clear(window.engine);
+        this.resize(); // Re-add walls
     },
 
     drop() {
@@ -123,14 +156,10 @@ window.Game = {
         const body = Bodies.circle(x, window.SETTINGS.spawnY, r, {
             restitution: window.SETTINGS.restitution,
             friction: window.SETTINGS.friction,
-            frictionAir: window.SETTINGS.frictionAir,
-            frictionStatic: window.SETTINGS.frictionStatic,
             density: 0.002 * (this.currentIdx + 1),
             planetIdx: this.currentIdx,
-            scale: 1,
-            scaleVelocity: 0,
-            squash: 1,
-            squashVelocity: 0,
+            scale: 1, scaleVelocity: 0,
+            squash: 1, squashVelocity: 0,
             flash: 0
         });
         
@@ -152,9 +181,9 @@ window.Game = {
         
         Composite.allBodies(window.engine.world).forEach(b => {
             if (!b.isStatic) {
-                const force = 0.06 * b.mass;
-                Body.applyForce(b, b.position, { x: (Math.random() - 0.5) * force, y: -force * 1.5 });
-                b.squashVelocity = -0.15;
+                const force = 0.08 * b.mass; // Stronger shake
+                Body.applyForce(b, b.position, { x: (Math.random() - 0.5) * force, y: -force * 1.8 });
+                b.squashVelocity = -0.2; // Visual Squish
             }
         });
         
@@ -169,10 +198,12 @@ window.Game = {
         for (let i = 0; i < pairs.length; i++) {
             const { bodyA, bodyB } = pairs[i];
             
+            // Jelliness on impact
             const speed = Vector.magnitude(Vector.sub(bodyA.velocity, bodyB.velocity));
-            if (speed > 1.5) {
-                if(!bodyA.isStatic) bodyA.squashVelocity = -0.015 * speed;
-                if(!bodyB.isStatic) bodyB.squashVelocity = -0.015 * speed;
+            if (speed > 1) {
+                const squish = Math.min(0.2, speed * 0.02);
+                if(!bodyA.isStatic) bodyA.squashVelocity = -squish;
+                if(!bodyB.isStatic) bodyB.squashVelocity = -squish;
             }
 
             if (bodyA.planetIdx !== undefined && bodyB.planetIdx !== undefined) {
@@ -190,22 +221,22 @@ window.Game = {
                         friction: window.SETTINGS.friction,
                         density: 0.002 * (nextIdx + 1),
                         planetIdx: nextIdx,
-                        scale: 0.2,
+                        scale: 0.5, // Pop in effect
                         scaleVelocity: 0,
-                        squash: 1,
+                        squash: 1.2,
                         squashVelocity: 0,
                         flash: 1.0
                     });
                     
                     World.add(window.engine.world, newBody);
                     
-                    // Push neighbors
+                    // Explosion force
                     Composite.allBodies(window.engine.world).forEach(b => {
                         if (b !== newBody && !b.isStatic) {
                             const dist = Vector.magnitude(Vector.sub(b.position, newBody.position));
-                            if (dist < r * 2.5) {
+                            if (dist < r * 3) {
                                 const force = Vector.normalise(Vector.sub(b.position, newBody.position));
-                                const mag = 0.05 * b.mass;
+                                const mag = 0.08 * b.mass;
                                 Body.applyForce(b, b.position, Vector.mult(force, mag));
                             }
                         }
@@ -236,24 +267,24 @@ window.Game = {
             if (!b.isStatic) {
                 if (b.flash > 0) b.flash -= 0.05;
                 
-                // Spring logic for scaling
-                const scaleK = 0.15;
-                const scaleD = 0.2;
+                // --- JELLY PHYSICS ---
+                // Scale (Growing)
+                const scaleK = 0.1; const scaleD = 0.15;
                 const scaleX = b.scale - 1;
                 const scaleForce = -scaleK * scaleX - scaleD * b.scaleVelocity;
                 b.scaleVelocity += scaleForce;
                 b.scale += b.scaleVelocity;
 
-                // Spring logic for squash
-                const squashK = 0.2;
-                const squashD = 0.15;
+                // Squash (Impact wobble)
+                const squashK = 0.15; const squashD = 0.1; // Bouncier settings
                 const squashX = b.squash - 1;
                 const squashForce = -squashK * squashX - squashD * b.squashVelocity;
                 b.squashVelocity += squashForce;
                 b.squash += b.squashVelocity;
                 
-                if(b.squash < 0.6) b.squash = 0.6;
-                if(b.squash > 1.4) b.squash = 1.4;
+                // Clamp to prevent explosion
+                if(b.squash < 0.5) b.squash = 0.5;
+                if(b.squash > 1.5) b.squash = 1.5;
             }
         });
     },
@@ -267,7 +298,7 @@ window.Game = {
         });
         document.getElementById('shakeBtn').disabled = this.shakesLeft <= 0;
         
-        // Preview Box
+        // Next Orb Preview
         const nextCanvas = document.createElement('canvas');
         nextCanvas.width = 50; nextCanvas.height = 50;
         const nCtx = nextCanvas.getContext('2d');
@@ -278,9 +309,9 @@ window.Game = {
     },
 
     createExplosion(x, y, color) {
-        for(let i=0; i<16; i++) {
+        for(let i=0; i<12; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 10 + 5;
+            const speed = Math.random() * 8 + 4;
             this.particles.push({ 
                 x: x, y: y, 
                 vx: Math.cos(angle) * speed, 
@@ -299,11 +330,18 @@ window.Game = {
     checkDanger() {
         if (this.state !== 'PLAYING') return;
         let danger = false;
+        
+        // Danger Line Y Position
+        const dangerY = 160;
+
         Composite.allBodies(window.engine.world).forEach(b => {
-            if (!b.isStatic && b.position.y < 130 && Math.abs(b.velocity.y) < 0.2 && Math.abs(b.velocity.x) < 0.2) {
+            // Updated Logic: Check velocity threshold relaxed (0.5 instead of 0.2)
+            // And ensure body is not the one we just dropped (using ID or velocity check)
+            if (!b.isStatic && b.position.y < dangerY && Math.abs(b.velocity.y) < 0.5 && Math.abs(b.velocity.x) < 0.5) {
                 b.dangerTime = (b.dangerTime || 0) + 1;
                 danger = true;
-                if (b.dangerTime > 180) this.gameOver();
+                // 120 frames = ~2 seconds
+                if (b.dangerTime > 120) this.gameOver();
             } else {
                 b.dangerTime = 0;
             }

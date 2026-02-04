@@ -9,6 +9,16 @@
             <span class="hud-label">Score</span>
             <span class="score-val" id="scoreVal">0</span>
         </div>
+        
+        <!-- View Toggle Button -->
+        <button class="hud-icon" id="viewIcon" onclick="window.Game.toggleView()" style="
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
+            color: white; font-size: 1.5rem; width: 40px; height: 40px; 
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            margin-right: 12px;">
+            🔲
+        </button>
+
         <div class="next-container">
             <span class="hud-label" style="margin:0;">Next</span>
             <div class="next-preview" id="nextBox"></div>
