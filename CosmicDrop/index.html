@@ -10,7 +10,6 @@
             <span class="score-val" id="scoreVal">0</span>
         </div>
         
-        <!-- View Toggle Button -->
         <button class="hud-icon" id="viewIcon" onclick="window.Game.toggleView()" title="Toggle Fullscreen">
             🔲
         </button>
@@ -23,16 +22,30 @@
 
     <!-- MAIN MENU -->
     <div class="menu active" id="startMenu">
-        <h1>Cosmic<br>Drop</h1>
-        <div class="sub-text">Merge Planets</div>
-        <button class="btn-main" onclick="window.Game.start()">Play</button>
+        <div class="orbit-ring"></div>
+        <div class="orbit-ring inner"></div>
+        
+        <div class="title-group">
+            <h1 class="hero-title" data-text="COSMIC">COSMIC</h1>
+            <h1 class="hero-title bottom" data-text="DROP">DROP</h1>
+        </div>
+        
+        <div class="sub-text">MERGE PLANETS</div>
+        
+        <button class="btn-main" onclick="window.Game.start()">
+            <span class="btn-content">PLAY</span>
+            <div class="btn-glare"></div>
+        </button>
     </div>
 
     <!-- GAME OVER MENU -->
     <div class="menu" id="gameOverMenu">
-        <h1 class="fail-title">Game<br>Over</h1>
-        <div class="sub-text">Score: <span id="finalScore" style="color:white;">0</span></div>
-        <button class="btn-main" onclick="window.Game.reset()">Try Again</button>
+        <div class="fail-bg"></div>
+        <h1 class="fail-title">SYSTEM<br>HALTED</h1>
+        <div class="sub-text">SCORE: <span id="finalScore" style="color:#fff; font-weight:900;">0</span></div>
+        <button class="btn-main danger" onclick="window.Game.reset()">
+            <span class="btn-content">RETRY</span>
+        </button>
     </div>
 
     <div class="control-deck">
