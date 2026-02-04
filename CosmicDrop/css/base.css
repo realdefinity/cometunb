@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;900&display=swap');
+
+:root {
+    --bg: #030305;
+    --glass: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --neon-blue: #00f3ff;
+    --neon-pink: #d946ef;
+    --ui-bg: rgba(10, 10, 14, 0.85);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; outline:none; }
+
+body {
+    background-color: var(--bg);
+    font-family: 'Rajdhani', sans-serif;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    -webkit-touch-callout: none;
+}
+
+#bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(circle at 50% 120%, #171725, #000);
+}

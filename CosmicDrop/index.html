@@ -1,0 +1,44 @@
+<canvas id="bg-canvas"></canvas>
+
+<div id="game-root">
+    <div class="danger-line" id="dangerLine"></div>
+    <div id="cursor-guide"></div>
+    
+    <div class="hud-bar">
+        <div class="score-container">
+            <span class="hud-label">Score</span>
+            <span class="score-val" id="scoreVal">0</span>
+        </div>
+        <div class="next-container">
+            <span class="hud-label" style="margin:0;">Next</span>
+            <div class="next-preview" id="nextBox"></div>
+        </div>
+    </div>
+
+    <div class="menu active" id="startMenu">
+        <h1>Cosmic<br>Drop</h1>
+        <div class="sub-text">Core Fusion</div>
+        <button class="btn-main" onclick="window.Game.start()">Initialize</button>
+    </div>
+
+    <div class="menu" id="gameOverMenu">
+        <h1 style="color:#ef4444; -webkit-text-fill-color:#ef4444; text-shadow:0 0 60px rgba(239, 68, 68, 0.5)">Critical<br>Failure</h1>
+        <div class="sub-text">Final Efficiency: <span id="finalScore" style="color:white; font-weight:bold;">0</span></div>
+        <button class="btn-main" onclick="window.Game.reset()">Reboot</button>
+    </div>
+
+    <div class="control-deck">
+        <button class="shake-btn" id="shakeBtn" onclick="window.Game.triggerShake()">
+            <span class="shake-label">SHAKE</span>
+            <div class="shake-ammo" id="shakeAmmo">
+                <div class="ammo-pip active"></div>
+                <div class="ammo-pip active"></div>
+                <div class="ammo-pip active"></div>
+                <div class="ammo-pip active"></div>
+                <div class="ammo-pip active"></div>
+            </div>
+        </button>
+    </div>
+
+    <canvas id="world"></canvas>
+</div>
