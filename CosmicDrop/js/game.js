@@ -327,7 +327,7 @@ window.Game = {
         this.popups.push({ x, y, text, life: 1.0, vy: -3 });
     },
 
-    checkDanger() {
+checkDanger() {
         if (this.state !== 'PLAYING') return;
         let danger = false;
         
@@ -335,12 +335,11 @@ window.Game = {
         const dangerY = 160;
 
         Composite.allBodies(window.engine.world).forEach(b => {
-            // Updated Logic: Check velocity threshold relaxed (0.5 instead of 0.2)
-            // And ensure body is not the one we just dropped (using ID or velocity check)
             if (!b.isStatic && b.position.y < dangerY && Math.abs(b.velocity.y) < 0.5 && Math.abs(b.velocity.x) < 0.5) {
                 b.dangerTime = (b.dangerTime || 0) + 1;
                 danger = true;
-                // 120 frames = ~2 seconds
+                
+                // 120 frames = ~2 seconds of holding over the line
                 if (b.dangerTime > 120) this.gameOver();
             } else {
                 b.dangerTime = 0;
