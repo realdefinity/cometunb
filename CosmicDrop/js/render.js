@@ -14,33 +14,35 @@ window.drawOrb = function(ctx, x, y, r, idx, animScale = 1, squash = 1, flash = 
     const spin = window.Game.time * 0.02 + idx;
     ctx.rotate(spin);
 
-    // 1. Outer Glow
-    ctx.shadowBlur = 30;
+    // 1. Outer Glow (Dynamic based on size)
+    ctx.shadowBlur = r * 0.6;
     ctx.shadowColor = o.glow;
     
-    // 2. Main Body
+    // 2. Main Body Base
     ctx.beginPath();
     ctx.ellipse(0, 0, w, h, 0, 0, Math.PI * 2);
     ctx.fillStyle = o.color;
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // 3. Inner Depth Gradient
-    const grad = ctx.createRadialGradient(-w*0.3, -h*0.3, 0, 0, 0, w);
-    grad.addColorStop(0, 'rgba(255,255,255,0.2)');
-    grad.addColorStop(0.5, o.color);
-    grad.addColorStop(1, 'rgba(0,0,0,0.8)');
+    // 3. Inner Depth Gradient (Smoother Volume)
+    // Shifts highlight to top-left and shadow to bottom-right
+    const grad = ctx.createRadialGradient(-w*0.2, -h*0.2, r*0.1, 0, 0, w);
+    grad.addColorStop(0, 'rgba(255,255,255,0.3)');   // Highlight hotspot
+    grad.addColorStop(0.4, 'rgba(255,255,255,0)');   // Transparent mid
+    grad.addColorStop(1, 'rgba(0,0,0,0.6)');         // Deep shadow edge
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // 4. Rim Light (Bottom Crescent)
-    ctx.rotate(-spin); // Lock rotation for lighting
+    // 4. Internal Texture/Ring (Subtle Rotating Detail)
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = r * 0.1;
     ctx.beginPath();
-    ctx.ellipse(0, h*0.05, w*0.9, h*0.9, 0, 0, Math.PI); // Bottom half
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    ctx.fill();
+    ctx.ellipse(0, 0, w*0.6, h*0.2, Math.PI/4, 0, Math.PI*2);
+    ctx.stroke();
 
-    // 5. Glossy Shine (Top Left)
+    // 5. Glossy Shine (Top Left - Locked rotation for static light source)
+    ctx.rotate(-spin); 
     ctx.beginPath();
     ctx.ellipse(-w*0.35, -h*0.35, w*0.2, h*0.12, Math.PI/4, 0, Math.PI*2);
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
@@ -49,11 +51,11 @@ window.drawOrb = function(ctx, x, y, r, idx, animScale = 1, squash = 1, flash = 
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // 6. Center Pulse (Core)
+    // 6. Core Pulse (Softer)
     const pulse = 1 + Math.sin(window.Game.time * 0.1 + idx) * 0.03;
     ctx.beginPath();
-    ctx.ellipse(0, 0, w*0.3*pulse, h*0.3*pulse, 0, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.ellipse(0, 0, w*0.25*pulse, h*0.25*pulse, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.fill();
 
     // 7. Flash effect (on merge)
@@ -119,9 +121,11 @@ window.loop = function() {
             let p = window.Game.particles[i];
             p.x += p.vx; p.y += p.vy; p.life -= 0.02;
             if (p.life <= 0) { window.Game.particles.splice(i, 1); continue; }
+            ctx.globalCompositeOperation = 'lighter';
             ctx.fillStyle = p.color; ctx.globalAlpha = p.life;
             ctx.beginPath(); ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2); ctx.fill();
             ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
         }
 
         for (let i = window.Game.popups.length - 1; i >= 0; i--) {
