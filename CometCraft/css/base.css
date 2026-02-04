@@ -1,0 +1,46 @@
+:root {
+    /* Palette */
+    --bg-deep: #050505;
+    --bg-panel: rgba(20, 20, 25, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-highlight: rgba(255, 255, 255, 0.15);
+    --accent: #818cf8;
+    --accent-glow: rgba(129, 140, 248, 0.4);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    
+    /* Dimensions */
+    --sidebar-width: 340px;
+    --item-radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-drag: none; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-deep);
+    color: var(--text-main);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+}
+
+/* --- BACKGROUND ANIMATION --- */
+.universe-bg {
+    position: fixed; inset: 0; z-index: -1;
+    background: 
+        radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%);
+    animation: pulseBg 10s ease-in-out infinite alternate;
+}
+@keyframes pulseBg { 0% { opacity: 0.8; } 100% { opacity: 1.0; } }
+
+.grid-overlay {
+    position: fixed; inset: 0; z-index: -1;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+}

@@ -1,0 +1,39 @@
+<div class="universe-bg"></div>
+<div class="grid-overlay"></div>
+
+<aside class="sidebar">
+    <div class="header">
+        <div class="brand-row">
+            <div class="brand">Comet Craft</div>
+            <div class="counter" id="counter">4 / ∞</div>
+        </div>
+        
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="search" placeholder="Search elements...">
+        </div>
+
+        <div class="tools">
+            <button class="tool-btn active" id="sortAz" onclick="window.setSort('az')">A-Z</button>
+            <button class="tool-btn" id="sortTime" onclick="window.setSort('time')">Newest</button>
+        </div>
+    </div>
+
+    <div class="inventory" id="inventory"></div>
+</aside>
+
+<main class="canvas" id="canvas">
+    <div class="bottom-bar">
+        <button class="bar-btn" onclick="window.clearCanvas()">Clean Up</button>
+        <button class="bar-btn danger" onclick="window.resetGame()">Reset Save</button>
+    </div>
+    <div class="trash-zone" id="trash">🗑️</div>
+</main>
+
+<div class="modal-overlay" id="modal" onclick="window.closeModal()">
+    <div class="discovery-card">
+        <div class="d-badge">New Discovery</div>
+        <div class="d-icon" id="dIcon"></div>
+        <div class="d-name" id="dName"></div>
+    </div>
+</div>
