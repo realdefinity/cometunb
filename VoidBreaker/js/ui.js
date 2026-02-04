@@ -4,28 +4,33 @@ window.UI = {
         const grid = document.getElementById('weapon-grid');
         grid.innerHTML = '';
 
+        // Add Lootbox Button at top
+        const boxBtn = document.createElement('div');
+        boxBtn.className = "weapon-card rarity-legendary mb-8";
+        boxBtn.style.background = "linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(0,0,0,0))";
+        boxBtn.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="text-2xl font-bold text-yellow-400 mb-1">ARMORY CRATE</div>
+                    <div class="text-xs text-slate-300">Contains 1 random weapon</div>
+                </div>
+                <div class="buy-btn ${window.Game.totalCurrency >= 1000 ? '' : 'disabled'}" style="margin:0; width:120px;" onclick="window.UI.openLootbox(event)">
+                    ${window.Game.totalCurrency >= 1000 ? 'BUY $1,000' : 'NEED $1,000'}
+                </div>
+            </div>
+        `;
+        grid.appendChild(boxBtn);
+
+        // List Unlocked Weapons
         Object.keys(window.WEAPONS).forEach(key => {
+            if(!window.Game.unlockedWeapons.includes(key)) return; // Only show owned
+            
             const w = window.WEAPONS[key];
-            const isUnlocked = window.Game.unlockedWeapons.includes(key);
             const isSelected = window.Game.currentLoadout === key;
-            const canAfford = window.Game.totalCurrency >= w.price;
 
             const card = document.createElement('div');
-            card.className = `weapon-card ${isSelected && isUnlocked ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}`;
-            
-            let actionHtml = '';
-            if(isUnlocked) {
-                card.onclick = () => window.UI.selectWeapon(key);
-            } else {
-                actionHtml = `
-                    <div class="mt-4 pt-4 border-t border-white/10">
-                        <div class="text-xs text-slate-400 mb-1 font-bold">LOCKED</div>
-                        <div class="buy-btn ${canAfford ? '' : 'disabled'}" onclick="window.UI.buyWeapon(event, '${key}', ${w.price})">
-                            ${canAfford ? 'UNLOCK' : 'NEED FUNDS'} $${w.price.toLocaleString()}
-                        </div>
-                    </div>
-                `;
-            }
+            card.className = `weapon-card rarity-${w.rarity} ${isSelected ? 'selected' : ''}`;
+            card.onclick = () => { window.Game.currentLoadout = key; window.UI.updateMenuUI(); };
 
             card.innerHTML = `
                 <div class="flex justify-between items-start">
@@ -33,34 +38,66 @@ window.UI = {
                         <div class="text-xl font-bold text-white mb-1">${w.name}</div>
                         <div class="text-xs text-slate-400 mb-3 h-8">${w.desc}</div>
                     </div>
+                    <div class="text-xs font-bold uppercase text-${w.rarity}">${w.rarity}</div>
                 </div>
-                
-                <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">DMG <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(w.damage/30)*100}%"></div></div></div>
+                <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">DMG <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(w.damage/50)*100}%"></div></div></div>
                 <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">SPD <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(15/w.cooldown)*100}%"></div></div></div>
-                
-                ${actionHtml}
             `;
             grid.appendChild(card);
         });
     },
 
-    selectWeapon: function(key) {
-        if(!window.Game.unlockedWeapons.includes(key)) return;
-        window.Game.currentLoadout = key;
-        this.updateMenuUI();
-    },
-
-    buyWeapon: function(e, key, price) {
+    openLootbox: function(e) {
         if(e) e.stopPropagation();
-        if(window.Game.totalCurrency >= price) {
-            window.Game.totalCurrency -= price;
-            window.Game.unlockedWeapons.push(key);
-            window.Game.currentLoadout = key;
-            window.Game.saveData();
-            this.updateMenuUI();
-            window.AudioSys.init();
-            window.AudioSys.buy();
-        }
+        if(window.Game.totalCurrency < 1000) return;
+        window.Game.totalCurrency -= 1000;
+        window.Game.saveData();
+        this.updateMenuUI();
+
+        // Create Modal
+        const modal = document.createElement('div');
+        modal.className = 'lootbox-modal active';
+        modal.innerHTML = `
+            <div class="crate-container">
+                <div class="crate" id="crate-box">📦</div>
+                <div class="reward-card" id="reward-card">
+                    <div class="text-sm font-bold uppercase mb-2 text-slate-400" id="reward-rarity"></div>
+                    <div class="text-3xl font-bold text-white mb-4" id="reward-name"></div>
+                    <button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">COLLECT</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const crate = modal.querySelector('#crate-box');
+        const card = modal.querySelector('#reward-card');
+        
+        // Animation Sequence
+        crate.classList.add('shake');
+        window.AudioSys.play('square', 100, 0.1); 
+        
+        setTimeout(() => {
+            crate.classList.remove('shake');
+            crate.classList.add('open');
+            window.AudioSys.play('sine', 800, 0.5);
+            
+            // Pick Reward
+            const keys = Object.keys(window.WEAPONS);
+            const key = keys[Math.floor(Math.random() * keys.length)];
+            const w = window.WEAPONS[key];
+            
+            // Add if new
+            if(!window.Game.unlockedWeapons.includes(key)) {
+                window.Game.unlockedWeapons.push(key);
+                window.Game.saveData();
+            }
+
+            modal.querySelector('#reward-rarity').innerText = w.rarity;
+            modal.querySelector('#reward-rarity').className = `text-sm font-bold uppercase mb-2 text-${w.rarity}`;
+            modal.querySelector('#reward-name').innerText = w.name;
+            
+            card.classList.add('show');
+        }, 2000);
     },
 
     generateUpgrades: function() {
@@ -97,7 +134,6 @@ window.UI = {
         document.getElementById('xp-bar').style.width = xpPct + '%';
         document.getElementById('level-display').innerText = window.Game.level;
         
-        // Streak
         if(window.Game.killStreak > 0) {
             document.getElementById('kill-streak').innerText = `${window.Game.killStreak} STREAK`;
             document.getElementById('kill-streak').style.opacity = 1;
@@ -105,7 +141,6 @@ window.UI = {
              document.getElementById('kill-streak').style.opacity = 0;
         }
 
-        // Boss
         if(window.Game.bossActive) {
             const boss = window.Game.enemies.find(e => e.type === 'boss');
             if(boss) {
