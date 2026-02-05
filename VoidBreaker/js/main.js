@@ -1,4 +1,3 @@
-/* --- Inputs & Menu --- */
 window.keys = {};
 window.mobileInput = { move: {x:0,y:0,active:false}, aim: {x:0,y:0,active:false}, dash: false };
 window.mouse = { x: 0, y: 0, down: false };
@@ -37,17 +36,23 @@ if(/Android|iPhone|iPad/i.test(navigator.userAgent)) {
     document.getElementById('mobile-dash-btn').addEventListener('touchstart', e=>{e.preventDefault(); window.mobileInput.dash=true;});
 }
 
-document.getElementById('start-btn').addEventListener('click', () => {
-    window.AudioSys.init();
-    document.getElementById('start-screen').classList.add('hidden');
-    window.Game.startGame();
-});
+const startBtn = document.getElementById('start-btn');
+if(startBtn) {
+    startBtn.addEventListener('click', () => {
+        window.AudioSys.init();
+        document.getElementById('start-screen').classList.add('hidden');
+        window.Game.startGame();
+    });
+}
 
-document.getElementById('restart-btn').addEventListener('click', () => {
-    document.getElementById('game-over-screen').classList.add('hidden');
-    document.getElementById('start-screen').classList.remove('hidden');
-    window.Game.loadData();
-});
+const restartBtn = document.getElementById('restart-btn');
+if(restartBtn) {
+    restartBtn.addEventListener('click', () => {
+        document.getElementById('game-over-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        window.Game.loadData();
+    });
+}
 
 // Boot
-window.Game.init();
+if(window.Game) window.Game.init();

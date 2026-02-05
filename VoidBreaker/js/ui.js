@@ -1,17 +1,19 @@
 window.UI = {
-updateMenuUI: function() {
-        document.getElementById('menu-credits').innerText = window.Game.totalCurrency.toLocaleString();
+    updateMenuUI: function() {
+        const creditsEl = document.getElementById('menu-credits');
+        if(creditsEl) creditsEl.innerText = window.Game.totalCurrency.toLocaleString();
         
         const grid = document.getElementById('weapon-grid');
+        if(!grid) return;
         grid.innerHTML = '';
 
-        // 1. Stats Display
+        // Stats Display
         const statsDiv = document.createElement('div');
         statsDiv.className = "col-span-full text-xs text-slate-400 font-mono mb-2 text-center tracking-widest";
         statsDiv.innerHTML = `XP: x${window.GAME_DATA.multipliers.xp.toFixed(1)} | GOLD: x${window.GAME_DATA.multipliers.gold.toFixed(1)}`;
         grid.appendChild(statsDiv);
 
-        // 2. Prestige Button (Shows if rich)
+        // Prestige Button
         if(window.Game.totalCurrency > 50000) {
             const prestBtn = document.createElement('div');
             prestBtn.className = "weapon-card rarity-legendary mb-4 text-center cursor-pointer hover:bg-red-900/20";
@@ -24,7 +26,7 @@ updateMenuUI: function() {
             grid.appendChild(prestBtn);
         }
 
-        // 3. Cosmetic Crate
+        // Cosmetic Crate
         const skinBtn = document.createElement('div');
         skinBtn.className = "weapon-card rarity-epic mb-4";
         skinBtn.style.background = "linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(0,0,0,0))";
@@ -41,7 +43,7 @@ updateMenuUI: function() {
         `;
         grid.appendChild(skinBtn);
 
-        // 4. Armory Crate (Existing)
+        // Armory Crate
         const boxBtn = document.createElement('div');
         boxBtn.className = "weapon-card rarity-legendary mb-8";
         boxBtn.style.background = "linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(0,0,0,0))";
@@ -58,23 +60,26 @@ updateMenuUI: function() {
         `;
         grid.appendChild(boxBtn);
 
-        // 5. Weapon List
-        Object.keys(window.WEAPONS).forEach(key => {
-            if(!window.Game.unlockedWeapons.includes(key)) return;
-            const w = window.WEAPONS[key];
-            const isSelected = window.Game.currentLoadout === key;
-            const card = document.createElement('div');
-            card.className = `weapon-card rarity-${w.rarity} ${isSelected ? 'selected' : ''}`;
-            card.onclick = () => { window.Game.currentLoadout = key; window.UI.updateMenuUI(); };
-            card.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div><div class="text-xl font-bold text-white mb-1">${w.name}</div><div class="text-xs text-slate-400 mb-3 h-8">${w.desc}</div></div>
-                    <div class="text-xs font-bold uppercase text-${w.rarity}">${w.rarity}</div>
-                </div>
-                <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">DMG <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(w.damage/50)*100}%"></div></div></div>
-            `;
-            grid.appendChild(card);
-        });
+        // Weapons
+        if(window.WEAPONS) {
+            Object.keys(window.WEAPONS).forEach(key => {
+                if(!window.Game.unlockedWeapons.includes(key)) return;
+                const w = window.WEAPONS[key];
+                const isSelected = window.Game.currentLoadout === key;
+                const card = document.createElement('div');
+                card.className = `weapon-card rarity-${w.rarity} ${isSelected ? 'selected' : ''}`;
+                card.onclick = () => { window.Game.currentLoadout = key; window.UI.updateMenuUI(); };
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div><div class="text-xl font-bold text-white mb-1">${w.name}</div><div class="text-xs text-slate-400 mb-3 h-8">${w.desc}</div></div>
+                        <div class="text-xs font-bold uppercase text-${w.rarity}">${w.rarity}</div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">DMG <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(w.damage/50)*100}%"></div></div></div>
+                    <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">SPD <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(15/w.cooldown)*100}%"></div></div></div>
+                `;
+                grid.appendChild(card);
+            });
+        }
     },
 
     openLootbox: function(e) {
@@ -100,7 +105,6 @@ updateMenuUI: function() {
             crate.classList.remove('shake'); crate.classList.add('open');
             window.AudioSys.play('sine', 800, 0.5);
             const keys = Object.keys(window.WEAPONS);
-            // Weighted Random for Lootbox
             let wKeys = [];
             keys.forEach(k => {
                 const r = window.WEAPONS[k].rarity;
@@ -120,42 +124,85 @@ updateMenuUI: function() {
         }, 2000);
     },
 
+    openSkinCrate: function(e) {
+        if(e) e.stopPropagation();
+        if(window.Game.totalCurrency < 5000) return;
+        window.Game.totalCurrency -= 5000;
+        window.Game.saveData();
+        this.updateMenuUI();
+
+        const modal = document.createElement('div');
+        modal.className = 'lootbox-modal active';
+        modal.innerHTML = `
+            <div class="crate-container">
+                <div class="crate" id="crate-box" style="border-color:#d946ef; font-size:6rem;">🎨</div>
+                <div class="reward-card" id="reward-card">
+                    <div class="text-sm font-bold uppercase mb-2 text-fuchsia-400">COSMETIC UNLOCKED</div>
+                    <div class="text-3xl font-bold text-white mb-4" id="reward-name"></div>
+                    <button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">EQUIP</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const crate = modal.querySelector('#crate-box');
+        const card = modal.querySelector('#reward-card');
+        crate.classList.add('shake');
+        window.AudioSys.play('square', 100, 0.1); 
+        
+        setTimeout(() => {
+            crate.classList.remove('shake'); crate.classList.add('open');
+            window.AudioSys.play('sine', 1000, 0.5);
+            
+            const skins = window.GAME_DATA.skins;
+            const skin = skins[Math.floor(Math.random() * skins.length)];
+            skin.unlocked = true;
+            window.GAME_DATA.currentSkin = skin.id;
+            window.Game.saveData();
+
+            modal.querySelector('#reward-name').innerText = skin.name;
+            modal.querySelector('#reward-name').style.color = skin.color;
+            card.classList.add('show');
+        }, 2000);
+    },
+
+    doPrestige: function() {
+        if(!confirm("WARNING: This will reset ALL weapons, upgrades, and money.\n\nYou will gain +0.2x Multipliers forever.\n\nAre you sure?")) return;
+        window.GAME_DATA.multipliers.xp += 0.2;
+        window.GAME_DATA.multipliers.gold += 0.2;
+        window.GAME_DATA.prestigeLevel++;
+        window.Game.totalCurrency = 0;
+        window.Game.unlockedWeapons = ['rifle'];
+        window.Game.saveData();
+        location.reload();
+    },
+
     generateUpgrades: function() {
         const container = document.getElementById('upgrade-container');
         container.innerHTML = '';
         document.getElementById('upgrade-screen').classList.remove('hidden');
         
-        // Filter Pool based on Wave, Prereqs, and Max Level
         let pool = window.UPGRADES_DB.filter(u => {
-            // Check Wave
             if(u.minWave && window.Game.wave < u.minWave) return false;
-            // Check Prereqs
             if(u.req && !window.Game.player[u.req]) return false;
-            // Check Max Level
             const currentLvl = window.Game.player.upgradeLevels[u.id] || 0;
             if(currentLvl >= u.max) return false;
             return true;
         });
 
-        // Weighted Random Selection
         const selected = [];
         for(let i=0; i<3; i++) {
             if(pool.length === 0) break;
-            
-            // Calculate Total Weight
             let totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
             let rand = Math.random() * totalWeight;
-            
-            // Pick Item
             let item = null;
             for(let u of pool) {
                 if(rand < u.weight) { item = u; break; }
                 rand -= u.weight;
             }
-            
             if(item) {
                 selected.push(item);
-                pool = pool.filter(u => u !== item); // Remove to prevent duplicates in one hand
+                pool = pool.filter(u => u !== item);
             }
         }
 
@@ -172,14 +219,12 @@ updateMenuUI: function() {
                 <div class="text-sm text-slate-300">${upg.desc}</div>
             `;
             el.onclick = () => {
-                // Apply Upgrade
                 if(upg.type === 'stat') window.Game.player[upg.stat] *= upg.val;
                 else if (upg.type === 'add') window.Game.player[upg.stat] += upg.val;
                 else if (upg.type === 'heal') { window.Game.player.maxHp += upg.val; window.Game.player.hp += upg.val; }
                 else if (upg.type === 'bool') window.Game.player[upg.stat] = true;
                 else if (upg.type === 'complex') upg.apply(window.Game.player);
                 
-                // Increment Level
                 if(!window.Game.player.upgradeLevels[upg.id]) window.Game.player.upgradeLevels[upg.id] = 0;
                 window.Game.player.upgradeLevels[upg.id]++;
 
@@ -221,63 +266,3 @@ updateMenuUI: function() {
         document.getElementById('earned-credits').innerText = "+" + window.Game.sessionCredits.toLocaleString();
     }
 };
-
-openSkinCrate: function(e) {
-        if(e) e.stopPropagation();
-        if(window.Game.totalCurrency < 5000) return;
-        window.Game.totalCurrency -= 5000;
-        window.Game.saveData();
-        this.updateMenuUI();
-
-        const modal = document.createElement('div');
-        modal.className = 'lootbox-modal active';
-        modal.innerHTML = `
-            <div class="crate-container">
-                <div class="crate" id="crate-box" style="border-color:#d946ef; font-size:6rem;">🎨</div>
-                <div class="reward-card" id="reward-card">
-                    <div class="text-sm font-bold uppercase mb-2 text-fuchsia-400">COSMETIC UNLOCKED</div>
-                    <div class="text-3xl font-bold text-white mb-4" id="reward-name"></div>
-                    <button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">EQUIP</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-
-        const crate = modal.querySelector('#crate-box');
-        const card = modal.querySelector('#reward-card');
-        crate.classList.add('shake');
-        window.AudioSys.play('square', 100, 0.1); 
-        
-        setTimeout(() => {
-            crate.classList.remove('shake'); crate.classList.add('open');
-            window.AudioSys.play('sine', 1000, 0.5);
-            
-            // Random Skin Logic
-            const skins = window.GAME_DATA.skins;
-            const skin = skins[Math.floor(Math.random() * skins.length)];
-            
-            // Unlock & Equip
-            skin.unlocked = true;
-            window.GAME_DATA.currentSkin = skin.id;
-            window.Game.saveData();
-
-            modal.querySelector('#reward-name').innerText = skin.name;
-            modal.querySelector('#reward-name').style.color = skin.color;
-            card.classList.add('show');
-        }, 2000);
-    },
-
-    doPrestige: function() {
-        if(!confirm("WARNING: This will reset ALL weapons, upgrades, and money.\n\nYou will gain +0.2x Multipliers forever.\n\nAre you sure?")) return;
-        
-        // Perm Boost
-        window.GAME_DATA.multipliers.xp += 0.2;
-        window.GAME_DATA.multipliers.gold += 0.2;
-        window.GAME_DATA.prestigeLevel++;
-        
-        // Hard Reset
-        window.Game.totalCurrency = 0;
-        window.Game.unlockedWeapons = ['rifle'];
-        window.Game.saveData();
-        location.reload();
-    },

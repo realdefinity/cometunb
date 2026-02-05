@@ -5,14 +5,11 @@ window.Game = {
     killStreak: 0, killStreakTimer: 0,
     
     // Wave System
-    wave: 1,
-    waveEnemiesTotal: 0,
-    waveEnemiesSpawned: 0,
+    wave: 1, waveEnemiesTotal: 0, waveEnemiesSpawned: 0,
     bossActive: false,
     
     enemies: [], bullets: [], enemyBullets: [], particles: [], textPopups: [], xpOrbs: [], stars: [],
-    player: null,
-    level: 1, currentXp: 0, xpNeeded: 100,
+    player: null, level: 1, currentXp: 0, xpNeeded: 100,
     
     shake: { val: 0, add: (v) => window.Game.shake.val = Math.min(30, window.Game.shake.val + v) },
     totalCurrency: 0, unlockedWeapons: ['rifle'],
@@ -32,20 +29,23 @@ window.Game = {
         if(this.canvas) { this.canvas.width = this.width; this.canvas.height = this.height; }
     },
 
-        loadData() {
-                try {
-                    const c = localStorage.getItem('void_breaker_currency');
-                    const w = localStorage.getItem('void_breaker_unlocks');
-                    const g = localStorage.getItem('void_breaker_gamedata');
-                    
-                    if(c) this.totalCurrency = parseInt(c);
-                    if(w) this.unlockedWeapons = JSON.parse(w);
-                    if(g) window.GAME_DATA = { ...window.GAME_DATA, ...JSON.parse(g) }; // Merge saved data
-                } catch(e) { console.log('Save data load failed', e); }
-                window.UI.updateMenuUI();
-            },
+    loadData() {
+        try {
+            const c = localStorage.getItem('void_breaker_currency');
+            const w = localStorage.getItem('void_breaker_unlocks');
+            const g = localStorage.getItem('void_breaker_gamedata');
+            if(c) this.totalCurrency = parseInt(c);
+            if(w) this.unlockedWeapons = JSON.parse(w);
+            if(g) window.GAME_DATA = { ...window.GAME_DATA, ...JSON.parse(g) };
+            
+            // Safety Check: Ensure valid loadout
+            if(!this.unlockedWeapons.includes(this.currentLoadout)) this.currentLoadout = 'rifle';
+        } catch(e) { console.warn('Save file corrupted, resetting basics.'); }
+        
+        if(window.UI && window.UI.updateMenuUI) window.UI.updateMenuUI();
+    },
 
-saveData() {
+    saveData() {
         localStorage.setItem('void_breaker_currency', this.totalCurrency);
         localStorage.setItem('void_breaker_unlocks', JSON.stringify(this.unlockedWeapons));
         localStorage.setItem('void_breaker_gamedata', JSON.stringify(window.GAME_DATA));
@@ -55,22 +55,17 @@ saveData() {
         this.player = new Player(this.currentLoadout);
         this.enemies=[]; this.bullets=[]; this.enemyBullets=[]; this.particles=[]; this.xpOrbs=[]; this.textPopups=[];
         this.score=0; this.sessionCredits=0; this.level=1; this.currentXp=0; this.xpNeeded=100; this.frameCount=0;
-        this.killStreak=0; this.bossActive=false;
+        this.killStreak=0; this.wave=1; this.waveTimer=0; this.bossActive=false;
         
-        // Init Wave 1
-        this.wave = 1;
         this.startWave();
-
         this.gameState = 'PLAYING';
-        window.UI.updateHud();
+        if(window.UI) window.UI.updateHud();
         this.loop();
     },
 
     startWave() {
-        this.waveEnemiesTotal = Math.floor(12 + this.wave * 2.5); // Difficulty Scaling
+        this.waveEnemiesTotal = Math.floor(12 + this.wave * 2.5);
         this.waveEnemiesSpawned = 0;
-        
-        // Update UI
         const disp = document.getElementById('wave-display');
         if(disp) disp.innerText = `WAVE ${this.wave}`;
         this.createPopup(this.width/2, this.height/3, `WAVE ${this.wave}`, '#fbbf24', 40);
@@ -88,7 +83,6 @@ saveData() {
 
         this.ctx.fillStyle = '#020617'; this.ctx.fillRect(0,0,this.width,this.height);
         
-        // Stars
         this.ctx.save();
         this.ctx.translate((Math.random()-0.5)*this.shake.val, (Math.random()-0.5)*this.shake.val);
         this.ctx.fillStyle = 'rgba(255,255,255,0.15)';
@@ -99,16 +93,15 @@ saveData() {
         this.enemies = this.enemies.filter(e => { e.update(); e.draw(this.ctx); return !e.marked; });
         this.bullets = this.bullets.filter(b => { 
             b.update(); b.draw(this.ctx);
-            // Bullet Collision
             if(b.life > 0 && b.x > 0 && b.x < this.width && b.y > 0 && b.y < this.height && !b.ricochet) {
                 for(let e of this.enemies) {
                     if(b.hitList.includes(e.id)) continue;
                     if(Math.hypot(b.x - e.x, b.y - e.y) < e.r + 5) {
                         const isCrit = Math.random() < this.player.critChance;
-                        const dmg = isCrit ? b.damage * this.player.critMult : b.damage;
+                        const dmg = (isCrit ? b.damage * this.player.critMult : b.damage) * (window.GAME_DATA.multipliers.damage || 1);
                         e.takeDamage(dmg, isCrit, this.player.freeze);
                         b.hitList.push(e.id);
-                        this.createExplosion(b.x, b.y, 5, b.color); // Hit puff
+                        this.createExplosion(b.x, b.y, 3, b.color);
                         if(b.pierce <= 0) { b.life = 0; break; }
                         b.pierce--;
                     }
@@ -127,10 +120,9 @@ saveData() {
         this.enemyBullets = this.enemyBullets.filter(b => {
             b.x += b.vx; b.y += b.vy; b.life--;
             this.ctx.save();
-            this.ctx.shadowBlur=8; this.ctx.shadowColor=b.color; this.ctx.fillStyle=b.color;
+            this.ctx.shadowBlur=5; this.ctx.shadowColor=b.color; this.ctx.fillStyle=b.color;
             this.ctx.beginPath(); this.ctx.arc(b.x, b.y, b.r || 4, 0, Math.PI*2); this.ctx.fill(); 
             this.ctx.restore();
-            
             if(Math.hypot(b.x-this.player.x, b.y-this.player.y) < (b.r || 4) + 10) { this.player.takeDamage(10); return false; }
             return b.life > 0;
         });
@@ -138,7 +130,7 @@ saveData() {
         this.xpOrbs = this.xpOrbs.filter(x => {
             const d = Math.hypot(this.player.x-x.x, this.player.y-x.y);
             if(d < this.player.pickupRange) { x.x += (this.player.x-x.x)*0.1; x.y += (this.player.y-x.y)*0.1; }
-            if(d < 20) { window.AudioSys.xp((this.currentXp/this.xpNeeded)*200); this.currentXp += x.amt; this.checkLevelUp(); return false; }
+            if(d < 20) { this.createXP(x.x, x.y, x.amt); return false; } // Handled via helper now
             x.x += x.vx; x.y += x.vy; x.vx *= 0.95; x.vy *= 0.95; x.life--;
             this.ctx.fillStyle = '#6366f1'; this.ctx.beginPath(); this.ctx.arc(x.x, x.y, 3, 0, 7); this.ctx.fill();
             return x.life > 0;
@@ -155,26 +147,18 @@ saveData() {
 
         this.ctx.restore();
         const dashPct = Math.min(100, (1 - (this.player.dashCd/this.player.dashCdMax))*100);
-        document.getElementById('dash-cooldown').style.height = (100 - dashPct) + '%';
+        const dashEl = document.getElementById('dash-cooldown');
+        if(dashEl) dashEl.style.height = (100 - dashPct) + '%';
         window.UI.updateHud();
     },
 
     manageWaves() {
         if(this.bossActive) return;
-
-        // Check if Wave Completed (All spawned enemies dead + we finished spawning)
         if(this.waveEnemiesSpawned >= this.waveEnemiesTotal && this.enemies.length === 0) {
-            
-            // Grant Wave Rewards
             const rewardXP = this.wave * 100;
-            this.currentXp += rewardXP;
-            this.createPopup(this.player.x, this.player.y - 60, `WAVE CLEAR! +${rewardXP} XP`, '#fbbf24', 24);
-            this.checkLevelUp();
-
-            // Next Wave
+            this.createXP(this.player.x, this.player.y - 60, rewardXP); // Use createXP helper
+            this.createPopup(this.player.x, this.player.y - 80, `WAVE CLEAR!`, '#fbbf24', 24);
             this.wave++;
-            
-            // Check Boss Spawn (Every 5 waves)
             if(this.wave % 5 === 0) {
                 this.bossActive = true;
                 this.enemies.push(new Enemy('boss', 2 + this.wave * 0.2));
@@ -182,36 +166,26 @@ saveData() {
                 window.AudioSys.bossWarn();
                 return;
             }
-
-            // Start Normal Wave
             this.startWave();
             return;
         }
 
-        // Spawn Enemies
         if(this.waveEnemiesSpawned < this.waveEnemiesTotal) {
-            // Spawn rate increases with wave number
             const spawnRate = Math.max(10, 60 - this.wave * 3);
-            
             if(this.frameCount % spawnRate === 0) {
                 const r = Math.random();
                 let type = 'basic';
-                // Probabilities based on wave
                 if(this.wave > 1 && r > 0.6) type = 'dasher';
                 if(this.wave > 3 && r > 0.75) type = 'shooter';
-                if(this.wave > 4 && r > 0.8) type = 'swarmer'; // New
+                if(this.wave > 4 && r > 0.8) type = 'swarmer';
                 if(this.wave > 5 && r > 0.85) type = 'heavy';
-                if(this.wave > 6 && r > 0.88) type = 'sniper'; // New
+                if(this.wave > 6 && r > 0.88) type = 'sniper';
                 if(this.wave > 7 && r > 0.9) type = 'orbiter';
-                if(this.wave > 8 && r > 0.92) type = 'kamikaze'; // New
-                if(this.wave > 9 && r > 0.95) type = 'carrier'; // New
+                if(this.wave > 8 && r > 0.92) type = 'kamikaze';
+                if(this.wave > 9 && r > 0.95) type = 'carrier';
                 
-                // Swarmers spawn in packs
                 if(type === 'swarmer') {
-                    for(let i=0; i<3; i++) {
-                        this.enemies.push(new Enemy('swarmer', 1 + this.wave * 0.1));
-                        this.waveEnemiesSpawned++;
-                    }
+                    for(let i=0; i<3; i++) { this.enemies.push(new Enemy('swarmer', 1 + this.wave * 0.1)); this.waveEnemiesSpawned++; }
                 } else {
                     this.enemies.push(new Enemy(type, 1 + this.wave * 0.1));
                     this.waveEnemiesSpawned++;
@@ -231,6 +205,18 @@ saveData() {
         window.UI.updateHud();
     },
 
+    createXP(x, y, amt) {
+        // Consolidated XP logic
+        const mult = window.GAME_DATA.multipliers.xp || 1.0;
+        const realAmt = Math.ceil(amt * mult);
+        if(this.xpOrbs) { 
+             // Push to array if it exists, otherwise just add value directly to avoid visual clutter on massive drops
+             this.currentXp += realAmt; 
+             this.checkLevelUp();
+             this.createPopup(x, y, `+${realAmt} XP`, '#818cf8', 12);
+        }
+    },
+
     createExplosion(x, y, n, color) {
         for(let i=0; i<n; i++) {
             const a = Math.random()*7; const s = Math.random()*8;
@@ -238,24 +224,12 @@ saveData() {
         }
     },
     createPopup(x, y, text, color, size=16) { this.textPopups.push({x, y, text, color, size, life: 60, vy: -2}); },
-    createXP(x, y, amt) { 
-        // Apply XP Multiplier
-        const finalAmt = Math.ceil(amt * window.GAME_DATA.multipliers.xp);
-        this.xpOrbs.push({
-            x, y, 
-            amt: finalAmt, 
-            vx: (Math.random()-0.5)*2, 
-            vy: (Math.random()-0.5)*2, 
-            life: 1000
-        }); 
-    },
     
-gameOver() {
+    gameOver() {
         this.gameState = 'GAMEOVER';
-        // Apply Gold Multiplier
-        const bonusGold = Math.floor(this.sessionCredits * window.GAME_DATA.multipliers.gold);
-        this.totalCurrency += bonusGold;
-        
+        const mult = window.GAME_DATA.multipliers.gold || 1.0;
+        const finalGold = Math.floor(this.sessionCredits * mult);
+        this.totalCurrency += finalGold;
         this.saveData();
         window.UI.gameOver();
     }
@@ -264,36 +238,31 @@ gameOver() {
 /* --- Classes --- */
 class Player {
     constructor(weaponKey) {
-        const w = window.WEAPONS[weaponKey];
+        const w = window.WEAPONS[weaponKey] || window.WEAPONS['rifle'];
         this.x = window.Game.width/2; this.y = window.Game.height/2;
         this.vel = {x:0, y:0}; this.angle = 0;
         this.maxHp = 100; this.hp = 100; this.regen = 0; this.maxSpeed = 5; this.acc = 0.8; this.drag = 0.9;
         
-        // Weapon Stats
         this.weaponKey = weaponKey; this.damage = w.damage; this.maxCooldown = w.cooldown;
         this.bulletSpeed = w.speed; this.spread = w.spread; this.count = w.count; this.pierce = w.pierce;
         this.bulletColor = w.color;
         
-        // Upgrades Logic
         this.upgradeLevels = {}; 
         this.cooldown = 0; this.critChance = 0.05; this.critMult = 1.5; this.lifesteal = 0; 
         this.dodge = 0; this.pickupRange = 100;
         
-        // Ability Flags
         this.ricochet = false; this.homing = false; this.explosive = false; 
         this.tesla = false; this.freeze = false; this.backshot = false; 
         this.dashNova = false; this.cluster = false; this.shatter = false;
         this.blackHole = false;
 
         this.teslaRange = 200; this.teslaCount = 1;
-
         this.dashCd = 0; this.dashCdMax = 120; this.dashing = 0; this.invuln = 0;
     }
 
     update() {
         if(window.Game.frameCount % 60 === 0 && this.regen > 0 && this.hp < this.maxHp) this.hp += this.regen;
         
-        // Tesla Coil Logic
         if(this.tesla && window.Game.frameCount % 30 === 0) {
             let hits = 0;
             const targets = window.Game.enemies.filter(e => Math.hypot(e.x-this.x, e.y-this.y) < this.teslaRange);
@@ -347,7 +316,6 @@ class Player {
         const a = m > 0.1 ? Math.atan2(this.vel.y, this.vel.x) : this.angle;
         this.vel.x = Math.cos(a) * 20; this.vel.y = Math.sin(a) * 20;
         window.AudioSys.play('sine', 600, 0.2, 0.1, 100);
-        
         if(this.dashNova) {
             window.Game.createExplosion(this.x, this.y, 12, '#38bdf8');
             window.Game.enemies.forEach(e => {
@@ -356,25 +324,20 @@ class Player {
         }
     }
 
-shoot() {
+    shoot() {
         this.cooldown = this.maxCooldown;
         window.AudioSys.shoot(this.weaponKey);
         
-        // 1. Stronger Recoil (Feels punchy)
-        const recoilForce = 3.0; // Increased from 1
-        this.vel.x -= Math.cos(this.angle) * recoilForce; 
-        this.vel.y -= Math.sin(this.angle) * recoilForce;
-        
-        // 2. Screen Shake on shoot
+        // Recoil
+        this.vel.x -= Math.cos(this.angle) * 3;
+        this.vel.y -= Math.sin(this.angle) * 3;
         window.Game.shake.add(2);
-
-        // 3. Muzzle Flash Particle
+        
+        // Muzzle Flash
         const tipX = this.x + Math.cos(this.angle) * 20;
         const tipY = this.y + Math.sin(this.angle) * 20;
-        // Spawns a short-lived bright flash
-        window.Game.particles.push(new Particle(tipX, tipY, this.vel.x, this.vel.y, 15, '#ffffff', 4));
+        window.Game.particles.push(new Particle(tipX, tipY, 0, 0, 15, '#ffffff', 4));
 
-        // 4. Fire Bullets
         const totalArc = this.spread * (this.count > 1 ? 2 : 1);
         const startA = this.angle - totalArc/2;
         const step = this.count > 1 ? totalArc / (this.count-1) : 0;
@@ -382,17 +345,12 @@ shoot() {
         for(let i=0; i<this.count; i++) {
             const baseA = this.count > 1 ? startA + step*i : this.angle;
             const finalA = baseA + (Math.random()-0.5) * this.spread * 0.5; 
-            
-            // Offset bullet start slightly to match gun barrel
-            const bx = this.x + Math.cos(this.angle) * 15;
-            const by = this.y + Math.sin(this.angle) * 15;
-            
             window.Game.bullets.push(new Bullet(
-                bx, by, finalA, this.damage, this.bulletSpeed, this.pierce, this.bulletColor, this
+                this.x + Math.cos(this.angle)*15, this.y + Math.sin(this.angle)*15,
+                finalA, this.damage, this.bulletSpeed, this.pierce, this.bulletColor, this
             ));
         }
 
-        // Backshot Ability
         if(this.backshot) {
             window.Game.bullets.push(new Bullet(
                 this.x - Math.cos(this.angle)*15, this.y - Math.sin(this.angle)*15,
@@ -404,8 +362,18 @@ shoot() {
     draw(ctx) {
         ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
         if(this.invuln > 0 && window.Game.frameCount % 4 < 2) ctx.globalAlpha = 0.5;
+        
+        // Skin System
+        const skinColor = window.GAME_DATA.skins.find(s => s.id === window.GAME_DATA.currentSkin)?.color || '#38bdf8';
         ctx.fillStyle = this.dashing > 0 ? '#38bdf8' : 'white';
+        
         ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(-10, 10); ctx.lineTo(-8, 0); ctx.lineTo(-10, -10); ctx.fill();
+        
+        // Engine Glow using Skin
+        ctx.shadowBlur = 10; ctx.shadowColor = skinColor;
+        ctx.fillStyle = skinColor; ctx.beginPath(); ctx.arc(-12, 0, 3 + Math.random()*2, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+
         ctx.restore();
     }
 
@@ -444,28 +412,13 @@ class Bullet {
             if(this.y < 0 || this.y > window.Game.height) { this.vy *= -1; this.y += this.vy; }
         }
     }
-draw(ctx) {
-        // Glowing Trail Effect
-        ctx.shadowBlur = 15; 
-        ctx.shadowColor = this.color;
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-
-        ctx.beginPath();
-        // Start line at bullet position
-        ctx.moveTo(this.x, this.y);
-        // Draw tail backwards based on velocity (makes fast bullets look longer)
-        ctx.lineTo(this.x - this.vx * 2, this.y - this.vy * 2);
-        ctx.stroke();
-
-        // Bright Core
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, 2, 0, Math.PI*2); // Small white tip
-        ctx.fill();
-    }}
+    draw(ctx) {
+        ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color; ctx.lineWidth = 3; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - this.vx * 1.5, this.y - this.vy * 1.5); ctx.stroke();
+        ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI*2); ctx.fill();
+    }
+}
 
 class Enemy {
     constructor(type, difficulty=1) {
@@ -473,8 +426,7 @@ class Enemy {
         const r = Math.max(window.Game.width, window.Game.height)/2 + 50;
         this.x = window.Game.width/2 + Math.cos(angle)*r; this.y = window.Game.height/2 + Math.sin(angle)*r;
         this.type = type; this.id = Math.random(); this.marked = false; this.flash = 0;
-        this.frozen = 0;
-        this.visAngle = 0; // Visual rotation
+        this.frozen = 0; this.visAngle = 0;
         
         let scale = difficulty;
         this.hp = 30 * scale; this.speed = 2; this.color = '#94a3b8'; this.r = 14;
@@ -502,13 +454,11 @@ class Enemy {
         if(this.flash > 0) this.flash--;
         let moveSpeed = this.speed;
         if(this.frozen > 0) { moveSpeed *= 0.5; this.frozen--; }
-        
-        this.visAngle += 0.05; // Spin effect
+        this.visAngle += 0.05;
 
         const dx = window.Game.player.x - this.x; const dy = window.Game.player.y - this.y;
         const dist = Math.hypot(dx, dy); const angle = Math.atan2(dy, dx);
 
-        // AI Behaviors
         if(this.type === 'boss') {
             this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
             this.timer++;
@@ -534,23 +484,17 @@ class Enemy {
             }
         } else if (this.type === 'sniper') {
             this.timer++;
-            // Try to maintain 500 distance
             if(dist < 400) { this.x -= Math.cos(angle) * moveSpeed; this.y -= Math.sin(angle) * moveSpeed; }
             else if(dist > 600) { this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed; }
-            
-            if(this.timer % 180 === 0) {
-                 window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(angle)*12, vy:Math.sin(angle)*12, life:100, r:3, color:'#22d3ee'});
-            }
+            if(this.timer % 180 === 0) window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(angle)*12, vy:Math.sin(angle)*12, life:100, r:3, color:'#22d3ee'});
         } else if (this.type === 'kamikaze') {
-            if(dist < 200) moveSpeed *= 2.5; // Charge
+            if(dist < 200) moveSpeed *= 2.5;
             this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
             if(dist < this.r + 20) { this.hp = 0; window.Game.player.takeDamage(30); this.takeDamage(999, false); }
         } else if (this.type === 'carrier') {
             this.timer++;
             this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
-            if(this.timer % 200 === 0) {
-                 window.Game.enemies.push(new Enemy('swarmer', 1)); // Spawn babies
-            }
+            if(this.timer % 200 === 0) window.Game.enemies.push(new Enemy('swarmer', 1));
         } else {
             this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
         }
@@ -608,19 +552,16 @@ class Enemy {
         ctx.strokeStyle = this.color; ctx.lineWidth = 2;
 
         if (this.type === 'basic') {
-            // Rotating Diamond
             ctx.rotate(this.visAngle);
             ctx.beginPath(); ctx.rect(-this.r/2, -this.r/2, this.r, this.r); ctx.stroke();
             ctx.globalAlpha = 0.3; ctx.fill(); ctx.globalAlpha = 1;
         }
         else if (this.type === 'dasher') {
-            // Arrowhead
             ctx.rotate(this.visAngle * 2);
             ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r/2, 0); ctx.lineTo(-this.r, -this.r); ctx.closePath();
             ctx.stroke();
         }
         else if (this.type === 'heavy' || this.type === 'tank') {
-            // Shielded Hexagon
             ctx.rotate(this.visAngle * 0.5);
             ctx.beginPath();
             for(let i=0; i<6; i++) {
@@ -629,21 +570,17 @@ class Enemy {
             }
             ctx.closePath();
             ctx.stroke(); ctx.globalAlpha=0.5; ctx.fill(); ctx.globalAlpha=1;
-            ctx.strokeRect(-this.r/2, -this.r/2, this.r, this.r);
         }
         else if (this.type === 'swarmer') {
-            // Tiny triangle
             ctx.rotate(this.visAngle * 3);
             ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r, -this.r); ctx.fill();
         }
         else if (this.type === 'sniper') {
-            // Diamond with crosshair
             ctx.rotate(this.visAngle);
             ctx.strokeRect(-this.r/2, -this.r/2, this.r, this.r);
             ctx.beginPath(); ctx.moveTo(0, -this.r); ctx.lineTo(0, this.r); ctx.moveTo(-this.r, 0); ctx.lineTo(this.r, 0); ctx.stroke();
         }
         else if (this.type === 'kamikaze') {
-            // Spiky Star
             ctx.rotate(this.visAngle * 4);
             ctx.beginPath();
             for(let i=0; i<8; i++) {
@@ -655,17 +592,14 @@ class Enemy {
             ctx.fill();
         }
         else if (this.type === 'orbiter') { 
-            // Ring
             ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.stroke();
             ctx.beginPath(); ctx.arc(Math.cos(this.visAngle)*this.r, Math.sin(this.visAngle)*this.r, 4, 0, Math.PI*2); ctx.fill();
         }
         else if (this.type === 'carrier') {
-            // Big Box
             ctx.strokeRect(-this.r, -this.r, this.r*2, this.r*2);
             ctx.strokeRect(-this.r/2, -this.r/2, this.r, this.r);
         }
         else if (this.type === 'boss') {
-            // Complex Boss Shape
             ctx.rotate(this.visAngle * 0.2);
             ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
             ctx.beginPath(); ctx.rect(-this.r*0.7, -this.r*0.7, this.r*1.4, this.r*1.4); ctx.stroke();
