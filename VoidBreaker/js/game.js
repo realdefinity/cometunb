@@ -228,34 +228,43 @@ class Player {
         this.bulletSpeed = w.speed; this.spread = w.spread; this.count = w.count; this.pierce = w.pierce;
         this.bulletColor = w.color;
         
-        // Upgrades
+        // Upgrades Logic
+        this.upgradeLevels = {}; // Tracks levels of each upgrade ID
         this.cooldown = 0; this.critChance = 0.05; this.critMult = 1.5; this.lifesteal = 0; 
         this.dodge = 0; this.pickupRange = 100;
+        
+        // Ability Flags
         this.ricochet = false; this.homing = false; this.explosive = false; 
-        this.tesla = false; this.freeze = false;
+        this.tesla = false; this.freeze = false; this.backshot = false; 
+        this.dashNova = false; this.cluster = false; this.shatter = false;
+        this.blackHole = false;
+
+        this.teslaRange = 200; this.teslaCount = 1;
 
         this.dashCd = 0; this.dashCdMax = 120; this.dashing = 0; this.invuln = 0;
     }
 
     update() {
-        // Passive Regen
         if(window.Game.frameCount % 60 === 0 && this.regen > 0 && this.hp < this.maxHp) this.hp += this.regen;
         
-        // Tesla Coil
+        // Tesla Coil Logic
         if(this.tesla && window.Game.frameCount % 30 === 0) {
-            let hit = false;
-            window.Game.enemies.forEach(e => {
-                if(Math.hypot(e.x-this.x, e.y-this.y) < 200) {
-                    e.takeDamage(10, false); hit = true;
-                    // Draw Lightning
-                    window.Game.ctx.strokeStyle = '#facc15'; window.Game.ctx.lineWidth = 2;
-                    window.Game.ctx.beginPath(); window.Game.ctx.moveTo(this.x, this.y); window.Game.ctx.lineTo(e.x, e.y); window.Game.ctx.stroke();
-                }
-            });
-            if(hit) window.AudioSys.play('sawtooth', 800, 0.1, 0.05);
+            let hits = 0;
+            // Filter close enemies
+            const targets = window.Game.enemies.filter(e => Math.hypot(e.x-this.x, e.y-this.y) < this.teslaRange);
+            for(let e of targets) {
+                if(hits >= this.teslaCount) break;
+                e.takeDamage(10, false); 
+                window.Game.ctx.save();
+                window.Game.ctx.strokeStyle = '#facc15'; window.Game.ctx.lineWidth = 2; window.Game.ctx.shadowBlur = 10; window.Game.ctx.shadowColor = '#facc15';
+                window.Game.ctx.beginPath(); window.Game.ctx.moveTo(this.x, this.y); window.Game.ctx.lineTo(e.x, e.y); window.Game.ctx.stroke();
+                window.Game.ctx.restore();
+                hits++;
+            }
+            if(hits > 0) window.AudioSys.play('sawtooth', 800, 0.1, 0.05);
         }
 
-        // Movement
+        // Movement Code (Same as before)
         let dx = 0, dy = 0;
         if(window.keys['w'] || window.keys['ArrowUp']) dy--;
         if(window.keys['s'] || window.keys['ArrowDown']) dy++;
@@ -294,6 +303,14 @@ class Player {
         const a = m > 0.1 ? Math.atan2(this.vel.y, this.vel.x) : this.angle;
         this.vel.x = Math.cos(a) * 20; this.vel.y = Math.sin(a) * 20;
         window.AudioSys.play('sine', 600, 0.2, 0.1, 100);
+        
+        // Dash Nova Ability
+        if(this.dashNova) {
+            window.Game.createExplosion(this.x, this.y, 12, '#38bdf8');
+            window.Game.enemies.forEach(e => {
+                if(Math.hypot(e.x-this.x, e.y-this.y) < 150) e.takeDamage(this.damage * 2, true);
+            });
+        }
     }
 
     shoot() {
@@ -309,6 +326,14 @@ class Player {
             window.Game.bullets.push(new Bullet(
                 this.x + Math.cos(this.angle)*15, this.y + Math.sin(this.angle)*15,
                 finalA, this.damage, this.bulletSpeed, this.pierce, this.bulletColor, this
+            ));
+        }
+
+        // Backshot Ability
+        if(this.backshot) {
+            window.Game.bullets.push(new Bullet(
+                this.x - Math.cos(this.angle)*15, this.y - Math.sin(this.angle)*15,
+                this.angle + Math.PI, this.damage, this.bulletSpeed, this.pierce, this.bulletColor, this
             ));
         }
     }
