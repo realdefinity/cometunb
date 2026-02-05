@@ -168,8 +168,10 @@ window.Game = {
             this.wave++;
             this.waveTimer = 0;
             this.createPopup(this.width/2, this.height/3, `WAVE ${this.wave}`, '#fbbf24', 40);
-
-            document.getElementById('wave-display').innerText = `WAVE ${this.wave}`;
+            
+            // UPDATE THE UI DISPLAY
+            const waveDisplay = document.getElementById('wave-display');
+            if(waveDisplay) waveDisplay.innerText = `WAVE ${this.wave}`;
         }
 
         // Spawn Logic based on Wave
@@ -459,14 +461,46 @@ class Enemy {
         }
     }
 
-    draw(ctx) {
-        ctx.save(); ctx.translate(this.x, this.y);
+draw(ctx) {
+        ctx.save(); 
+        ctx.translate(this.x, this.y);
         ctx.fillStyle = this.flash > 0 ? 'white' : this.color;
-        ctx.shadowBlur = this.type === 'boss' ? 20 : 0; ctx.shadowColor = this.color;
-        if(this.type === 'basic') ctx.fillRect(-this.r+2, -this.r+2, this.r*2, this.r*2);
-        else if (this.type === 'dasher') { ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r/2); ctx.lineTo(-this.r, -this.r/2); ctx.fill(); }
-        else if (this.type === 'orbiter') { ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke(); }
-        else ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill();
+        ctx.shadowBlur = this.type === 'boss' ? 20 : 0; 
+        ctx.shadowColor = this.color;
+
+        // FIXED: Added braces {} to ensure drawing logic stays contained
+        if (this.type === 'basic') {
+            ctx.fillRect(-this.r+2, -this.r+2, this.r*2, this.r*2);
+        }
+        else if (this.type === 'dasher') { 
+            ctx.beginPath(); 
+            ctx.moveTo(this.r, 0); 
+            ctx.lineTo(-this.r, this.r/2); 
+            ctx.lineTo(-this.r, -this.r/2); 
+            ctx.fill(); 
+        }
+        else if (this.type === 'orbiter') { 
+            ctx.beginPath(); 
+            ctx.arc(0,0,this.r,0,Math.PI*2); 
+            ctx.fill(); 
+            ctx.strokeStyle = 'white'; 
+            ctx.lineWidth = 2; 
+            ctx.stroke(); 
+        }
+        else if (this.type === 'shooter') {
+            ctx.beginPath();
+            ctx.moveTo(this.r, 0);
+            ctx.lineTo(-this.r, this.r);
+            ctx.lineTo(-this.r, -this.r);
+            ctx.fill();
+        }
+        else { 
+            // Tank, Heavy, Boss fallback
+            ctx.beginPath(); 
+            ctx.arc(0,0,this.r,0,Math.PI*2); 
+            ctx.fill(); 
+        }
+        
         ctx.restore();
     }
 }
