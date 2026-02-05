@@ -6,7 +6,8 @@ window.Game = {
     
     // Wave System
     wave: 1,
-    waveTimer: 0,
+    waveEnemiesTotal: 0,
+    waveEnemiesSpawned: 0,
     bossActive: false,
     
     enemies: [], bullets: [], enemyBullets: [], particles: [], textPopups: [], xpOrbs: [], stars: [],
@@ -50,11 +51,25 @@ window.Game = {
         this.player = new Player(this.currentLoadout);
         this.enemies=[]; this.bullets=[]; this.enemyBullets=[]; this.particles=[]; this.xpOrbs=[]; this.textPopups=[];
         this.score=0; this.sessionCredits=0; this.level=1; this.currentXp=0; this.xpNeeded=100; this.frameCount=0;
-        this.killStreak=0; this.wave=1; this.waveTimer=0; this.bossActive=false;
+        this.killStreak=0; this.bossActive=false;
+        
+        // Init Wave 1
+        this.wave = 1;
+        this.startWave();
+
         this.gameState = 'PLAYING';
         window.UI.updateHud();
         this.loop();
-        document.getElementById('wave-display').innerText = "WAVE 1";
+    },
+
+    startWave() {
+        this.waveEnemiesTotal = Math.floor(12 + this.wave * 2.5); // Difficulty Scaling
+        this.waveEnemiesSpawned = 0;
+        
+        // Update UI
+        const disp = document.getElementById('wave-display');
+        if(disp) disp.innerText = `WAVE ${this.wave}`;
+        this.createPopup(this.width/2, this.height/3, `WAVE ${this.wave}`, '#fbbf24', 40);
     },
 
     loop() {
@@ -104,27 +119,17 @@ window.Game = {
             }
             return b.life > 0;
         });
-                    
-            this.enemyBullets = this.enemyBullets.filter(b => {
-                        b.x += b.vx; b.y += b.vy; b.life--;
-                        
-                        // START FIX: Use save/restore to isolate drawing state
-                        this.ctx.save();
-                        this.ctx.shadowBlur = 5; 
-                        this.ctx.shadowColor = b.color; 
-                        this.ctx.fillStyle = b.color;
-                        this.ctx.beginPath(); 
-                        this.ctx.arc(b.x, b.y, b.r || 4, 0, Math.PI*2); 
-                        this.ctx.fill(); 
-                        this.ctx.restore();
-                        // END FIX
-
-                        if(Math.hypot(b.x-this.player.x, b.y-this.player.y) < (b.r || 4) + 10) { 
-                            this.player.takeDamage(10); 
-                            return false; 
-                        }
-                        return b.life > 0;
-                    });
+        
+        this.enemyBullets = this.enemyBullets.filter(b => {
+            b.x += b.vx; b.y += b.vy; b.life--;
+            this.ctx.save();
+            this.ctx.shadowBlur=5; this.ctx.shadowColor=b.color; this.ctx.fillStyle=b.color;
+            this.ctx.beginPath(); this.ctx.arc(b.x, b.y, b.r || 4, 0, Math.PI*2); this.ctx.fill(); 
+            this.ctx.restore();
+            
+            if(Math.hypot(b.x-this.player.x, b.y-this.player.y) < (b.r || 4) + 10) { this.player.takeDamage(10); return false; }
+            return b.life > 0;
+        });
 
         this.xpOrbs = this.xpOrbs.filter(x => {
             const d = Math.hypot(this.player.x-x.x, this.player.y-x.y);
@@ -152,39 +157,50 @@ window.Game = {
 
     manageWaves() {
         if(this.bossActive) return;
-        this.waveTimer++;
-        
-        // Spawn Boss every 5 waves
-        if(this.wave % 5 === 0 && this.enemies.length === 0) {
-            this.bossActive = true;
-            this.enemies.push(new Enemy('boss', 2 + this.wave * 0.2));
-            document.getElementById('boss-hud').style.opacity = 1;
-            window.AudioSys.bossWarn();
+
+        // Check if Wave Completed (All spawned enemies dead + we finished spawning)
+        if(this.waveEnemiesSpawned >= this.waveEnemiesTotal && this.enemies.length === 0) {
+            
+            // Grant Wave Rewards
+            const rewardXP = this.wave * 100;
+            this.currentXp += rewardXP;
+            this.createPopup(this.player.x, this.player.y - 60, `WAVE CLEAR! +${rewardXP} XP`, '#fbbf24', 24);
+            this.checkLevelUp();
+
+            // Next Wave
+            this.wave++;
+            
+            // Check Boss Spawn (Every 5 waves)
+            if(this.wave % 5 === 0) {
+                this.bossActive = true;
+                this.enemies.push(new Enemy('boss', 2 + this.wave * 0.2));
+                document.getElementById('boss-hud').style.opacity = 1;
+                window.AudioSys.bossWarn();
+                return;
+            }
+
+            // Start Normal Wave
+            this.startWave();
             return;
         }
 
-        // Advance Wave
-        if(this.waveTimer > 1800) { // 30 seconds per wave
-            this.wave++;
-            this.waveTimer = 0;
-            this.createPopup(this.width/2, this.height/3, `WAVE ${this.wave}`, '#fbbf24', 40);
+        // Spawn Enemies
+        if(this.waveEnemiesSpawned < this.waveEnemiesTotal) {
+            // Spawn rate increases with wave number
+            const spawnRate = Math.max(10, 60 - this.wave * 3);
             
-            // UPDATE THE UI DISPLAY
-            const waveDisplay = document.getElementById('wave-display');
-            if(waveDisplay) waveDisplay.innerText = `WAVE ${this.wave}`;
-        }
-
-        // Spawn Logic based on Wave
-        const spawnRate = Math.max(10, 60 - this.wave * 2);
-        if(this.frameCount % spawnRate === 0) {
-            const r = Math.random();
-            let type = 'basic';
-            if(this.wave > 2 && r > 0.7) type = 'dasher';
-            if(this.wave > 3 && r > 0.8) type = 'shooter';
-            if(this.wave > 5 && r > 0.85) type = 'heavy';
-            if(this.wave > 7 && r > 0.9) type = 'orbiter';
-            
-            this.enemies.push(new Enemy(type, 1 + this.wave * 0.1));
+            if(this.frameCount % spawnRate === 0) {
+                const r = Math.random();
+                let type = 'basic';
+                if(this.wave > 1 && r > 0.6) type = 'dasher';
+                if(this.wave > 3 && r > 0.75) type = 'shooter';
+                if(this.wave > 5 && r > 0.85) type = 'heavy';
+                if(this.wave > 7 && r > 0.9) type = 'orbiter';
+                if(this.wave > 9 && r > 0.95) type = 'tank';
+                
+                this.enemies.push(new Enemy(type, 1 + this.wave * 0.1));
+                this.waveEnemiesSpawned++;
+            }
         }
     },
 
@@ -216,6 +232,7 @@ window.Game = {
     }
 };
 
+/* --- Classes --- */
 class Player {
     constructor(weaponKey) {
         const w = window.WEAPONS[weaponKey];
@@ -229,7 +246,7 @@ class Player {
         this.bulletColor = w.color;
         
         // Upgrades Logic
-        this.upgradeLevels = {}; // Tracks levels of each upgrade ID
+        this.upgradeLevels = {}; 
         this.cooldown = 0; this.critChance = 0.05; this.critMult = 1.5; this.lifesteal = 0; 
         this.dodge = 0; this.pickupRange = 100;
         
@@ -250,7 +267,6 @@ class Player {
         // Tesla Coil Logic
         if(this.tesla && window.Game.frameCount % 30 === 0) {
             let hits = 0;
-            // Filter close enemies
             const targets = window.Game.enemies.filter(e => Math.hypot(e.x-this.x, e.y-this.y) < this.teslaRange);
             for(let e of targets) {
                 if(hits >= this.teslaCount) break;
@@ -264,7 +280,6 @@ class Player {
             if(hits > 0) window.AudioSys.play('sawtooth', 800, 0.1, 0.05);
         }
 
-        // Movement Code (Same as before)
         let dx = 0, dy = 0;
         if(window.keys['w'] || window.keys['ArrowUp']) dy--;
         if(window.keys['s'] || window.keys['ArrowDown']) dy++;
@@ -304,7 +319,6 @@ class Player {
         this.vel.x = Math.cos(a) * 20; this.vel.y = Math.sin(a) * 20;
         window.AudioSys.play('sine', 600, 0.2, 0.1, 100);
         
-        // Dash Nova Ability
         if(this.dashNova) {
             window.Game.createExplosion(this.x, this.y, 12, '#38bdf8');
             window.Game.enemies.forEach(e => {
@@ -329,7 +343,6 @@ class Player {
             ));
         }
 
-        // Backshot Ability
         if(this.backshot) {
             window.Game.bullets.push(new Bullet(
                 this.x - Math.cos(this.angle)*15, this.y - Math.sin(this.angle)*15,
@@ -393,7 +406,6 @@ class Enemy {
         this.frozen = 0;
         
         let scale = difficulty;
-        // Default Stats
         this.hp = 30 * scale; this.speed = 2; this.color = '#94a3b8'; this.r = 14;
         this.xp = 10; this.score = 50; this.credits = 1;
 
@@ -451,7 +463,7 @@ class Enemy {
 
     takeDamage(amt, isCrit, freeze=false) {
         this.hp -= amt; this.flash = 3;
-        if(freeze) this.frozen = 60; // 1 second freeze
+        if(freeze) this.frozen = 60;
         window.Game.createPopup(this.x, this.y - 20, Math.floor(amt), isCrit ? '#fbbf24' : 'white', isCrit ? 24 : 16);
         
         if(this.hp <= 0 && !this.marked) {
@@ -468,7 +480,13 @@ class Enemy {
                 window.Game.createExplosion(this.x, this.y, 8, this.color);
             }
 
-            // Streak
+            if(this.frozen > 0 && window.Game.player.shatter) {
+                window.Game.createExplosion(this.x, this.y, 8, '#a5f3fc'); 
+                window.Game.enemies.forEach(e => {
+                    if(e !== this && Math.hypot(e.x-this.x, e.y-this.y) < 100) e.takeDamage(window.Game.player.damage, false);
+                });
+            }
+
             window.Game.killStreak++; window.Game.killStreakTimer = 120;
             if(window.Game.killStreak % 5 === 0) {
                 let msg = window.Game.killStreak + " KILLS";
@@ -486,46 +504,15 @@ class Enemy {
         }
     }
 
-draw(ctx) {
-        ctx.save(); 
-        ctx.translate(this.x, this.y);
+    draw(ctx) {
+        ctx.save(); ctx.translate(this.x, this.y);
         ctx.fillStyle = this.flash > 0 ? 'white' : this.color;
-        ctx.shadowBlur = this.type === 'boss' ? 20 : 0; 
-        ctx.shadowColor = this.color;
-
-        // FIXED: Added braces {} to ensure drawing logic stays contained
-        if (this.type === 'basic') {
-            ctx.fillRect(-this.r+2, -this.r+2, this.r*2, this.r*2);
-        }
-        else if (this.type === 'dasher') { 
-            ctx.beginPath(); 
-            ctx.moveTo(this.r, 0); 
-            ctx.lineTo(-this.r, this.r/2); 
-            ctx.lineTo(-this.r, -this.r/2); 
-            ctx.fill(); 
-        }
-        else if (this.type === 'orbiter') { 
-            ctx.beginPath(); 
-            ctx.arc(0,0,this.r,0,Math.PI*2); 
-            ctx.fill(); 
-            ctx.strokeStyle = 'white'; 
-            ctx.lineWidth = 2; 
-            ctx.stroke(); 
-        }
-        else if (this.type === 'shooter') {
-            ctx.beginPath();
-            ctx.moveTo(this.r, 0);
-            ctx.lineTo(-this.r, this.r);
-            ctx.lineTo(-this.r, -this.r);
-            ctx.fill();
-        }
-        else { 
-            // Tank, Heavy, Boss fallback
-            ctx.beginPath(); 
-            ctx.arc(0,0,this.r,0,Math.PI*2); 
-            ctx.fill(); 
-        }
-        
+        ctx.shadowBlur = this.type === 'boss' ? 20 : 0; ctx.shadowColor = this.color;
+        if(this.type === 'basic') ctx.fillRect(-this.r+2, -this.r+2, this.r*2, this.r*2);
+        else if (this.type === 'dasher') { ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r/2); ctx.lineTo(-this.r, -this.r/2); ctx.fill(); }
+        else if (this.type === 'orbiter') { ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke(); }
+        else if (this.type === 'shooter') { ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r, -this.r); ctx.fill(); }
+        else { ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill(); }
         ctx.restore();
     }
 }
