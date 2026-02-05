@@ -339,9 +339,25 @@ class Player {
         }
     }
 
-    shoot() {
+shoot() {
         this.cooldown = this.maxCooldown;
         window.AudioSys.shoot(this.weaponKey);
+        
+        // 1. Stronger Recoil (Feels punchy)
+        const recoilForce = 3.0; // Increased from 1
+        this.vel.x -= Math.cos(this.angle) * recoilForce; 
+        this.vel.y -= Math.sin(this.angle) * recoilForce;
+        
+        // 2. Screen Shake on shoot
+        window.Game.shake.add(2);
+
+        // 3. Muzzle Flash Particle
+        const tipX = this.x + Math.cos(this.angle) * 20;
+        const tipY = this.y + Math.sin(this.angle) * 20;
+        // Spawns a short-lived bright flash
+        window.Game.particles.push(new Particle(tipX, tipY, this.vel.x, this.vel.y, 15, '#ffffff', 4));
+
+        // 4. Fire Bullets
         const totalArc = this.spread * (this.count > 1 ? 2 : 1);
         const startA = this.angle - totalArc/2;
         const step = this.count > 1 ? totalArc / (this.count-1) : 0;
@@ -349,12 +365,17 @@ class Player {
         for(let i=0; i<this.count; i++) {
             const baseA = this.count > 1 ? startA + step*i : this.angle;
             const finalA = baseA + (Math.random()-0.5) * this.spread * 0.5; 
+            
+            // Offset bullet start slightly to match gun barrel
+            const bx = this.x + Math.cos(this.angle) * 15;
+            const by = this.y + Math.sin(this.angle) * 15;
+            
             window.Game.bullets.push(new Bullet(
-                this.x + Math.cos(this.angle)*15, this.y + Math.sin(this.angle)*15,
-                finalA, this.damage, this.bulletSpeed, this.pierce, this.bulletColor, this
+                bx, by, finalA, this.damage, this.bulletSpeed, this.pierce, this.bulletColor, this
             ));
         }
 
+        // Backshot Ability
         if(this.backshot) {
             window.Game.bullets.push(new Bullet(
                 this.x - Math.cos(this.angle)*15, this.y - Math.sin(this.angle)*15,
@@ -406,8 +427,28 @@ class Bullet {
             if(this.y < 0 || this.y > window.Game.height) { this.vy *= -1; this.y += this.vy; }
         }
     }
-    draw(ctx) { ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill(); }
-}
+draw(ctx) {
+        // Glowing Trail Effect
+        ctx.shadowBlur = 15; 
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        // Start line at bullet position
+        ctx.moveTo(this.x, this.y);
+        // Draw tail backwards based on velocity (makes fast bullets look longer)
+        ctx.lineTo(this.x - this.vx * 2, this.y - this.vy * 2);
+        ctx.stroke();
+
+        // Bright Core
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI*2); // Small white tip
+        ctx.fill();
+    }}
 
 class Enemy {
     constructor(type, difficulty=1) {
