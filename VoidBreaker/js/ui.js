@@ -1,10 +1,47 @@
 window.UI = {
-    updateMenuUI: function() {
+updateMenuUI: function() {
         document.getElementById('menu-credits').innerText = window.Game.totalCurrency.toLocaleString();
+        
         const grid = document.getElementById('weapon-grid');
         grid.innerHTML = '';
 
-        // Lootbox
+        // 1. Stats Display
+        const statsDiv = document.createElement('div');
+        statsDiv.className = "col-span-full text-xs text-slate-400 font-mono mb-2 text-center tracking-widest";
+        statsDiv.innerHTML = `XP: x${window.GAME_DATA.multipliers.xp.toFixed(1)} | GOLD: x${window.GAME_DATA.multipliers.gold.toFixed(1)}`;
+        grid.appendChild(statsDiv);
+
+        // 2. Prestige Button (Shows if rich)
+        if(window.Game.totalCurrency > 50000) {
+            const prestBtn = document.createElement('div');
+            prestBtn.className = "weapon-card rarity-legendary mb-4 text-center cursor-pointer hover:bg-red-900/20";
+            prestBtn.style.border = "1px solid #ef4444";
+            prestBtn.innerHTML = `
+                <div class="text-xl font-bold text-red-500">PRESTIGE RESET</div>
+                <div class="text-xs text-slate-400">Reset ALL progress for +0.2x Multipliers</div>
+            `;
+            prestBtn.onclick = () => window.UI.doPrestige();
+            grid.appendChild(prestBtn);
+        }
+
+        // 3. Cosmetic Crate
+        const skinBtn = document.createElement('div');
+        skinBtn.className = "weapon-card rarity-epic mb-4";
+        skinBtn.style.background = "linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(0,0,0,0))";
+        skinBtn.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="text-xl font-bold text-fuchsia-400 mb-1">COSMETIC CRATE</div>
+                    <div class="text-xs text-slate-300">Unlock new ship colors</div>
+                </div>
+                <div class="buy-btn ${window.Game.totalCurrency >= 5000 ? '' : 'disabled'}" style="margin:0; width:120px;" onclick="window.UI.openSkinCrate(event)">
+                    ${window.Game.totalCurrency >= 5000 ? 'BUY $5,000' : 'NEED $5,000'}
+                </div>
+            </div>
+        `;
+        grid.appendChild(skinBtn);
+
+        // 4. Armory Crate (Existing)
         const boxBtn = document.createElement('div');
         boxBtn.className = "weapon-card rarity-legendary mb-8";
         boxBtn.style.background = "linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(0,0,0,0))";
@@ -21,7 +58,7 @@ window.UI = {
         `;
         grid.appendChild(boxBtn);
 
-        // Weapons
+        // 5. Weapon List
         Object.keys(window.WEAPONS).forEach(key => {
             if(!window.Game.unlockedWeapons.includes(key)) return;
             const w = window.WEAPONS[key];
@@ -35,7 +72,6 @@ window.UI = {
                     <div class="text-xs font-bold uppercase text-${w.rarity}">${w.rarity}</div>
                 </div>
                 <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">DMG <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(w.damage/50)*100}%"></div></div></div>
-                <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">SPD <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(15/w.cooldown)*100}%"></div></div></div>
             `;
             grid.appendChild(card);
         });
@@ -185,3 +221,63 @@ window.UI = {
         document.getElementById('earned-credits').innerText = "+" + window.Game.sessionCredits.toLocaleString();
     }
 };
+
+openSkinCrate: function(e) {
+        if(e) e.stopPropagation();
+        if(window.Game.totalCurrency < 5000) return;
+        window.Game.totalCurrency -= 5000;
+        window.Game.saveData();
+        this.updateMenuUI();
+
+        const modal = document.createElement('div');
+        modal.className = 'lootbox-modal active';
+        modal.innerHTML = `
+            <div class="crate-container">
+                <div class="crate" id="crate-box" style="border-color:#d946ef; font-size:6rem;">🎨</div>
+                <div class="reward-card" id="reward-card">
+                    <div class="text-sm font-bold uppercase mb-2 text-fuchsia-400">COSMETIC UNLOCKED</div>
+                    <div class="text-3xl font-bold text-white mb-4" id="reward-name"></div>
+                    <button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">EQUIP</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const crate = modal.querySelector('#crate-box');
+        const card = modal.querySelector('#reward-card');
+        crate.classList.add('shake');
+        window.AudioSys.play('square', 100, 0.1); 
+        
+        setTimeout(() => {
+            crate.classList.remove('shake'); crate.classList.add('open');
+            window.AudioSys.play('sine', 1000, 0.5);
+            
+            // Random Skin Logic
+            const skins = window.GAME_DATA.skins;
+            const skin = skins[Math.floor(Math.random() * skins.length)];
+            
+            // Unlock & Equip
+            skin.unlocked = true;
+            window.GAME_DATA.currentSkin = skin.id;
+            window.Game.saveData();
+
+            modal.querySelector('#reward-name').innerText = skin.name;
+            modal.querySelector('#reward-name').style.color = skin.color;
+            card.classList.add('show');
+        }, 2000);
+    },
+
+    doPrestige: function() {
+        if(!confirm("WARNING: This will reset ALL weapons, upgrades, and money.\n\nYou will gain +0.2x Multipliers forever.\n\nAre you sure?")) return;
+        
+        // Perm Boost
+        window.GAME_DATA.multipliers.xp += 0.2;
+        window.GAME_DATA.multipliers.gold += 0.2;
+        window.GAME_DATA.prestigeLevel++;
+        
+        // Hard Reset
+        window.Game.totalCurrency = 0;
+        window.Game.unlockedWeapons = ['rifle'];
+        window.Game.saveData();
+        location.reload();
+    },

@@ -32,19 +32,23 @@ window.Game = {
         if(this.canvas) { this.canvas.width = this.width; this.canvas.height = this.height; }
     },
 
-    loadData() {
-        try {
-            const c = localStorage.getItem('void_breaker_currency');
-            const w = localStorage.getItem('void_breaker_unlocks');
-            if(c) this.totalCurrency = parseInt(c);
-            if(w) this.unlockedWeapons = JSON.parse(w);
-        } catch(e) {}
-        window.UI.updateMenuUI();
-    },
+        loadData() {
+                try {
+                    const c = localStorage.getItem('void_breaker_currency');
+                    const w = localStorage.getItem('void_breaker_unlocks');
+                    const g = localStorage.getItem('void_breaker_gamedata');
+                    
+                    if(c) this.totalCurrency = parseInt(c);
+                    if(w) this.unlockedWeapons = JSON.parse(w);
+                    if(g) window.GAME_DATA = { ...window.GAME_DATA, ...JSON.parse(g) }; // Merge saved data
+                } catch(e) { console.log('Save data load failed', e); }
+                window.UI.updateMenuUI();
+            },
 
-    saveData() {
+saveData() {
         localStorage.setItem('void_breaker_currency', this.totalCurrency);
         localStorage.setItem('void_breaker_unlocks', JSON.stringify(this.unlockedWeapons));
+        localStorage.setItem('void_breaker_gamedata', JSON.stringify(window.GAME_DATA));
     },
 
     startGame() {
@@ -234,11 +238,24 @@ window.Game = {
         }
     },
     createPopup(x, y, text, color, size=16) { this.textPopups.push({x, y, text, color, size, life: 60, vy: -2}); },
-    createXP(x, y, amt) { this.xpOrbs.push({x, y, amt, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 1000}); },
+    createXP(x, y, amt) { 
+        // Apply XP Multiplier
+        const finalAmt = Math.ceil(amt * window.GAME_DATA.multipliers.xp);
+        this.xpOrbs.push({
+            x, y, 
+            amt: finalAmt, 
+            vx: (Math.random()-0.5)*2, 
+            vy: (Math.random()-0.5)*2, 
+            life: 1000
+        }); 
+    },
     
-    gameOver() {
+gameOver() {
         this.gameState = 'GAMEOVER';
-        this.totalCurrency += this.sessionCredits;
+        // Apply Gold Multiplier
+        const bonusGold = Math.floor(this.sessionCredits * window.GAME_DATA.multipliers.gold);
+        this.totalCurrency += bonusGold;
+        
         this.saveData();
         window.UI.gameOver();
     }

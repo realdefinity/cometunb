@@ -1,3 +1,16 @@
+window.GAME_DATA = {
+    multipliers: { xp: 1.0, gold: 1.0, damage: 1.0 },
+    prestigeLevel: 0,
+    skins: [
+        { id: 'default', name: 'Standard', color: '#38bdf8', unlocked: true },
+        { id: 'crimson', name: 'Crimson', color: '#ef4444', unlocked: false, rarity: 'rare' },
+        { id: 'midas', name: 'Midas', color: '#fbbf24', unlocked: false, rarity: 'legendary' },
+        { id: 'neon', name: 'Neon', color: '#00f3ff', unlocked: false, rarity: 'epic' },
+        { id: 'void', name: 'Void', color: '#1e293b', unlocked: false, rarity: 'epic' }
+    ],
+    currentSkin: 'default'
+};
+
 window.WEAPONS = {
     rifle: { name: 'Assault Rifle', damage: 20, cooldown: 12, speed: 14, spread: 0.1, count: 1, pierce: 0, color: '#94a3b8', rarity: 'common', desc: 'Standard issue automatic.', price: 0 },
     shotgun: { name: 'Scattergun', damage: 12, cooldown: 55, speed: 11, spread: 0.4, count: 6, pierce: 0, color: '#94a3b8', rarity: 'common', desc: 'Close range burst.', price: 0 },
