@@ -54,6 +54,7 @@ window.Game = {
         this.gameState = 'PLAYING';
         window.UI.updateHud();
         this.loop();
+        document.getElementById('wave-display').innerText = "WAVE 1";
     },
 
     loop() {
@@ -103,14 +104,27 @@ window.Game = {
             }
             return b.life > 0;
         });
-        
-        this.enemyBullets = this.enemyBullets.filter(b => {
-            b.x += b.vx; b.y += b.vy; b.life--;
-            this.ctx.shadowBlur=5; this.ctx.shadowColor=b.color; this.ctx.fillStyle=b.color;
-            this.ctx.beginPath(); this.ctx.arc(b.x, b.y, b.r || 4, 0, Math.PI*2); this.ctx.fill(); this.ctx.shadowBlur=0;
-            if(Math.hypot(b.x-this.player.x, b.y-this.player.y) < (b.r || 4) + 10) { this.player.takeDamage(10); return false; }
-            return b.life > 0;
-        });
+                    
+            this.enemyBullets = this.enemyBullets.filter(b => {
+                        b.x += b.vx; b.y += b.vy; b.life--;
+                        
+                        // START FIX: Use save/restore to isolate drawing state
+                        this.ctx.save();
+                        this.ctx.shadowBlur = 5; 
+                        this.ctx.shadowColor = b.color; 
+                        this.ctx.fillStyle = b.color;
+                        this.ctx.beginPath(); 
+                        this.ctx.arc(b.x, b.y, b.r || 4, 0, Math.PI*2); 
+                        this.ctx.fill(); 
+                        this.ctx.restore();
+                        // END FIX
+
+                        if(Math.hypot(b.x-this.player.x, b.y-this.player.y) < (b.r || 4) + 10) { 
+                            this.player.takeDamage(10); 
+                            return false; 
+                        }
+                        return b.life > 0;
+                    });
 
         this.xpOrbs = this.xpOrbs.filter(x => {
             const d = Math.hypot(this.player.x-x.x, this.player.y-x.y);
@@ -154,6 +168,8 @@ window.Game = {
             this.wave++;
             this.waveTimer = 0;
             this.createPopup(this.width/2, this.height/3, `WAVE ${this.wave}`, '#fbbf24', 40);
+
+            document.getElementById('wave-display').innerText = `WAVE ${this.wave}`;
         }
 
         // Spawn Logic based on Wave
