@@ -104,7 +104,7 @@ window.Game = {
                         const dmg = isCrit ? b.damage * this.player.critMult : b.damage;
                         e.takeDamage(dmg, isCrit, this.player.freeze);
                         b.hitList.push(e.id);
-                        this.createExplosion(b.x, b.y, 3, b.color);
+                        this.createExplosion(b.x, b.y, 5, b.color); // Hit puff
                         if(b.pierce <= 0) { b.life = 0; break; }
                         b.pierce--;
                     }
@@ -123,7 +123,7 @@ window.Game = {
         this.enemyBullets = this.enemyBullets.filter(b => {
             b.x += b.vx; b.y += b.vy; b.life--;
             this.ctx.save();
-            this.ctx.shadowBlur=5; this.ctx.shadowColor=b.color; this.ctx.fillStyle=b.color;
+            this.ctx.shadowBlur=8; this.ctx.shadowColor=b.color; this.ctx.fillStyle=b.color;
             this.ctx.beginPath(); this.ctx.arc(b.x, b.y, b.r || 4, 0, Math.PI*2); this.ctx.fill(); 
             this.ctx.restore();
             
@@ -192,14 +192,26 @@ window.Game = {
             if(this.frameCount % spawnRate === 0) {
                 const r = Math.random();
                 let type = 'basic';
+                // Probabilities based on wave
                 if(this.wave > 1 && r > 0.6) type = 'dasher';
                 if(this.wave > 3 && r > 0.75) type = 'shooter';
+                if(this.wave > 4 && r > 0.8) type = 'swarmer'; // New
                 if(this.wave > 5 && r > 0.85) type = 'heavy';
+                if(this.wave > 6 && r > 0.88) type = 'sniper'; // New
                 if(this.wave > 7 && r > 0.9) type = 'orbiter';
-                if(this.wave > 9 && r > 0.95) type = 'tank';
+                if(this.wave > 8 && r > 0.92) type = 'kamikaze'; // New
+                if(this.wave > 9 && r > 0.95) type = 'carrier'; // New
                 
-                this.enemies.push(new Enemy(type, 1 + this.wave * 0.1));
-                this.waveEnemiesSpawned++;
+                // Swarmers spawn in packs
+                if(type === 'swarmer') {
+                    for(let i=0; i<3; i++) {
+                        this.enemies.push(new Enemy('swarmer', 1 + this.wave * 0.1));
+                        this.waveEnemiesSpawned++;
+                    }
+                } else {
+                    this.enemies.push(new Enemy(type, 1 + this.wave * 0.1));
+                    this.waveEnemiesSpawned++;
+                }
             }
         }
     },
@@ -404,6 +416,7 @@ class Enemy {
         this.x = window.Game.width/2 + Math.cos(angle)*r; this.y = window.Game.height/2 + Math.sin(angle)*r;
         this.type = type; this.id = Math.random(); this.marked = false; this.flash = 0;
         this.frozen = 0;
+        this.visAngle = 0; // Visual rotation
         
         let scale = difficulty;
         this.hp = 30 * scale; this.speed = 2; this.color = '#94a3b8'; this.r = 14;
@@ -417,6 +430,10 @@ class Enemy {
             this.state = 'move'; this.timer = 0; this.xp = 25; this.credits = 3;
         }
         else if (type === 'orbiter') { this.hp = 40*scale; this.speed = 3; this.color = '#818cf8'; this.r = 12; this.angle = 0; }
+        else if (type === 'swarmer') { this.hp = 10*scale; this.speed = 5; this.color = '#d946ef'; this.r = 8; this.xp = 5; this.credits = 0; }
+        else if (type === 'sniper') { this.hp = 50*scale; this.speed = 1.5; this.color = '#22d3ee'; this.r = 14; this.xp = 30; this.timer = 0; }
+        else if (type === 'kamikaze') { this.hp = 25*scale; this.speed = 2.5; this.color = '#f87171'; this.r = 12; }
+        else if (type === 'carrier') { this.hp = 300*scale; this.speed = 0.8; this.color = '#64748b'; this.r = 30; this.timer = 0; this.xp = 100; }
         else if (type === 'boss') {
             this.hp = 2000 * scale; this.maxHp = this.hp; this.xp = 500; this.score = 5000; this.credits = 100; 
             this.speed = 0.5; this.color = '#a855f7'; this.r = 40; this.phase = 0; this.timer = 0;
@@ -427,14 +444,17 @@ class Enemy {
         if(this.flash > 0) this.flash--;
         let moveSpeed = this.speed;
         if(this.frozen > 0) { moveSpeed *= 0.5; this.frozen--; }
+        
+        this.visAngle += 0.05; // Spin effect
 
         const dx = window.Game.player.x - this.x; const dy = window.Game.player.y - this.y;
         const dist = Math.hypot(dx, dy); const angle = Math.atan2(dy, dx);
 
+        // AI Behaviors
         if(this.type === 'boss') {
             this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
             this.timer++;
-            if(this.timer % 15 === 0) { 
+            if(this.timer % 20 === 0) { 
                 const spiral = (this.timer / 20) + (this.phase * 0.5);
                 window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(spiral)*5, vy:Math.sin(spiral)*5, life:120, r:6, color:'#a855f7'});
                 window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(spiral+Math.PI)*5, vy:Math.sin(spiral+Math.PI)*5, life:120, r:6, color:'#a855f7'});
@@ -453,6 +473,25 @@ class Enemy {
                 this.x += Math.cos(angle + 1.5) * 0.5; this.y += Math.sin(angle + 1.5) * 0.5; 
                 if(this.timer % 100 === 0) window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(angle)*5, vy:Math.sin(angle)*5, life:100, r:4, color:'#fbbf24'});
                 if(dist > 450) this.state = 'move';
+            }
+        } else if (this.type === 'sniper') {
+            this.timer++;
+            // Try to maintain 500 distance
+            if(dist < 400) { this.x -= Math.cos(angle) * moveSpeed; this.y -= Math.sin(angle) * moveSpeed; }
+            else if(dist > 600) { this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed; }
+            
+            if(this.timer % 180 === 0) {
+                 window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(angle)*12, vy:Math.sin(angle)*12, life:100, r:3, color:'#22d3ee'});
+            }
+        } else if (this.type === 'kamikaze') {
+            if(dist < 200) moveSpeed *= 2.5; // Charge
+            this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
+            if(dist < this.r + 20) { this.hp = 0; window.Game.player.takeDamage(30); this.takeDamage(999, false); }
+        } else if (this.type === 'carrier') {
+            this.timer++;
+            this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
+            if(this.timer % 200 === 0) {
+                 window.Game.enemies.push(new Enemy('swarmer', 1)); // Spawn babies
             }
         } else {
             this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
@@ -507,12 +546,79 @@ class Enemy {
     draw(ctx) {
         ctx.save(); ctx.translate(this.x, this.y);
         ctx.fillStyle = this.flash > 0 ? 'white' : this.color;
-        ctx.shadowBlur = this.type === 'boss' ? 20 : 0; ctx.shadowColor = this.color;
-        if(this.type === 'basic') ctx.fillRect(-this.r+2, -this.r+2, this.r*2, this.r*2);
-        else if (this.type === 'dasher') { ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r/2); ctx.lineTo(-this.r, -this.r/2); ctx.fill(); }
-        else if (this.type === 'orbiter') { ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke(); }
-        else if (this.type === 'shooter') { ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r, -this.r); ctx.fill(); }
-        else { ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.fill(); }
+        ctx.shadowBlur = this.type === 'boss' ? 30 : 10; ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color; ctx.lineWidth = 2;
+
+        if (this.type === 'basic') {
+            // Rotating Diamond
+            ctx.rotate(this.visAngle);
+            ctx.beginPath(); ctx.rect(-this.r/2, -this.r/2, this.r, this.r); ctx.stroke();
+            ctx.globalAlpha = 0.3; ctx.fill(); ctx.globalAlpha = 1;
+        }
+        else if (this.type === 'dasher') {
+            // Arrowhead
+            ctx.rotate(this.visAngle * 2);
+            ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r/2, 0); ctx.lineTo(-this.r, -this.r); ctx.closePath();
+            ctx.stroke();
+        }
+        else if (this.type === 'heavy' || this.type === 'tank') {
+            // Shielded Hexagon
+            ctx.rotate(this.visAngle * 0.5);
+            ctx.beginPath();
+            for(let i=0; i<6; i++) {
+                const a = (i/6) * Math.PI*2;
+                ctx.lineTo(Math.cos(a)*this.r, Math.sin(a)*this.r);
+            }
+            ctx.closePath();
+            ctx.stroke(); ctx.globalAlpha=0.5; ctx.fill(); ctx.globalAlpha=1;
+            ctx.strokeRect(-this.r/2, -this.r/2, this.r, this.r);
+        }
+        else if (this.type === 'swarmer') {
+            // Tiny triangle
+            ctx.rotate(this.visAngle * 3);
+            ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r, -this.r); ctx.fill();
+        }
+        else if (this.type === 'sniper') {
+            // Diamond with crosshair
+            ctx.rotate(this.visAngle);
+            ctx.strokeRect(-this.r/2, -this.r/2, this.r, this.r);
+            ctx.beginPath(); ctx.moveTo(0, -this.r); ctx.lineTo(0, this.r); ctx.moveTo(-this.r, 0); ctx.lineTo(this.r, 0); ctx.stroke();
+        }
+        else if (this.type === 'kamikaze') {
+            // Spiky Star
+            ctx.rotate(this.visAngle * 4);
+            ctx.beginPath();
+            for(let i=0; i<8; i++) {
+                const a = (i/8)*Math.PI*2;
+                const r = i%2===0 ? this.r : this.r/2;
+                ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+        else if (this.type === 'orbiter') { 
+            // Ring
+            ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(Math.cos(this.visAngle)*this.r, Math.sin(this.visAngle)*this.r, 4, 0, Math.PI*2); ctx.fill();
+        }
+        else if (this.type === 'carrier') {
+            // Big Box
+            ctx.strokeRect(-this.r, -this.r, this.r*2, this.r*2);
+            ctx.strokeRect(-this.r/2, -this.r/2, this.r, this.r);
+        }
+        else if (this.type === 'boss') {
+            // Complex Boss Shape
+            ctx.rotate(this.visAngle * 0.2);
+            ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+            ctx.beginPath(); ctx.rect(-this.r*0.7, -this.r*0.7, this.r*1.4, this.r*1.4); ctx.stroke();
+            ctx.rotate(this.visAngle);
+            ctx.strokeRect(-this.r/3, -this.r/3, this.r*0.66, this.r*0.66);
+        }
+        else if (this.type === 'shooter') {
+            ctx.rotate(this.visAngle);
+            ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r, -this.r); ctx.stroke();
+        }
+        
         ctx.restore();
     }
 }
