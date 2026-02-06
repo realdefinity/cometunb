@@ -6,12 +6,23 @@ window.UI = {
         const activeBtn = document.querySelector(`.nav-btn[onclick*="${tabName}"]`);
         if(activeBtn) activeBtn.classList.add('active');
 
-        // Update Tabs
-        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-        const activeTab = document.getElementById(`tab-${tabName}`);
-        if(activeTab) activeTab.classList.add('active');
+        // Update Tabs with Fade
+        const tabs = document.querySelectorAll('.menu-tab');
+        tabs.forEach(tab => {
+            if (tab.id === `tab-${tabName}`) {
+                tab.classList.add('active');
+                // Retrigger animations
+                const cards = tab.querySelectorAll('.weapon-card, .menu-hero, .stats-panel');
+                cards.forEach(c => {
+                    c.style.animation = 'none';
+                    c.offsetHeight; /* trigger reflow */
+                    c.style.animation = null; 
+                });
+            } else {
+                tab.classList.remove('active');
+            }
+        });
 
-        // Refresh data if entering loadout
         if(tabName === 'loadout') this.updateMenuUI();
     },
 
@@ -21,7 +32,10 @@ window.UI = {
 
         const statsEl = document.getElementById('menu-stats');
         if(statsEl) {
-             statsEl.innerHTML = `XP: x${window.GAME_DATA.multipliers.xp.toFixed(1)} | GOLD: x${window.GAME_DATA.multipliers.gold.toFixed(1)}`;
+             statsEl.innerHTML = `
+                <div class="stat-pill"><span class="label">XP MULT</span> <span class="val text-indigo-400">x${window.GAME_DATA.multipliers.xp.toFixed(1)}</span></div>
+                <div class="stat-pill"><span class="label">GOLD MULT</span> <span class="val text-yellow-400">x${window.GAME_DATA.multipliers.gold.toFixed(1)}</span></div>
+             `;
         }
         
         const grid = document.getElementById('weapon-grid');
@@ -30,75 +44,86 @@ window.UI = {
         if(!grid || !actions) return;
         
         grid.innerHTML = '';
-        actions.innerHTML = ''; // Clear actions area
+        actions.innerHTML = ''; 
 
-        // Prestige Button
+        // --- PRESTIGE & CRATES (ACTIONS AREA) ---
+        
+        // Prestige
         if(window.Game.totalCurrency > 50000) {
-            const prestBtn = document.createElement('div');
-            prestBtn.className = "weapon-card rarity-legendary cursor-pointer hover:bg-red-900/20 flex-1";
-            prestBtn.style.border = "1px solid #ef4444";
-            prestBtn.innerHTML = `
-                <div class="text-xl font-bold text-red-500">PRESTIGE RESET</div>
-                <div class="text-xs text-slate-400">Reset progress for +0.2x Multipliers</div>
-            `;
-            prestBtn.onclick = () => window.UI.doPrestige();
-            actions.appendChild(prestBtn);
+            this.createActionCard(actions, 'legendary', 'PRESTIGE RESET', 'Reset for permanent power.', 'RESET', 'bg-red-500', 0, () => window.UI.doPrestige());
         }
 
         // Cosmetic Crate
-        const skinBtn = document.createElement('div');
-        skinBtn.className = "weapon-card rarity-epic flex-1";
-        skinBtn.style.background = "linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(0,0,0,0))";
-        skinBtn.innerHTML = `
-            <div class="flex justify-between items-center h-full">
-                <div>
-                    <div class="text-xl font-bold text-fuchsia-400 mb-1">COSMETIC CRATE</div>
-                    <div class="text-xs text-slate-300">New ship colors</div>
-                </div>
-                <div class="buy-btn ${window.Game.totalCurrency >= 5000 ? '' : 'disabled'}" style="margin:0; width:100px; font-size:0.8rem;" onclick="window.UI.openSkinCrate(event)">
-                    ${window.Game.totalCurrency >= 5000 ? 'BUY $5k' : 'NEED $5k'}
-                </div>
-            </div>
-        `;
-        actions.appendChild(skinBtn);
+        const canBuySkin = window.Game.totalCurrency >= 5000;
+        this.createActionCard(actions, 'epic', 'COSMETIC CACHE', 'Unlock visual styles.', canBuySkin ? 'BUY $5k' : 'NEED $5k', 'bg-fuchsia-500', 0.1, (e) => window.UI.openSkinCrate(e), !canBuySkin);
 
         // Armory Crate
-        const boxBtn = document.createElement('div');
-        boxBtn.className = "weapon-card rarity-legendary flex-1";
-        boxBtn.style.background = "linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(0,0,0,0))";
-        boxBtn.innerHTML = `
-            <div class="flex justify-between items-center h-full">
-                <div>
-                    <div class="text-xl font-bold text-yellow-400 mb-1">ARMORY CRATE</div>
-                    <div class="text-xs text-slate-300">Random Weapon</div>
-                </div>
-                <div class="buy-btn ${window.Game.totalCurrency >= 1000 ? '' : 'disabled'}" style="margin:0; width:100px; font-size:0.8rem;" onclick="window.UI.openLootbox(event)">
-                    ${window.Game.totalCurrency >= 1000 ? 'BUY $1k' : 'NEED $1k'}
-                </div>
-            </div>
-        `;
-        actions.appendChild(boxBtn);
+        const canBuyWep = window.Game.totalCurrency >= 1000;
+        this.createActionCard(actions, 'rare', 'ARMORY CRATE', 'Random weapon drop.', canBuyWep ? 'BUY $1k' : 'NEED $1k', 'bg-yellow-500', 0.2, (e) => window.UI.openLootbox(e), !canBuyWep);
 
-        // Weapons
+
+        // --- WEAPON GRID ---
         if(window.WEAPONS) {
-            Object.keys(window.WEAPONS).forEach(key => {
+            const keys = Object.keys(window.WEAPONS);
+            let delayIndex = 0;
+            
+            keys.forEach(key => {
                 if(!window.Game.unlockedWeapons.includes(key)) return;
+                
                 const w = window.WEAPONS[key];
                 const isSelected = window.Game.currentLoadout === key;
+                delayIndex++;
+
                 const card = document.createElement('div');
                 card.className = `weapon-card rarity-${w.rarity} ${isSelected ? 'selected' : ''}`;
-                card.onclick = () => { window.Game.currentLoadout = key; window.UI.updateMenuUI(); };
+                card.style.animationDelay = `${delayIndex * 0.05}s`;
+                card.onclick = () => { 
+                    window.Game.currentLoadout = key; 
+                    window.UI.updateMenuUI(); 
+                    window.AudioSys.play('sine', 400, 0.1);
+                };
+
+                const dmgPct = (w.damage/50)*100;
+                const spdPct = (15/w.cooldown)*100;
+
                 card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div><div class="text-xl font-bold text-white mb-1">${w.name}</div><div class="text-xs text-slate-400 mb-3 h-8">${w.desc}</div></div>
-                        <div class="text-xs font-bold uppercase text-${w.rarity}">${w.rarity}</div>
+                    <div class="card-glow"></div>
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div class="card-title">${w.name}</div>
+                            <div class="card-badge ${w.rarity}">${w.rarity}</div>
+                        </div>
+                        <div class="card-desc">${w.desc}</div>
+                        
+                        <div class="stat-row">
+                            <span class="stat-label">DMG</span>
+                            <div class="stat-track"><div class="stat-bar" style="width: ${Math.min(100, dmgPct)}%"></div></div>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">ROF</span>
+                            <div class="stat-track"><div class="stat-bar" style="width: ${Math.min(100, spdPct)}%"></div></div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">DMG <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(w.damage/50)*100}%"></div></div></div>
-                    <div class="flex items-center gap-2 text-xs text-slate-500 font-bold tracking-wider">SPD <div class="stat-bar flex-grow"><div class="stat-fill" style="width: ${(15/w.cooldown)*100}%"></div></div></div>
                 `;
                 grid.appendChild(card);
             });
         }
+    },
+
+    createActionCard: function(parent, rarity, title, desc, btnText, btnColorClass, delay, onClick, disabled=false) {
+        const div = document.createElement('div');
+        div.className = `action-card rarity-${rarity} ${disabled ? 'disabled' : ''}`;
+        div.style.animationDelay = `${delay}s`;
+        div.innerHTML = `
+            <div class="card-glow"></div>
+            <div class="card-content">
+                <div class="action-title">${title}</div>
+                <div class="action-desc">${desc}</div>
+                <div class="action-btn ${disabled ? 'opacity-50' : btnColorClass}">${btnText}</div>
+            </div>
+        `;
+        div.onclick = disabled ? null : onClick;
+        parent.appendChild(div);
     },
 
     openLootbox: function(e) {
@@ -108,21 +133,7 @@ window.UI = {
         window.Game.saveData();
         this.updateMenuUI();
 
-        const modal = document.createElement('div');
-        modal.className = 'lootbox-modal active';
-        modal.innerHTML = `
-            <div class="crate-container"><div class="crate" id="crate-box">📦</div><div class="reward-card" id="reward-card"><div class="text-sm font-bold uppercase mb-2 text-slate-400" id="reward-rarity"></div><div class="text-3xl font-bold text-white mb-4" id="reward-name"></div><button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">COLLECT</button></div></div>
-        `;
-        document.body.appendChild(modal);
-
-        const crate = modal.querySelector('#crate-box');
-        const card = modal.querySelector('#reward-card');
-        crate.classList.add('shake');
-        window.AudioSys.play('square', 100, 0.1); 
-        
-        setTimeout(() => {
-            crate.classList.remove('shake'); crate.classList.add('open');
-            window.AudioSys.play('sine', 800, 0.5);
+        this.showLootModal('📦', 'WEAPON FOUND', (modal, card) => {
             const keys = Object.keys(window.WEAPONS);
             let wKeys = [];
             keys.forEach(k => {
@@ -140,7 +151,7 @@ window.UI = {
             modal.querySelector('#reward-rarity').className = `text-sm font-bold uppercase mb-2 text-${w.rarity}`;
             modal.querySelector('#reward-name').innerText = w.name;
             card.classList.add('show');
-        }, 2000);
+        });
     },
 
     openSkinCrate: function(e) {
@@ -150,15 +161,29 @@ window.UI = {
         window.Game.saveData();
         this.updateMenuUI();
 
+        this.showLootModal('🎨', 'COSMETIC UNLOCKED', (modal, card) => {
+             const skins = window.GAME_DATA.skins;
+             const skin = skins[Math.floor(Math.random() * skins.length)];
+             skin.unlocked = true;
+             window.GAME_DATA.currentSkin = skin.id;
+             window.Game.saveData();
+ 
+             modal.querySelector('#reward-name').innerText = skin.name;
+             modal.querySelector('#reward-name').style.color = skin.color;
+             card.classList.add('show');
+        });
+    },
+
+    showLootModal: function(icon, title, onReveal) {
         const modal = document.createElement('div');
         modal.className = 'lootbox-modal active';
         modal.innerHTML = `
             <div class="crate-container">
-                <div class="crate" id="crate-box" style="border-color:#d946ef; font-size:6rem;">🎨</div>
+                <div class="crate" id="crate-box">${icon}</div>
                 <div class="reward-card" id="reward-card">
-                    <div class="text-sm font-bold uppercase mb-2 text-fuchsia-400">COSMETIC UNLOCKED</div>
+                    <div class="text-sm font-bold uppercase mb-2 text-slate-400" id="reward-rarity">${title}</div>
                     <div class="text-3xl font-bold text-white mb-4" id="reward-name"></div>
-                    <button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">EQUIP</button>
+                    <button class="modern-btn" style="margin:20px auto 0;" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">COLLECT</button>
                 </div>
             </div>
         `;
@@ -166,27 +191,20 @@ window.UI = {
 
         const crate = modal.querySelector('#crate-box');
         const card = modal.querySelector('#reward-card');
+        
         crate.classList.add('shake');
         window.AudioSys.play('square', 100, 0.1); 
         
         setTimeout(() => {
-            crate.classList.remove('shake'); crate.classList.add('open');
-            window.AudioSys.play('sine', 1000, 0.5);
-            
-            const skins = window.GAME_DATA.skins;
-            const skin = skins[Math.floor(Math.random() * skins.length)];
-            skin.unlocked = true;
-            window.GAME_DATA.currentSkin = skin.id;
-            window.Game.saveData();
-
-            modal.querySelector('#reward-name').innerText = skin.name;
-            modal.querySelector('#reward-name').style.color = skin.color;
-            card.classList.add('show');
+            crate.classList.remove('shake'); 
+            crate.classList.add('open');
+            window.AudioSys.play('sine', 800, 0.5);
+            onReveal(modal, card);
         }, 2000);
     },
 
     doPrestige: function() {
-        if(!confirm("WARNING: This will reset ALL weapons, upgrades, and money.\n\nYou will gain +0.2x Multipliers forever.\n\nAre you sure?")) return;
+        if(!confirm("WARNING: RESET PROGRESS FOR +0.2x MULTIPLIER?")) return;
         window.GAME_DATA.multipliers.xp += 0.2;
         window.GAME_DATA.multipliers.gold += 0.2;
         window.GAME_DATA.prestigeLevel++;
@@ -219,10 +237,7 @@ window.UI = {
                 if(rand < u.weight) { item = u; break; }
                 rand -= u.weight;
             }
-            if(item) {
-                selected.push(item);
-                pool = pool.filter(u => u !== item);
-            }
+            if(item) { selected.push(item); pool = pool.filter(u => u !== item); }
         }
 
         selected.forEach(upg => {
@@ -263,11 +278,20 @@ window.UI = {
         document.getElementById('xp-bar').style.width = xpPct + '%';
         document.getElementById('level-display').innerText = window.Game.level;
         
-        if(window.Game.killStreak > 0) {
-            document.getElementById('kill-streak').innerText = `${window.Game.killStreak} STREAK`;
-            document.getElementById('kill-streak').style.opacity = 1;
+        // Streak Card Logic
+        let streakCard = document.getElementById('kill-streak-card');
+        if(!streakCard) {
+            streakCard = document.createElement('div');
+            streakCard.id = 'kill-streak-card';
+            streakCard.className = 'kill-streak-card glass-panel';
+            document.getElementById('ui-layer').appendChild(streakCard);
+        }
+
+        if(window.Game.killStreak > 4) {
+            streakCard.innerText = `${window.Game.killStreak} KILL STREAK`;
+            streakCard.classList.add('active');
         } else {
-             document.getElementById('kill-streak').style.opacity = 0;
+             streakCard.classList.remove('active');
         }
 
         if(window.Game.bossActive) {
