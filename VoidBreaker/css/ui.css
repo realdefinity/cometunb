@@ -15,26 +15,28 @@
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     border-radius: 20px;
     padding: 16px 24px;
-    pointer-events: auto; /* Ensure HUD elements are interactable if needed */
+    pointer-events: auto;
 }
 
 .glass-dark { background: rgba(2, 6, 23, 0.9); }
 
 /* --- MENU NAVIGATION --- */
 #start-screen {
-    background: radial-gradient(circle at center, rgba(30, 41, 59, 0.95), #020617 100%);
+    background: radial-gradient(circle at center, rgba(30, 41, 59, 0.98), #020617 100%);
     display: flex; flex-direction: column; align-items: center;
-    padding-top: 80px; 
+    padding-top: 80px; /* Space for currency badge */
+    z-index: 50;
 }
 
 .menu-nav {
     display: flex; gap: 40px; margin-bottom: 20px; z-index: 60;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     padding-bottom: 10px; width: 100%; max-width: 800px; justify-content: center;
+    flex-shrink: 0; /* Prevents nav from being squashed */
 }
 
 .nav-btn {
-    background: transparent; border: none; color: #64748b;
+    background: transparent; border: none; color: #94a3b8;
     font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 800;
     letter-spacing: 3px; cursor: pointer; transition: all 0.3s ease;
     padding: 10px 20px; position: relative; pointer-events: auto;
@@ -50,13 +52,22 @@
 .nav-btn.active::after { transform: scaleX(1); }
 
 /* --- MENU TABS --- */
+/* Fixed: Removed absolute positioning to prevent overlap */
 .menu-tab {
-    display: none; width: 100%; height: 100%;
+    display: none; /* Hidden by default */
+    flex: 1; /* Take remaining height */
+    width: 100%;
     flex-direction: column; align-items: center;
-    opacity: 0; animation: fadeIn 0.4s forwards;
-    pointer-events: none; /* Prevent clicks on hidden tabs */
+    opacity: 0; 
+    transition: opacity 0.4s ease;
+    overflow: hidden; /* Contains scrollable content */
 }
-.menu-tab.active { display: flex; opacity: 1; pointer-events: auto; }
+
+.menu-tab.active { 
+    display: flex; 
+    opacity: 1; 
+    pointer-events: auto; 
+}
 
 .scroll-content {
     width: 100%; height: 100%; overflow-y: auto;
@@ -85,10 +96,12 @@
 .weapon-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px; width: 100%; max-width: 1100px;
+    padding-bottom: 40px;
 }
 
 #loadout-actions {
     display: flex; gap: 20px; width: 100%; max-width: 1100px; margin-bottom: 30px;
+    flex-wrap: wrap; /* Safety wrap for mobile */
 }
 
 /* Base Card Style */
@@ -98,7 +111,7 @@
     border-radius: 20px; padding: 24px;
     position: relative; overflow: hidden;
     cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    animation: slideUp 0.5s backwards;
+    /* Removed slideUp animation to prevent initial layout glitches */
 }
 
 /* Card Hover */
@@ -123,7 +136,7 @@
 .card-desc { font-size: 0.85rem; color: #94a3b8; margin-bottom: 16px; min-height: 2.5em; }
 
 /* Action Card Specifics */
-.action-card { display: flex; flex-direction: column; justify-content: space-between; height: 160px; border-left: 4px solid; }
+.action-card { display: flex; flex-direction: column; justify-content: space-between; height: 180px; border-left: 4px solid; flex: 1; min-width: 250px; }
 .action-title { font-size: 1.5rem; font-weight: 900; line-height: 1; }
 .action-btn { 
     margin-top: auto; padding: 8px; text-align: center; border-radius: 8px; 
@@ -154,7 +167,7 @@
 }
 .modern-btn:hover { transform: scale(1.05) translateY(-4px); box-shadow: 0 20px 60px rgba(255,255,255,0.4); }
 
-/* KILL STREAK CARD (Fixed position) */
+/* KILL STREAK CARD */
 .kill-streak-card {
     position: absolute; top: 110px; right: 32px;
     background: rgba(15, 23, 42, 0.6);
@@ -169,17 +182,14 @@
 }
 .kill-streak-card.active { transform: translateX(0); opacity: 1; }
 
-/* Boss Health - FIXED VISIBILITY */
+/* Boss Health */
 #boss-hud {
     position: absolute; top: 130px; left: 50%; transform: translateX(-50%);
     width: 600px; max-width: 90%; 
     opacity: 0; 
     transition: opacity 0.5s ease;
-    pointer-events: none; /* Ensure clicking through when hidden */
+    pointer-events: none;
 }
-
-/* Ensure Boss HUD is only visible when active */
-/* Note: JS controls opacity, but we ensure it starts clean */
 
 .boss-bar-bg { 
     width: 100%; height: 12px; background: rgba(0,0,0,0.8); 
@@ -192,7 +202,3 @@
     box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
     transition: width 0.2s linear; 
 }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
