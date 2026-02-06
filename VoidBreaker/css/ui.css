@@ -36,12 +36,34 @@
     backdrop-filter: blur(10px);
 }
 
-/* Scrollable Content for Start Screen */
+/* Menu Tabs */
+.menu-nav {
+    display: flex; gap: 20px; margin-top: 100px; margin-bottom: 20px; z-index: 60;
+}
+.nav-btn {
+    background: transparent; border: none; color: #64748b;
+    font-size: 1.2rem; font-weight: 800; letter-spacing: 2px;
+    padding: 10px 20px; cursor: pointer; transition: 0.3s;
+    border-bottom: 2px solid transparent;
+}
+.nav-btn:hover { color: white; }
+.nav-btn.active { color: white; border-bottom-color: #6366f1; text-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+
+.menu-tab {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    opacity: 0; pointer-events: none; transform: translateX(50px);
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    padding-top: 160px; /* Space for nav */
+}
+.menu-tab.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
+
+/* Scrollable Content */
 .scroll-content {
     width: 100%; height: 100%;
     overflow-y: auto;
     display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-    padding: 80px 20px 120px 20px; box-sizing: border-box;
+    padding: 20px; box-sizing: border-box;
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
@@ -63,19 +85,9 @@ h1 {
     animation: fadeInDown 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* Menu Redesign - Hero Section */
 .menu-hero {
     display: flex; flex-direction: column; align-items: center;
-    margin-bottom: 60px;
-    position: relative;
-}
-
-.menu-hero::after {
-    content: ''; position: absolute; top: 50%; left: 50%;
-    width: 600px; height: 300px;
-    background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-    transform: translate(-50%, -50%);
-    pointer-events: none; z-index: -1;
+    margin-bottom: 40px; position: relative;
 }
 
 /* Modern Liquid Button */
@@ -84,24 +96,16 @@ h1 {
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 100px; /* Fully rounded capsule */
-    padding: 20px 80px;   /* Wider padding */
-    font-size: 1.5rem;    /* Bigger text */
-    font-weight: 800;
-    text-transform: uppercase; 
-    letter-spacing: 4px;
-    cursor: pointer; 
-    overflow: hidden;
+    border-radius: 100px;
+    padding: 20px 80px; font-size: 1.5rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 4px;
+    cursor: pointer; overflow: hidden;
     backdrop-filter: blur(12px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    
-    /* Layout Fixes */
-    margin: 40px auto;    /* Center horizontally with auto margins */
-    width: fit-content;   /* Stop it from stretching full width */
-    display: block;       /* Ensure it respects margins */
-    z-index: 1;
+    margin: 40px auto; width: fit-content; display: block; z-index: 1;
 }
+
 .modern-btn::before {
     content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(90deg, #6366f1, #38bdf8);
@@ -113,9 +117,7 @@ h1 {
     transform: translateY(-3px) scale(1.02); 
     border-color: rgba(255, 255, 255, 0.4);
     box-shadow: 0 15px 40px rgba(99, 102, 241, 0.3);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-
 .modern-btn:hover::before { opacity: 1; }
 .modern-btn:active { transform: scale(0.98); }
 
@@ -134,14 +136,6 @@ h1 {
     transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     display: flex; flex-direction: column; gap: 12px;
 }
-
-/* Hover Spotlight Effect */
-.weapon-card::after {
-    content: ''; position: absolute; inset: 0;
-    background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.05), transparent 40%);
-    opacity: 0; transition: opacity 0.3s; pointer-events: none;
-}
-.weapon-card:hover::after { opacity: 1; }
 
 .weapon-card:hover {
     background: rgba(255, 255, 255, 0.06);
@@ -169,7 +163,7 @@ h1 {
     box-shadow: 0 0 8px rgba(255,255,255,0.2);
 }
 
-/* Action Button Inside Card */
+/* Buy Button */
 .buy-btn {
     background: #fbbf24; color: #0f172a;
     font-weight: 800; padding: 10px; border-radius: 8px;
@@ -179,7 +173,6 @@ h1 {
 }
 .buy-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4); background: #fcd34d; }
 .buy-btn.disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); box-shadow: none; cursor: not-allowed; transform: none; }
-
 
 /* Currency Badge */
 .currency-badge {
@@ -226,21 +219,6 @@ h1 {
 /* In-Game HUD Elements */
 .bar-container { width: 100%; height: 6px; background: rgba(0,0,0,0.4); border-radius: 100px; overflow: hidden; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); }
 .bar-fill { height: 100%; border-radius: 100px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-
-/* Separate Kill Streak Card */
-.kill-streak-card {
-    position: absolute; top: 110px; right: 32px;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(251, 191, 36, 0.3);
-    border-radius: 12px; padding: 8px 16px;
-    color: #fbbf24; font-weight: 800; font-size: 0.9rem;
-    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
-    transform: translateX(20px); opacity: 0;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    pointer-events: none; z-index: 15;
-}
-.kill-streak-card.active { transform: translateX(0); opacity: 1; }
 
 /* Ability Icon */
 #ability-display {

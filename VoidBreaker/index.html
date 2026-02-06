@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Void Breaker</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     
-    <!-- Custom Styles -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/ui.css">
 </head>
@@ -20,7 +19,6 @@
     <!-- HUD -->
     <div id="ui-layer">
         <div class="flex justify-between w-full items-start">
-            <!-- Stats -->
             <div class="glass-panel" style="width: 260px;">
                 <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
                     <span>Integrity</span>
@@ -38,7 +36,6 @@
                 </div>
             </div>
 
-            <!-- Score -->
             <div class="glass-panel flex flex-col items-end">
                 <div class="text-slate-400 text-xs font-bold uppercase">Score</div>
                 <div id="scoreDisplay" class="text-4xl font-bold text-white leading-none">0</div>
@@ -46,15 +43,13 @@
             </div>
         </div>
         
-        <!-- Boss Bar -->
+        <div id="wave-display" class="glass-panel text-2xl font-bold text-yellow-400 tracking-widest absolute top-6 left-1/2 -translate-x-1/2">
+            WAVE 1
+        </div>
+        
         <div id="boss-hud">
             <div class="text-center text-red-500 font-bold tracking-[0.3em] mb-1 text-sm text-shadow">VOID TITAN DETECTED</div>
             <div class="boss-bar-bg"><div id="boss-hp-bar" class="boss-bar-fill"></div></div>
-        </div>
-
-        <!-- Wave Counter -->
-        <div id="wave-display" class="glass-panel text-2xl font-bold text-yellow-400 tracking-widest absolute top-6 left-1/2 -translate-x-1/2">
-            WAVE 1
         </div>
 
         <div id="ability-display">
@@ -70,15 +65,43 @@
             <span class="text-slate-400 mr-1">$</span><span id="menu-credits">0</span>
         </div>
 
-        <div class="scroll-content">
-            <h1 class="text-7xl mb-1 mt-8">VOID BREAKER</h1>
-            <p class="text-slate-400 mb-10 text-xl tracking-widest font-light">ARSENAL</p>
-            
-            <div id="weapon-grid" class="weapon-grid">
-                <!-- Generated via JS -->
-            </div>
+        <!-- Navigation Tabs -->
+        <div class="menu-nav">
+            <button class="nav-btn active" onclick="window.UI.switchTab('play')">PLAY</button>
+            <button class="nav-btn" onclick="window.UI.switchTab('loadout')">LOADOUT</button>
+        </div>
 
-            <button id="start-btn" class="modern-btn">Play</button>
+        <!-- PLAY TAB -->
+        <div id="tab-play" class="menu-tab active">
+            <div class="scroll-content">
+                <div class="menu-hero">
+                    <h1 class="text-7xl mb-1 mt-8">VOID BREAKER</h1>
+                    <p class="text-slate-400 mb-10 text-xl tracking-widest font-light">TITAN PROTOCOL</p>
+                </div>
+                
+                <div class="stats-panel mb-8">
+                     <div id="menu-stats" class="text-sm text-slate-400 font-mono tracking-widest">
+                        <!-- Stats injected here -->
+                     </div>
+                </div>
+
+                <button id="start-btn" class="modern-btn">PLAY</button>
+            </div>
+        </div>
+
+        <!-- LOADOUT TAB -->
+        <div id="tab-loadout" class="menu-tab">
+            <div class="scroll-content">
+                <h2 class="text-4xl font-bold text-white mb-6">ARMORY</h2>
+                
+                <div id="loadout-actions" class="w-full max-w-[1000px] mb-6 flex gap-4">
+                    <!-- Lootboxes injected here -->
+                </div>
+
+                <div id="weapon-grid" class="weapon-grid">
+                    <!-- Weapons injected here -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -86,9 +109,7 @@
     <div id="upgrade-screen" class="hidden">
         <h2 class="text-6xl font-bold text-white mb-2 tracking-tighter">SYSTEM UPGRADE</h2>
         <p class="text-slate-400 mb-10 text-lg">Select Augmentation</p>
-        <div id="upgrade-container" class="upgrade-grid">
-            <!-- Generated via JS -->
-        </div>
+        <div id="upgrade-container" class="upgrade-grid"></div>
     </div>
 
     <!-- Game Over -->
@@ -108,14 +129,12 @@
         <button id="restart-btn" class="modern-btn">Return to Base</button>
     </div>
 
-    <!-- Mobile Controls -->
     <div id="mobile-controls">
         <div id="stick-left" class="joystick-zone"><div class="joystick-knob"></div></div>
         <div id="stick-right" class="joystick-zone"><div class="joystick-knob"></div></div>
         <div id="mobile-dash-btn">DASH</div>
     </div>
 
-    <!-- Game Scripts -->
     <script src="js/data.js"></script>
     <script src="js/audio.js"></script>
     <script src="js/game.js"></script>

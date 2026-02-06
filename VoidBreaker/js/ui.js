@@ -1,64 +1,83 @@
 window.UI = {
+    // Tab switching logic
+    switchTab: function(tabName) {
+        // Update Buttons
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.querySelector(`.nav-btn[onclick*="${tabName}"]`);
+        if(activeBtn) activeBtn.classList.add('active');
+
+        // Update Tabs
+        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+        const activeTab = document.getElementById(`tab-${tabName}`);
+        if(activeTab) activeTab.classList.add('active');
+
+        // Refresh data if entering loadout
+        if(tabName === 'loadout') this.updateMenuUI();
+    },
+
     updateMenuUI: function() {
         const creditsEl = document.getElementById('menu-credits');
         if(creditsEl) creditsEl.innerText = window.Game.totalCurrency.toLocaleString();
+
+        const statsEl = document.getElementById('menu-stats');
+        if(statsEl) {
+             statsEl.innerHTML = `XP: x${window.GAME_DATA.multipliers.xp.toFixed(1)} | GOLD: x${window.GAME_DATA.multipliers.gold.toFixed(1)}`;
+        }
         
         const grid = document.getElementById('weapon-grid');
-        if(!grid) return;
+        const actions = document.getElementById('loadout-actions');
+        
+        if(!grid || !actions) return;
+        
         grid.innerHTML = '';
-
-        // Stats Display
-        const statsDiv = document.createElement('div');
-        statsDiv.className = "col-span-full text-xs text-slate-400 font-mono mb-2 text-center tracking-widest";
-        statsDiv.innerHTML = `XP: x${window.GAME_DATA.multipliers.xp.toFixed(1)} | GOLD: x${window.GAME_DATA.multipliers.gold.toFixed(1)}`;
-        grid.appendChild(statsDiv);
+        actions.innerHTML = ''; // Clear actions area
 
         // Prestige Button
         if(window.Game.totalCurrency > 50000) {
             const prestBtn = document.createElement('div');
-            prestBtn.className = "weapon-card rarity-legendary mb-4 text-center cursor-pointer hover:bg-red-900/20";
+            prestBtn.className = "weapon-card rarity-legendary cursor-pointer hover:bg-red-900/20 flex-1";
             prestBtn.style.border = "1px solid #ef4444";
             prestBtn.innerHTML = `
                 <div class="text-xl font-bold text-red-500">PRESTIGE RESET</div>
-                <div class="text-xs text-slate-400">Reset ALL progress for +0.2x Multipliers</div>
+                <div class="text-xs text-slate-400">Reset progress for +0.2x Multipliers</div>
             `;
             prestBtn.onclick = () => window.UI.doPrestige();
-            grid.appendChild(prestBtn);
+            actions.appendChild(prestBtn);
         }
 
         // Cosmetic Crate
         const skinBtn = document.createElement('div');
-        skinBtn.className = "weapon-card rarity-epic mb-4";
+        skinBtn.className = "weapon-card rarity-epic flex-1";
         skinBtn.style.background = "linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(0,0,0,0))";
         skinBtn.innerHTML = `
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center h-full">
                 <div>
                     <div class="text-xl font-bold text-fuchsia-400 mb-1">COSMETIC CRATE</div>
-                    <div class="text-xs text-slate-300">Unlock new ship colors</div>
+                    <div class="text-xs text-slate-300">New ship colors</div>
                 </div>
-                <div class="buy-btn ${window.Game.totalCurrency >= 5000 ? '' : 'disabled'}" style="margin:0; width:120px;" onclick="window.UI.openSkinCrate(event)">
-                    ${window.Game.totalCurrency >= 5000 ? 'BUY $5,000' : 'NEED $5,000'}
+                <div class="buy-btn ${window.Game.totalCurrency >= 5000 ? '' : 'disabled'}" style="margin:0; width:100px; font-size:0.8rem;" onclick="window.UI.openSkinCrate(event)">
+                    ${window.Game.totalCurrency >= 5000 ? 'BUY $5k' : 'NEED $5k'}
                 </div>
             </div>
         `;
-        grid.appendChild(skinBtn);
+        actions.appendChild(skinBtn);
 
         // Armory Crate
         const boxBtn = document.createElement('div');
-        boxBtn.className = "weapon-card rarity-legendary mb-8";
+        boxBtn.className = "weapon-card rarity-legendary flex-1";
         boxBtn.style.background = "linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(0,0,0,0))";
         boxBtn.innerHTML = `
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center h-full">
                 <div>
-                    <div class="text-2xl font-bold text-yellow-400 mb-1">ARMORY CRATE</div>
-                    <div class="text-xs text-slate-300">Contains 1 random weapon</div>
+                    <div class="text-xl font-bold text-yellow-400 mb-1">ARMORY CRATE</div>
+                    <div class="text-xs text-slate-300">Random Weapon</div>
                 </div>
-                <div class="buy-btn ${window.Game.totalCurrency >= 1000 ? '' : 'disabled'}" style="margin:0; width:120px;" onclick="window.UI.openLootbox(event)">
-                    ${window.Game.totalCurrency >= 1000 ? 'BUY $1,000' : 'NEED $1,000'}
+                <div class="buy-btn ${window.Game.totalCurrency >= 1000 ? '' : 'disabled'}" style="margin:0; width:100px; font-size:0.8rem;" onclick="window.UI.openLootbox(event)">
+                    ${window.Game.totalCurrency >= 1000 ? 'BUY $1k' : 'NEED $1k'}
                 </div>
             </div>
         `;
-        grid.appendChild(boxBtn);
+        actions.appendChild(boxBtn);
 
         // Weapons
         if(window.WEAPONS) {
