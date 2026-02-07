@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Void Breaker</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/ui.css">
@@ -16,7 +16,7 @@
     <canvas id="gameCanvas"></canvas>
     <div class="crt-overlay"></div>
 
-    <!-- HUD -->
+    <!-- HUD (In-Game) -->
     <div id="ui-layer">
         <div class="flex justify-between w-full items-start">
             <div class="glass-panel" style="width: 260px;">
@@ -48,7 +48,7 @@
         </div>
         
         <div id="boss-hud">
-            <div class="text-center text-red-500 font-bold tracking-[0.3em] mb-1 text-sm text-shadow">VOID TITAN DETECTED</div>
+            <div class="text-center text-red-500 font-bold tracking-[0.3em] mb-1 text-sm text-shadow">BOSS DETECTED</div>
             <div class="boss-bar-bg"><div id="boss-hp-bar" class="boss-bar-fill"></div></div>
         </div>
 
@@ -59,45 +59,52 @@
         </div>
     </div>
 
-    <!-- Main Menu -->
+    <!-- MAIN MENU SCREEN -->
     <div id="start-screen" class="glass-dark">
+        
+        <!-- Wallet (Top Right) -->
         <div class="currency-badge">
-            <span class="text-slate-400 mr-1">$</span><span id="menu-credits">0</span>
+            <span class="text-slate-400 mr-2">$</span><span id="menu-credits">0</span>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="menu-nav">
-            <button class="nav-btn active" onclick="window.UI.switchTab('play')">PLAY</button>
-            <button class="nav-btn" onclick="window.UI.switchTab('loadout')">LOADOUT</button>
+        <!-- Navigation Tabs (Segmented Switcher) -->
+        <div class="menu-nav-container">
+            <div class="menu-nav">
+                <button class="nav-btn active" onclick="window.UI.switchTab('play')">PLAY</button>
+                <button class="nav-btn" onclick="window.UI.switchTab('loadout')">LOADOUT</button>
+            </div>
         </div>
 
         <!-- PLAY TAB -->
         <div id="tab-play" class="menu-tab active">
-            <div class="scroll-content">
+            <div class="scroll-content center-v">
                 <div class="menu-hero">
-                    <h1 class="text-7xl mb-1 mt-8">VOID BREAKER</h1>
-                    <p class="text-slate-400 mb-10 text-xl tracking-widest font-light">TITAN PROTOCOL</p>
+                    <h1 class="text-8xl mb-2">VOID BREAKER</h1>
+                    <div class="status-indicator">SYSTEM READY</div>
                 </div>
                 
-                <div class="stats-panel mb-8">
-                     <div id="menu-stats" class="text-sm text-slate-400 font-mono tracking-widest">
+                <div class="stats-panel mb-12">
+                     <div id="menu-stats" class="flex gap-4">
                         <!-- Stats injected here -->
                      </div>
                 </div>
 
-                <button id="start-btn" class="modern-btn">PLAY</button>
+                <button id="start-btn" class="modern-btn">
+                    <span class="btn-text">PLAY</span>
+                    <div class="btn-fill"></div>
+                </button>
             </div>
         </div>
 
         <!-- LOADOUT TAB -->
         <div id="tab-loadout" class="menu-tab">
             <div class="scroll-content">
-                <h2 class="text-4xl font-bold text-white mb-6">ARMORY</h2>
-                
-                <div id="loadout-actions" class="w-full max-w-[1000px] mb-6 flex gap-4">
+                <div class="section-header">SUPPLY DROP</div>
+                <div id="loadout-actions" class="actions-container">
                     <!-- Lootboxes injected here -->
                 </div>
 
+                <div class="section-header">ARMORY</div>
                 <div id="weapon-grid" class="weapon-grid">
                     <!-- Weapons injected here -->
                 </div>
@@ -107,26 +114,26 @@
 
     <!-- Upgrade Screen -->
     <div id="upgrade-screen" class="hidden">
-        <h2 class="text-6xl font-bold text-white mb-2 tracking-tighter">SYSTEM UPGRADE</h2>
+        <h2 class="text-6xl font-bold text-white mb-2 tracking-tighter">UPGRADE</h2>
         <p class="text-slate-400 mb-10 text-lg">Select Augmentation</p>
         <div id="upgrade-container" class="upgrade-grid"></div>
     </div>
 
     <!-- Game Over -->
     <div id="game-over-screen" class="hidden glass-dark">
-        <h2 class="text-6xl font-bold text-red-500 mb-4 tracking-tighter">CRITICAL FAILURE</h2>
-        <div class="flex gap-8 mt-4 bg-black/40 p-8 rounded-2xl border border-white/5">
+        <h2 class="text-7xl font-bold text-red-500 mb-6 tracking-tighter">FAILURE</h2>
+        <div class="flex gap-12 mt-4 bg-black/60 p-10 rounded-3xl border border-white/5 backdrop-blur-xl">
             <div class="text-center">
                 <div class="text-sm text-slate-400 mb-2 uppercase tracking-widest">Score</div>
-                <div id="final-score" class="text-5xl font-mono font-bold text-white">0</div>
+                <div id="final-score" class="text-6xl font-mono font-bold text-white">0</div>
             </div>
             <div class="w-px bg-white/10"></div>
             <div class="text-center">
                 <div class="text-sm text-yellow-500 mb-2 uppercase tracking-widest">Credits</div>
-                <div id="earned-credits" class="text-5xl font-mono font-bold text-yellow-400">+0</div>
+                <div id="earned-credits" class="text-6xl font-mono font-bold text-yellow-400">+0</div>
             </div>
         </div>
-        <button id="restart-btn" class="modern-btn">Return to Base</button>
+        <button id="restart-btn" class="modern-btn mt-12">RETURN</button>
     </div>
 
     <div id="mobile-controls">

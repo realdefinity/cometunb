@@ -1,27 +1,12 @@
 window.UI = {
-    // Tab switching logic
     switchTab: function(tabName) {
-        // Update Buttons
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.querySelector(`.nav-btn[onclick*="${tabName}"]`);
         if(activeBtn) activeBtn.classList.add('active');
 
-        // Update Tabs with Fade
-        const tabs = document.querySelectorAll('.menu-tab');
-        tabs.forEach(tab => {
-            if (tab.id === `tab-${tabName}`) {
-                tab.classList.add('active');
-                // Retrigger animations
-                const cards = tab.querySelectorAll('.weapon-card, .menu-hero, .stats-panel');
-                cards.forEach(c => {
-                    c.style.animation = 'none';
-                    c.offsetHeight; /* trigger reflow */
-                    c.style.animation = null; 
-                });
-            } else {
-                tab.classList.remove('active');
-            }
-        });
+        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+        const activeTab = document.getElementById(`tab-${tabName}`);
+        if(activeTab) activeTab.classList.add('active');
 
         if(tabName === 'loadout') this.updateMenuUI();
     },
@@ -33,8 +18,8 @@ window.UI = {
         const statsEl = document.getElementById('menu-stats');
         if(statsEl) {
              statsEl.innerHTML = `
-                <div class="stat-pill"><span class="label">XP MULT</span> <span class="val text-indigo-400">x${window.GAME_DATA.multipliers.xp.toFixed(1)}</span></div>
-                <div class="stat-pill"><span class="label">GOLD MULT</span> <span class="val text-yellow-400">x${window.GAME_DATA.multipliers.gold.toFixed(1)}</span></div>
+                <div class="stat-pill"><span class="label">XP</span> <span class="val text-indigo-400">x${window.GAME_DATA.multipliers.xp.toFixed(1)}</span></div>
+                <div class="stat-pill"><span class="label">GOLD</span> <span class="val text-yellow-400">x${window.GAME_DATA.multipliers.gold.toFixed(1)}</span></div>
              `;
         }
         
@@ -46,37 +31,31 @@ window.UI = {
         grid.innerHTML = '';
         actions.innerHTML = ''; 
 
-        // --- PRESTIGE & CRATES (ACTIONS AREA) ---
-        
-        // Prestige
+        // --- ACTIONS ---
         if(window.Game.totalCurrency > 50000) {
-            this.createActionCard(actions, 'legendary', 'PRESTIGE RESET', 'Reset for permanent power.', 'RESET', 'bg-red-500', 0, () => window.UI.doPrestige());
+            this.createActionCard(actions, 'legendary', 'PRESTIGE', 'Reset progress for multipliers.', 'RESET', () => window.UI.doPrestige());
         }
 
-        // Cosmetic Crate
         const canBuySkin = window.Game.totalCurrency >= 5000;
-        this.createActionCard(actions, 'epic', 'COSMETIC CACHE', 'Unlock visual styles.', canBuySkin ? 'BUY $5k' : 'NEED $5k', 'bg-fuchsia-500', 0.1, (e) => window.UI.openSkinCrate(e), !canBuySkin);
+        this.createActionCard(actions, 'epic', 'COSMETICS', 'Unlock new ship styles.', canBuySkin ? '$5,000' : 'LOCKED', (e) => window.UI.openSkinCrate(e), !canBuySkin);
 
-        // Armory Crate
         const canBuyWep = window.Game.totalCurrency >= 1000;
-        this.createActionCard(actions, 'rare', 'ARMORY CRATE', 'Random weapon drop.', canBuyWep ? 'BUY $1k' : 'NEED $1k', 'bg-yellow-500', 0.2, (e) => window.UI.openLootbox(e), !canBuyWep);
+        this.createActionCard(actions, 'rare', 'ARMORY', 'Get random weapons.', canBuyWep ? '$1,000' : 'LOCKED', (e) => window.UI.openLootbox(e), !canBuyWep);
 
-
-        // --- WEAPON GRID ---
+        // --- WEAPONS ---
         if(window.WEAPONS) {
-            const keys = Object.keys(window.WEAPONS);
-            let delayIndex = 0;
-            
-            keys.forEach(key => {
-                if(!window.Game.unlockedWeapons.includes(key)) return;
-                
+            Object.keys(window.WEAPONS).forEach(key => {
                 const w = window.WEAPONS[key];
-                const isSelected = window.Game.currentLoadout === key;
-                delayIndex++;
+                // Show unlocked first, then locked
+                const isUnlocked = window.Game.unlockedWeapons.includes(key);
+                // Actually, let's show all but grey out locked ones so people see what they can get
+                // But previously we filtered. Let's filter to keep list clean, or show all if you prefer.
+                // Sticking to "Unlocked Only" for grid to avoid clutter, since Lootbox gives new ones.
+                if(!isUnlocked) return; 
 
+                const isSelected = window.Game.currentLoadout === key;
                 const card = document.createElement('div');
                 card.className = `weapon-card rarity-${w.rarity} ${isSelected ? 'selected' : ''}`;
-                card.style.animationDelay = `${delayIndex * 0.05}s`;
                 card.onclick = () => { 
                     window.Game.currentLoadout = key; 
                     window.UI.updateMenuUI(); 
@@ -87,22 +66,19 @@ window.UI = {
                 const spdPct = (15/w.cooldown)*100;
 
                 card.innerHTML = `
-                    <div class="card-glow"></div>
-                    <div class="card-content">
-                        <div class="card-header">
-                            <div class="card-title">${w.name}</div>
-                            <div class="card-badge ${w.rarity}">${w.rarity}</div>
-                        </div>
-                        <div class="card-desc">${w.desc}</div>
-                        
-                        <div class="stat-row">
-                            <span class="stat-label">DMG</span>
-                            <div class="stat-track"><div class="stat-bar" style="width: ${Math.min(100, dmgPct)}%"></div></div>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">ROF</span>
-                            <div class="stat-track"><div class="stat-bar" style="width: ${Math.min(100, spdPct)}%"></div></div>
-                        </div>
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-xl font-bold text-white leading-none">${w.name}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-widest opacity-60">${w.rarity}</div>
+                    </div>
+                    <div class="text-xs text-slate-400 mb-4 h-8 leading-tight">${w.desc}</div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">DMG</span>
+                        <div class="stat-track"><div class="stat-bar" style="width: ${Math.min(100, dmgPct)}%"></div></div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">SPD</span>
+                        <div class="stat-track"><div class="stat-bar" style="width: ${Math.min(100, spdPct)}%"></div></div>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -110,22 +86,24 @@ window.UI = {
         }
     },
 
-    createActionCard: function(parent, rarity, title, desc, btnText, btnColorClass, delay, onClick, disabled=false) {
+    createActionCard: function(parent, rarity, title, desc, btnText, onClick, disabled=false) {
         const div = document.createElement('div');
-        div.className = `action-card rarity-${rarity} ${disabled ? 'disabled' : ''}`;
-        div.style.animationDelay = `${delay}s`;
+        div.className = `action-card rarity-${rarity}`;
         div.innerHTML = `
-            <div class="card-glow"></div>
-            <div class="card-content">
+            <div>
                 <div class="action-title">${title}</div>
-                <div class="action-desc">${desc}</div>
-                <div class="action-btn ${disabled ? 'opacity-50' : btnColorClass}">${btnText}</div>
+                <div class="action-desc mt-1">${desc}</div>
             </div>
+            <div class="action-btn ${disabled ? 'disabled' : ''}">${btnText}</div>
         `;
         div.onclick = disabled ? null : onClick;
         parent.appendChild(div);
     },
 
+    // ... (Keep openLootbox, openSkinCrate, doPrestige, generateUpgrades, updateHud, gameOver as they were) ...
+    // Just paste the rest of the functions from the previous ui.js here. 
+    // Ensuring to keep the Lootbox/Prestige logic intact.
+    
     openLootbox: function(e) {
         if(e) e.stopPropagation();
         if(window.Game.totalCurrency < 1000) return;
@@ -133,7 +111,21 @@ window.UI = {
         window.Game.saveData();
         this.updateMenuUI();
 
-        this.showLootModal('📦', 'WEAPON FOUND', (modal, card) => {
+        const modal = document.createElement('div');
+        modal.className = 'lootbox-modal active';
+        modal.innerHTML = `
+            <div class="crate-container"><div class="crate" id="crate-box">📦</div><div class="reward-card" id="reward-card"><div class="text-sm font-bold uppercase mb-2 text-slate-400" id="reward-rarity"></div><div class="text-3xl font-bold text-white mb-4" id="reward-name"></div><button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();"><span class="btn-text">COLLECT</span></button></div></div>
+        `;
+        document.body.appendChild(modal);
+
+        const crate = modal.querySelector('#crate-box');
+        const card = modal.querySelector('#reward-card');
+        crate.classList.add('shake');
+        window.AudioSys.play('square', 100, 0.1); 
+        
+        setTimeout(() => {
+            crate.classList.remove('shake'); crate.classList.add('open');
+            window.AudioSys.play('sine', 800, 0.5);
             const keys = Object.keys(window.WEAPONS);
             let wKeys = [];
             keys.forEach(k => {
@@ -151,7 +143,7 @@ window.UI = {
             modal.querySelector('#reward-rarity').className = `text-sm font-bold uppercase mb-2 text-${w.rarity}`;
             modal.querySelector('#reward-name').innerText = w.name;
             card.classList.add('show');
-        });
+        }, 2000);
     },
 
     openSkinCrate: function(e) {
@@ -161,29 +153,15 @@ window.UI = {
         window.Game.saveData();
         this.updateMenuUI();
 
-        this.showLootModal('🎨', 'COSMETIC UNLOCKED', (modal, card) => {
-             const skins = window.GAME_DATA.skins;
-             const skin = skins[Math.floor(Math.random() * skins.length)];
-             skin.unlocked = true;
-             window.GAME_DATA.currentSkin = skin.id;
-             window.Game.saveData();
- 
-             modal.querySelector('#reward-name').innerText = skin.name;
-             modal.querySelector('#reward-name').style.color = skin.color;
-             card.classList.add('show');
-        });
-    },
-
-    showLootModal: function(icon, title, onReveal) {
         const modal = document.createElement('div');
         modal.className = 'lootbox-modal active';
         modal.innerHTML = `
             <div class="crate-container">
-                <div class="crate" id="crate-box">${icon}</div>
+                <div class="crate" id="crate-box" style="border-color:#d946ef; font-size:6rem;">🎨</div>
                 <div class="reward-card" id="reward-card">
-                    <div class="text-sm font-bold uppercase mb-2 text-slate-400" id="reward-rarity">${title}</div>
+                    <div class="text-sm font-bold uppercase mb-2 text-fuchsia-400">COSMETIC UNLOCKED</div>
                     <div class="text-3xl font-bold text-white mb-4" id="reward-name"></div>
-                    <button class="modern-btn" style="margin:20px auto 0;" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">COLLECT</button>
+                    <button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();"><span class="btn-text">EQUIP</span></button>
                 </div>
             </div>
         `;
@@ -191,15 +169,22 @@ window.UI = {
 
         const crate = modal.querySelector('#crate-box');
         const card = modal.querySelector('#reward-card');
-        
         crate.classList.add('shake');
         window.AudioSys.play('square', 100, 0.1); 
         
         setTimeout(() => {
-            crate.classList.remove('shake'); 
-            crate.classList.add('open');
-            window.AudioSys.play('sine', 800, 0.5);
-            onReveal(modal, card);
+            crate.classList.remove('shake'); crate.classList.add('open');
+            window.AudioSys.play('sine', 1000, 0.5);
+            
+            const skins = window.GAME_DATA.skins;
+            const skin = skins[Math.floor(Math.random() * skins.length)];
+            skin.unlocked = true;
+            window.GAME_DATA.currentSkin = skin.id;
+            window.Game.saveData();
+
+            modal.querySelector('#reward-name').innerText = skin.name;
+            modal.querySelector('#reward-name').style.color = skin.color;
+            card.classList.add('show');
         }, 2000);
     },
 
@@ -237,7 +222,10 @@ window.UI = {
                 if(rand < u.weight) { item = u; break; }
                 rand -= u.weight;
             }
-            if(item) { selected.push(item); pool = pool.filter(u => u !== item); }
+            if(item) {
+                selected.push(item);
+                pool = pool.filter(u => u !== item);
+            }
         }
 
         selected.forEach(upg => {
@@ -278,20 +266,11 @@ window.UI = {
         document.getElementById('xp-bar').style.width = xpPct + '%';
         document.getElementById('level-display').innerText = window.Game.level;
         
-        // Streak Card Logic
-        let streakCard = document.getElementById('kill-streak-card');
-        if(!streakCard) {
-            streakCard = document.createElement('div');
-            streakCard.id = 'kill-streak-card';
-            streakCard.className = 'kill-streak-card glass-panel';
-            document.getElementById('ui-layer').appendChild(streakCard);
-        }
-
-        if(window.Game.killStreak > 4) {
-            streakCard.innerText = `${window.Game.killStreak} KILL STREAK`;
-            streakCard.classList.add('active');
+        if(window.Game.killStreak > 0) {
+            document.getElementById('kill-streak').innerText = `${window.Game.killStreak} STREAK`;
+            document.getElementById('kill-streak').style.opacity = 1;
         } else {
-             streakCard.classList.remove('active');
+             document.getElementById('kill-streak').style.opacity = 0;
         }
 
         if(window.Game.bossActive) {
