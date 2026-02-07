@@ -62,19 +62,62 @@
 
 .nav-btn:hover { color: white; }
 
-.nav-btn.active { 
-    background: #fff; color: #020617; 
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+.menu-tab.active { 
+    display: flex; 
+    opacity: 1; 
+    pointer-events: auto; 
 }
 
 /* --- TABS CONTENT --- */
+/* --- FIX 1: FORCE MENU VISIBILITY --- */
 .menu-tab {
-    display: none; width: 100%; height: 100%;
-    flex-direction: column; align-items: center;
-    opacity: 0; transition: opacity 0.4s ease;
-    overflow: hidden; 
+    display: none; 
+    width: 100%; 
+    height: 100%;
+    flex-direction: column; 
+    align-items: center;
+    opacity: 0; 
 }
-.menu-tab.active { display: flex; opacity: 1; pointer-events: auto; animation: fadeIn 0.6s forwards; }
+
+.menu-tab.active { 
+    display: flex; 
+    opacity: 1; /* Force opacity to 1, removed animation dependency */
+    pointer-events: auto; 
+}
+
+/* --- FIX 2: HIDE BOSS HUD --- */
+#boss-hud {
+    position: absolute; 
+    top: 130px; 
+    left: 50%; 
+    transform: translateX(-50%);
+    width: 600px; 
+    max-width: 90%; 
+    /* Hide by default */
+    opacity: 0; 
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s;
+    pointer-events: none;
+    z-index: 40;
+}
+
+/* Only show when JS adds this class */
+#boss-hud.active { 
+    opacity: 1; 
+    visibility: visible; 
+}
+
+/* Missing Boss Bar Styles */
+.boss-bar-bg { 
+    width: 100%; height: 12px; background: rgba(0,0,0,0.8); 
+    border: 1px solid rgba(239, 68, 68, 0.4); 
+    border-radius: 100px; overflow: hidden; 
+}
+.boss-bar-fill { 
+    height: 100%; width: 100%; background: linear-gradient(90deg, #ef4444, #f87171);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+    transition: width 0.2s linear; 
+}
 
 .scroll-content {
     width: 100%; height: 100%; overflow-y: auto;
