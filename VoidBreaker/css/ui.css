@@ -22,9 +22,14 @@
 
 /* --- MENU SCREENS --- */
 #start-screen {
-    background: radial-gradient(circle at center, rgba(30, 41, 59, 1), #020617);
-    display: flex; flex-direction: column; align-items: center;
-    padding-top: 0; z-index: 50;
+    background: radial-gradient(circle at center, rgba(30, 41, 59, 0.98), #020617 100%);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    padding-top: 80px;
+    z-index: 50;
+    opacity: 1 !important; /* Force Visible */
+    visibility: visible !important;
 }
 
 /* Currency Badge - Top Right */
@@ -84,6 +89,7 @@
 }
 .scroll-content.center-v { justify-content: center; padding-bottom: 0; }
 
+
 /* --- PLAY TAB --- */
 .menu-hero h1 {
     font-size: 8rem; line-height: 0.9; margin: 0;
@@ -107,6 +113,15 @@
 .stat-pill .label { color: #64748b; font-weight: 700; }
 .stat-pill .val { font-weight: 800; font-size: 1.1rem; }
 
+#tab-play {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto;
+}
+
+#tab-play:not(.active) {
+    display: none !important;
+}
 /* --- SUPER BUTTON --- */
 .modern-btn {
     position: relative; appearance: none; border: none;
