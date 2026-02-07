@@ -55,4 +55,7 @@ if(restartBtn) {
 }
 
 // Boot
-if(window.Game) window.Game.init();
+if(window.Game) {
+    window.Game.init();
+    if(window.UI) window.UI.switchTab('play'); 
+}

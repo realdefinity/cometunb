@@ -273,12 +273,16 @@ window.UI = {
              document.getElementById('kill-streak').style.opacity = 0;
         }
 
+        const bossHud = document.getElementById('boss-hud');
         if(window.Game.bossActive) {
+            bossHud.classList.add('active'); // This triggers the CSS visibility
             const boss = window.Game.enemies.find(e => e.type === 'boss');
             if(boss) {
                 const bossPct = (boss.hp / boss.maxHp) * 100;
                 document.getElementById('boss-hp-bar').style.width = bossPct + '%';
             }
+        } else {
+            bossHud.classList.remove('active'); // Hides it completely
         }
     },
 
