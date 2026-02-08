@@ -37,12 +37,11 @@
    ========================================= */
 #start-screen {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at center, rgba(30, 41, 59, 0.98), #020617 100%);
+    background: radial-gradient(circle at 50% 30%, #1e293b 0%, #020617 80%);
     display: flex; flex-direction: column; align-items: center;
-    padding-top: 80px; /* Space for currency badge */
+    padding-top: 40px;
     z-index: 50;
     pointer-events: auto;
-    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Currency Badge (Top Right) */
@@ -61,23 +60,27 @@
 
 /* Navigation Tabs (Segmented Switcher) */
 .menu-nav-container {
-    margin-top: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 6px; border-radius: 100px;
+    margin-bottom: 30px; z-index: 60;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 6px; border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    z-index: 60;
-    flex-shrink: 0;
+    backdrop-filter: blur(20px);
+    display: flex; gap: 5px;
 }
 
-.menu-nav { display: flex; gap: 0; position: relative; }
-
 .nav-btn {
-    background: transparent; border: none; color: #94a3b8;
-    font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 800;
-    letter-spacing: 2px; cursor: pointer; 
+    background: transparent; border: none; color: #64748b;
+    font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 800;
+    letter-spacing: 2px; cursor: pointer;
+    padding: 12px 32px; border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    padding: 12px 40px; border-radius: 100px;
+}
+
+.nav-btn:hover { color: white; background: rgba(255,255,255,0.05); }
+
+.nav-btn.active {
+    background: #6366f1; color: white;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
 }
 
 .nav-btn:hover { color: white; }
@@ -91,22 +94,31 @@
    TAB CONTENT AREAS
    ========================================= */
 .menu-tab {
-    display: none; /* Hidden by default */
-    width: 100%; height: 100%;
-    flex-direction: column; align-items: center;
-    opacity: 0; 
-    overflow: hidden; 
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.menu-tab.active {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto;
+    animation: fadeIn 0.5s forwards;
 }
 
 /* Force Play Tab visible by default to prevent black screen */
 #tab-play { display: flex; opacity: 1; }
-.menu-tab.active { display: flex; opacity: 1; animation: fadeIn 0.5s forwards; }
 
 .scroll-content {
     width: 100%; height: 100%; overflow-y: auto;
     display: flex; flex-direction: column; align-items: center;
-    padding: 40px; padding-bottom: 120px;
-    scrollbar-width: none; /* Hide scrollbar Firefox */
+    padding: 0 20px 100px 20px;
+    scrollbar-width: none;
+    mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
 }
 .scroll-content::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome */
 .scroll-content.center-v { justify-content: center; padding-bottom: 0; }
@@ -115,13 +127,18 @@
    PLAY TAB STYLES
    ========================================= */
 .menu-hero h1 {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 800; letter-spacing: -4px;
-    font-size: 7rem; line-height: 0.9; margin: 0;
-    text-transform: uppercase; text-align: center;
-    background: linear-gradient(180deg, #fff 0%, #cbd5e1 100%);
+    font-family: 'Outfit', sans-serif; font-weight: 900; letter-spacing: -4px;
+    font-size: 8rem; line-height: 0.9; margin: 0; text-align: center;
+    background: linear-gradient(180deg, #fff 0%, #475569 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 50px rgba(255,255,255,0.1));
+    filter: drop-shadow(0 0 60px rgba(99, 102, 241, 0.2));
+    transform: scale(1);
+    animation: pulseTitle 4s infinite ease-in-out;
+}
+
+@keyframes pulseTitle {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 60px rgba(99, 102, 241, 0.2)); }
+    50% { transform: scale(1.02); filter: drop-shadow(0 0 80px rgba(99, 102, 241, 0.4)); }
 }
 
 .status-indicator {

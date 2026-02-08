@@ -67,26 +67,22 @@
             <span class="text-slate-400 mr-2">$</span><span id="menu-credits">0</span>
         </div>
 
-        <!-- Navigation Tabs (Segmented Switcher) -->
+<!-- Navigation Tabs -->
         <div class="menu-nav-container">
-            <div class="menu-nav">
-                <button class="nav-btn active" onclick="window.UI.switchTab('play')">PLAY</button>
-                <button class="nav-btn" onclick="window.UI.switchTab('loadout')">LOADOUT</button>
-            </div>
+            <button class="nav-btn active" onclick="window.UI.switchTab('play')">PLAY</button>
+            <button class="nav-btn" onclick="window.UI.switchTab('loadout')">LOADOUT</button>
         </div>
 
         <!-- PLAY TAB -->
         <div id="tab-play" class="menu-tab active">
             <div class="scroll-content center-v">
                 <div class="menu-hero">
-                    <h1 class="text-8xl mb-2">VOID BREAKER</h1>
-                    <div class="status-indicator">SYSTEM READY</div>
+                    <h1 class="text-8xl mb-2">VOID<br>BREAKER</h1>
+                    <div class="status-indicator">SYSTEM ONLINE</div>
                 </div>
                 
                 <div class="stats-panel mb-12">
-                     <div id="menu-stats" class="flex gap-4">
-                        <!-- Stats injected here -->
-                     </div>
+                     <div id="menu-stats" class="flex gap-4"></div>
                 </div>
 
                 <button id="start-btn" class="modern-btn">
@@ -99,18 +95,14 @@
         <!-- LOADOUT TAB -->
         <div id="tab-loadout" class="menu-tab">
             <div class="scroll-content">
+                <div style="height: 40px;"></div>
                 <div class="section-header">SUPPLY DROP</div>
-                <div id="loadout-actions" class="actions-container">
-                    <!-- Lootboxes injected here -->
-                </div>
+                <div id="loadout-actions" class="actions-container"></div>
 
                 <div class="section-header">ARMORY</div>
-                <div id="weapon-grid" class="weapon-grid">
-                    <!-- Weapons injected here -->
-                </div>
+                <div id="weapon-grid" class="weapon-grid"></div>
             </div>
         </div>
-    </div>
 
     <!-- Upgrade Screen -->
     <div id="upgrade-screen" class="hidden">
