@@ -1,6 +1,6 @@
 window.CONFIG = {
     size: 4,
-    animSpeed: 250, // Increased from 200 to let the liquid settle
+    animSpeed: 300, // Matches new CSS transition time for smoothness
     gap: 12,
     maxFlux: 100,
     costs: { undo: 25, destroy: 60 }
