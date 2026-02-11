@@ -8,7 +8,6 @@ class Game {
         this.history = [];
         this.animating = false;
         this.destroyMode = false;
-        this.combo = 0;
     }
 
     init(size) {
@@ -18,9 +17,7 @@ class Game {
     }
 
     setupGrid() {
-        const container = document.getElementById('game-board');
         const bg = document.getElementById('grid-bg');
-        
         const w = window.innerWidth;
         const h = window.innerHeight;
         const uiHeight = 300; 
@@ -49,7 +46,6 @@ class Game {
         this.score = 0;
         this.flux = 50;
         this.history = [];
-        this.combo = 0;
         
         document.getElementById('tile-layer').innerHTML = '';
         window.ui.updateStats(0, this.best, this.flux);
@@ -60,20 +56,33 @@ class Game {
         this.disableDestroyMode();
     }
 
-    addTile() {
-        const empty = [];
-        for(let x=0; x<window.CONFIG.size; x++)
-            for(let y=0; y<window.CONFIG.size; y++)
-                if(!this.grid[x][y]) empty.push({x,y});
+    addTile(force) {
+        if (!force) {
+            const empty = [];
+            for(let x=0; x<window.CONFIG.size; x++)
+                for(let y=0; y<window.CONFIG.size; y++)
+                    if(!this.grid[x][y]) empty.push({x,y});
 
-        if(empty.length) {
-            const {x,y} = empty[Math.floor(Math.random()*empty.length)];
-            const val = Math.random() < 0.9 ? 2 : 4;
-            const tile = new window.Tile(x, y, val);
-            tile.mount();
-            this.grid[x][y] = tile;
-            this.tiles.push(tile);
+            if(empty.length) {
+                const {x,y} = empty[Math.floor(Math.random()*empty.length)];
+                const val = Math.random() < 0.9 ? 2 : 4;
+                const tile = new window.Tile(x, y, val);
+                tile.mount();
+                this.grid[x][y] = tile;
+                this.tiles.push(tile);
+                return tile;
+            }
         }
+        return null;
+    }
+
+    getPixelPos(gridX, gridY) {
+        const size = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile-size'));
+        const gap = window.CONFIG.gap;
+        return {
+            x: gridX * (size + gap),
+            y: gridY * (size + gap)
+        };
     }
 
     async move(dir) {
@@ -81,12 +90,20 @@ class Game {
 
         const vector = this.getVector(dir);
         const traversals = this.buildTraversals(vector);
+        
+        // Animation Queues
+        const moveList = [];
+        const mergeList = [];
+        const spawnList = [];
+        
         let moved = false;
-        let mergedTiles = [];
         let points = 0;
 
-        this.tiles.forEach(t => { t.mergedFrom = null; t.savePos(); });
+        // Reset merge flags
+        this.tiles.forEach(t => t.mergedFrom = null);
+        this.saveState(); // Save before mutation for undo
 
+        // LOGIC PHASE
         traversals.x.forEach(x => {
             traversals.y.forEach(y => {
                 const tile = this.grid[x][y];
@@ -95,25 +112,69 @@ class Game {
                     const next = this.grid[far.next.x] && this.grid[far.next.x][far.next.y];
 
                     if(next && next.value === tile.value && !next.mergedFrom) {
+                        // --- MERGE ---
                         const newVal = tile.value * 2;
-                        const merged = new window.Tile(far.next.x, far.next.y, newVal);
-                        merged.mergedFrom = [tile, next];
-
-                        this.grid[x][y] = null;
-                        this.grid[far.next.x][far.next.y] = merged;
+                        const mergedTile = new window.Tile(far.next.x, far.next.y, newVal);
                         
-                        tile.updateTarget(far.next.x, far.next.y);
-                        next.isGarbage = true;
+                        // 1. Update Grid
+                        this.grid[x][y] = null;
+                        this.grid[far.next.x][far.next.y] = mergedTile;
+                        
+                        // 2. Mark for Animation
+                        // Tile moves to target
+                        const dest = this.getPixelPos(far.next.x, far.next.y);
+                        moveList.push({ el: tile.dom, x: dest.x, y: dest.y });
+                        
+                        // Next tile (already at dest) is essentially 'removed' visually when merge happens
+                        // But if it was moving previously in same turn? No, standard 2048 only moves existing
+                        // Actually, 'next' might have moved into position previously?
+                        // Standard logic: 'next' is stationary at the merge target relative to THIS tile, 
+                        // but 'next' itself might have been a moved tile.
+                        // Actually, 'findFarthest' logic implies 'next' is the tile obstructing us.
+                        // The 'next' tile doesn't move in *this* specific iteration, but we process in order.
+                        
+                        // Since we process traversal in vector order, 'next' has already moved if it was going to.
+                        // So 'next.dom' is already at the target visual position? 
+                        // Wait, if 'next' moved, its 'x/y' property updated, but DOM might not have if we batch?
+                        // If we batch, we need to use the tile's current logical X/Y for pixel calc.
+                        
+                        // NOTE: In this logic, we update this.grid immediately.
+                        // So subsequent iterations see the new state.
+                        
+                        // Mark merged flags
+                        mergedTile.mergedFrom = true; // Simple flag to prevent double merge
+                        
+                        // Create the DOM for the RESULT tile immediately but hidden?
+                        // Or create it after slide?
+                        // We mount it now, but maybe class 'hidden'?
+                        // Let's mount it.
+                        mergedTile.mount();
+                        // Hack: Hide it via CSS or just rely on z-index covering?
+                        // Better: Opacity 0 until merge pop.
+                        mergedTile.dom.style.zIndex = 15; // Below popping animation?
+                        
+                        mergeList.push({ 
+                            removeEl: tile.dom,
+                            // 'next' is also removed
+                            extraRemove: next.dom, 
+                            resultEl: mergedTile.dom 
+                        });
 
-                        mergedTiles.push(merged);
+                        // Add to tile list
+                        this.tiles.push(mergedTile);
+                        
+                        // Clean up old objects from list later
                         points += newVal;
                         moved = true;
                     } else {
+                        // --- SLIDE ---
                         this.grid[x][y] = null;
                         this.grid[far.farthest.x][far.farthest.y] = tile;
                         
                         if(far.farthest.x !== x || far.farthest.y !== y) {
                             tile.updateTarget(far.farthest.x, far.farthest.y);
+                            const dest = this.getPixelPos(far.farthest.x, far.farthest.y);
+                            moveList.push({ el: tile.dom, x: dest.x, y: dest.y });
                             moved = true;
                         }
                     }
@@ -122,28 +183,72 @@ class Game {
         });
 
         if(moved) {
-            this.saveState();
             this.animating = true;
-            this.tiles.forEach(t => t.render());
-            await window.sleep(window.CONFIG.animSpeed);
 
-            this.tiles = this.tiles.filter(t => {
-                if(t.mergedFrom) return false;
-                if(mergedTiles.some(m => m.mergedFrom.includes(t))) {
-                    t.remove();
-                    return false;
-                }
-                return true;
-            });
-
-            mergedTiles.forEach(m => {
-                m.mount();
-                m.dom.classList.add('tile-merged');
-                this.tiles.push(m);
-            });
-
-            this.addTile();
+            // Generate new tile
+            // We need to determine empty cells AFTER the moves.
+            // Since this.grid is already updated, we can just find empty.
+            // But we shouldn't show it until animation ends.
+            const spawnTile = this.addTile(false); // don't push to grid yet? 
+            // Wait, addTile modifies grid. 
+            // We want it in grid for logic, but DOM animation later.
+            // Let's modify addTile to return the object.
             
+            // Actually, we already updated grid.
+            // Scan for empty cells now.
+            const empty = [];
+            for(let x=0; x<window.CONFIG.size; x++)
+                for(let y=0; y<window.CONFIG.size; y++)
+                    if(!this.grid[x][y]) empty.push({x,y});
+
+            if(empty.length) {
+                const {x,y} = empty[Math.floor(Math.random()*empty.length)];
+                const val = Math.random() < 0.9 ? 2 : 4;
+                const t = new window.Tile(x, y, val);
+                t.mount();
+                // It mounts at position. Add spawning class?
+                spawnList.push({ el: t.dom });
+                this.grid[x][y] = t;
+                this.tiles.push(t);
+            }
+
+            // Clean up tiles array (remove old ones that were merged)
+            // We need to keep them for now so we don't lose refs before removal
+            // The mergeList handles DOM removal. We just need to filter logic list.
+            const tilesToRemove = new Set();
+            mergeList.forEach(m => {
+                // Find the tile objects corresponding to these DOMs?
+                // Easier: just filter this.tiles for items not in grid?
+                // But merged items are in grid.
+                // Items that were source of merge are NOT in grid.
+                if(m.extraRemove) {
+                     // We need to manually remove the 'next' tile DOM too
+                     // Add to merge list for the animator
+                     // We can just add it to a list of "to remove"
+                }
+            });
+            
+            // Rebuild tiles list based on grid content
+            this.tiles = [];
+            for(let x=0; x<window.CONFIG.size; x++)
+                for(let y=0; y<window.CONFIG.size; y++)
+                    if(this.grid[x][y]) this.tiles.push(this.grid[x][y]);
+
+
+            // EXECUTE ANIMATION
+            // We need to pass the secondary removals
+            const finalMerges = mergeList.map(m => ([
+                { removeEl: m.removeEl, resultEl: m.resultEl },
+                { removeEl: m.extraRemove, resultEl: null } 
+            ])).flat();
+
+            await window.animateTurn({ 
+                moves: moveList, 
+                merges: finalMerges, 
+                spawns: spawnList 
+            });
+
+            // Scoring
             if(points > 0) {
                 this.score += points;
                 this.addFlux(Math.floor(Math.sqrt(points)));
@@ -159,6 +264,9 @@ class Game {
             window.ui.updateStats(this.score, this.best, this.flux);
             this.animating = false;
             this.checkGameOver();
+        } else {
+            // Undo save state if nothing happened
+            this.history.pop();
         }
     }
 

@@ -16,19 +16,26 @@ class Tile {
         
         document.getElementById('tile-layer').appendChild(el);
         this.dom = el;
-        this.render();
+        
+        // Initial Position
+        const size = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile-size'));
+        const gap = window.CONFIG.gap;
+        const xPos = this.x * (size + gap);
+        const yPos = this.y * (size + gap);
+        el.style.setProperty('--x', `${xPos}px`);
+        el.style.setProperty('--y', `${yPos}px`);
     }
 
     savePos() { this.oldX = this.x; this.oldY = this.y; }
     updateTarget(x, y) { this.x = x; this.y = y; }
 
+    // Fallback render (for resize events)
     render() {
         if(!this.dom) return;
         const size = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile-size'));
         const gap = window.CONFIG.gap;
         const xPos = this.x * (size + gap);
         const yPos = this.y * (size + gap);
-        // Updated to use CSS variables for smoother transitions
         this.dom.style.setProperty('--x', `${xPos}px`);
         this.dom.style.setProperty('--y', `${yPos}px`);
     }
@@ -42,40 +49,82 @@ class Tile {
 }
 window.Tile = Tile;
 
-// Global Helper Functions for Animations
-window.moveTileEl = function(tileEl, x, y, onLanded){
-    tileEl.classList.add("moving");
+// --- ANIMATION ORCHESTRATOR ---
+const MOVE_MS = 120;
+const MERGE_MS = 180;
 
-    const done = (e) => {
-        if (e.propertyName !== "transform") return;
-        tileEl.removeEventListener("transitionend", done);
-        tileEl.classList.remove("moving");
-        onLanded?.();
-    };
+const nextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-    tileEl.addEventListener("transitionend", done, { once: true });
+function setPos(el, x, y){
+    el.style.setProperty("--x", `${x}px`);
+    el.style.setProperty("--y", `${y}px`);
+}
 
-    tileEl.style.setProperty("--x", `${x}px`);
-    tileEl.style.setProperty("--y", `${y}px`);
-};
-
-window.mergeAtImpact = function(slidingEl, targetEl, mergedEl){
-    window.moveTileEl(slidingEl, window.getX(targetEl), window.getY(targetEl), () => {
-        slidingEl.remove();
-        mergedEl.classList.add("tile-merged");
-        requestAnimationFrame(() => {
-            // Remove class after animation to reset state if needed
-             // mergedEl.classList.remove("tile-merged"); 
-        });
+function waitTransformEnd(el){
+    return new Promise(resolve => {
+        const onEnd = (e) => {
+            if (e.propertyName !== "transform") return;
+            el.removeEventListener("transitionend", onEnd);
+            resolve();
+        };
+        el.addEventListener("transitionend", onEnd);
+        // Fallback for safety
+        setTimeout(() => {
+            el.removeEventListener("transitionend", onEnd);
+            resolve();
+        }, MOVE_MS + 50);
     });
-};
+}
 
-window.getX = function(el){
-    const v = getComputedStyle(el).getPropertyValue("--x").trim();
-    return parseFloat(v || "0");
-};
+async function moveElements(moves){
+    // 1. Enable Transitions
+    for (const m of moves){
+        m.el.classList.add("moving");
+    }
 
-window.getY = function(el){
-    const v = getComputedStyle(el).getPropertyValue("--y").trim();
-    return parseFloat(v || "0");
+    await nextFrame();
+
+    // 2. Set new positions (triggers transition)
+    for (const m of moves){
+        setPos(m.el, m.x, m.y);
+    }
+
+    // 3. Wait for all to finish
+    await Promise.all(moves.map(m => waitTransformEnd(m.el)));
+
+    // 4. Cleanup
+    for (const m of moves){
+        m.el.classList.remove("moving");
+    }
+}
+
+function playMerge(el){
+    el.classList.remove("merging");
+    void el.offsetWidth; // Trigger reflow
+    el.classList.add("merging");
+    setTimeout(() => el.classList.remove("merging"), MERGE_MS);
+}
+
+function playSpawn(el){
+    el.classList.add("spawning");
+    setTimeout(() => el.classList.remove("spawning"), 170);
+}
+
+// Global Animation Entry Point
+window.animateTurn = async function({ moves, merges, spawns }){
+    // Phase 1: Slide everything
+    await moveElements(moves);
+
+    // Phase 2: Resolve logic (Remove old, Show new)
+    for (const mg of merges){
+        if (mg.removeEl) mg.removeEl.remove();
+        if (mg.resultEl) {
+            // Ensure result tile is visible/positioned if hidden
+            playMerge(mg.resultEl);
+        }
+    }
+
+    for (const s of spawns){
+        playSpawn(s.el);
+    }
 };
