@@ -85,7 +85,7 @@ class Game {
         };
     }
 
-    async move(dir) {
+async move(dir) {
         if(this.animating || this.destroyMode) return;
 
         const vector = this.getVector(dir);
@@ -101,9 +101,9 @@ class Game {
 
         // Reset merge flags
         this.tiles.forEach(t => t.mergedFrom = null);
-        this.saveState(); // Save before mutation for undo
+        this.saveState(); 
 
-        // LOGIC PHASE
+        // 1. LOGIC PHASE: Calculate new grid state
         traversals.x.forEach(x => {
             traversals.y.forEach(y => {
                 const tile = this.grid[x][y];
@@ -115,55 +115,25 @@ class Game {
                         // --- MERGE ---
                         const newVal = tile.value * 2;
                         const mergedTile = new window.Tile(far.next.x, far.next.y, newVal);
+                        mergedTile.mergedFrom = true; 
                         
-                        // 1. Update Grid
+                        // Update Grid
                         this.grid[x][y] = null;
                         this.grid[far.next.x][far.next.y] = mergedTile;
                         
-                        // 2. Mark for Animation
-                        // Tile moves to target
+                        // Mount Result DOM (Hidden initially via CSS or handled by animateTurn)
+                        mergedTile.mount();
+                        
+                        // Register Animation
                         const dest = this.getPixelPos(far.next.x, far.next.y);
                         moveList.push({ el: tile.dom, x: dest.x, y: dest.y });
                         
-                        // Next tile (already at dest) is essentially 'removed' visually when merge happens
-                        // But if it was moving previously in same turn? No, standard 2048 only moves existing
-                        // Actually, 'next' might have moved into position previously?
-                        // Standard logic: 'next' is stationary at the merge target relative to THIS tile, 
-                        // but 'next' itself might have been a moved tile.
-                        // Actually, 'findFarthest' logic implies 'next' is the tile obstructing us.
-                        // The 'next' tile doesn't move in *this* specific iteration, but we process in order.
-                        
-                        // Since we process traversal in vector order, 'next' has already moved if it was going to.
-                        // So 'next.dom' is already at the target visual position? 
-                        // Wait, if 'next' moved, its 'x/y' property updated, but DOM might not have if we batch?
-                        // If we batch, we need to use the tile's current logical X/Y for pixel calc.
-                        
-                        // NOTE: In this logic, we update this.grid immediately.
-                        // So subsequent iterations see the new state.
-                        
-                        // Mark merged flags
-                        mergedTile.mergedFrom = true; // Simple flag to prevent double merge
-                        
-                        // Create the DOM for the RESULT tile immediately but hidden?
-                        // Or create it after slide?
-                        // We mount it now, but maybe class 'hidden'?
-                        // Let's mount it.
-                        mergedTile.mount();
-                        // Hack: Hide it via CSS or just rely on z-index covering?
-                        // Better: Opacity 0 until merge pop.
-                        mergedTile.dom.style.zIndex = 15; // Below popping animation?
-                        
                         mergeList.push({ 
                             removeEl: tile.dom,
-                            // 'next' is also removed
                             extraRemove: next.dom, 
                             resultEl: mergedTile.dom 
                         });
 
-                        // Add to tile list
-                        this.tiles.push(mergedTile);
-                        
-                        // Clean up old objects from list later
                         points += newVal;
                         moved = true;
                     } else {
@@ -185,58 +155,25 @@ class Game {
         if(moved) {
             this.animating = true;
 
-            // Generate new tile
-            // We need to determine empty cells AFTER the moves.
-            // Since this.grid is already updated, we can just find empty.
-            // But we shouldn't show it until animation ends.
-            const spawnTile = this.addTile(false); // don't push to grid yet? 
-            // Wait, addTile modifies grid. 
-            // We want it in grid for logic, but DOM animation later.
-            // Let's modify addTile to return the object.
-            
-            // Actually, we already updated grid.
-            // Scan for empty cells now.
-            const empty = [];
-            for(let x=0; x<window.CONFIG.size; x++)
-                for(let y=0; y<window.CONFIG.size; y++)
-                    if(!this.grid[x][y]) empty.push({x,y});
-
-            if(empty.length) {
-                const {x,y} = empty[Math.floor(Math.random()*empty.length)];
-                const val = Math.random() < 0.9 ? 2 : 4;
-                const t = new window.Tile(x, y, val);
-                t.mount();
-                // It mounts at position. Add spawning class?
-                spawnList.push({ el: t.dom });
-                this.grid[x][y] = t;
-                this.tiles.push(t);
+            // 2. SPAWN PHASE: Add exactly one tile
+            const spawnTile = this.addTile(false); 
+            if (spawnTile) {
+                spawnList.push({ el: spawnTile.dom });
             }
 
-            // Clean up tiles array (remove old ones that were merged)
-            // We need to keep them for now so we don't lose refs before removal
-            // The mergeList handles DOM removal. We just need to filter logic list.
-            const tilesToRemove = new Set();
-            mergeList.forEach(m => {
-                // Find the tile objects corresponding to these DOMs?
-                // Easier: just filter this.tiles for items not in grid?
-                // But merged items are in grid.
-                // Items that were source of merge are NOT in grid.
-                if(m.extraRemove) {
-                     // We need to manually remove the 'next' tile DOM too
-                     // Add to merge list for the animator
-                     // We can just add it to a list of "to remove"
-                }
-            });
-            
-            // Rebuild tiles list based on grid content
+            // 3. CLEANUP: Re-sync tiles array to match the grid exactly
+            // This prevents "ghost" tiles from counting towards Game Over
             this.tiles = [];
-            for(let x=0; x<window.CONFIG.size; x++)
-                for(let y=0; y<window.CONFIG.size; y++)
-                    if(this.grid[x][y]) this.tiles.push(this.grid[x][y]);
+            for(let x=0; x<window.CONFIG.size; x++) {
+                for(let y=0; y<window.CONFIG.size; y++) {
+                    if(this.grid[x][y]) {
+                        this.grid[x][y].mergedFrom = null; // Reset flag
+                        this.tiles.push(this.grid[x][y]);
+                    }
+                }
+            }
 
-
-            // EXECUTE ANIMATION
-            // We need to pass the secondary removals
+            // 4. ANIMATION PHASE
             const finalMerges = mergeList.map(m => ([
                 { removeEl: m.removeEl, resultEl: m.resultEl },
                 { removeEl: m.extraRemove, resultEl: null } 
@@ -248,7 +185,7 @@ class Game {
                 spawns: spawnList 
             });
 
-            // Scoring
+            // 5. SCORING & END TURN
             if(points > 0) {
                 this.score += points;
                 this.addFlux(Math.floor(Math.sqrt(points)));
@@ -265,8 +202,7 @@ class Game {
             this.animating = false;
             this.checkGameOver();
         } else {
-            // Undo save state if nothing happened
-            this.history.pop();
+            this.history.pop(); // Remove state if no move happened
         }
     }
 
