@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2048 FLUX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/game.css">
+    <link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+
+    <div class="liquid-bg"></div>
+
+    <div id="app">
+        <!-- Header -->
+        <div class="header">
+            <div class="brand">
+                <h1>2048</h1>
+                <div class="tag">FLUX</div>
+            </div>
+            
+            <div class="flux-container" title="Flux Energy">
+                <div class="flux-icon">⚡</div>
+                <div class="flux-bar-bg">
+                    <div class="flux-bar-fill" id="flux-bar"></div>
+                </div>
+                <div class="flux-val" id="flux-val">0</div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="header">
+            <div class="stats-row" style="width:100%">
+                <div class="stat-card" style="flex:1">
+                    <span class="stat-label">Score</span>
+                    <span class="stat-val" id="score">0</span>
+                </div>
+                <div class="stat-card" style="flex:1">
+                    <span class="stat-label">Best</span>
+                    <span class="stat-val" id="best">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Board -->
+        <div class="game-board" id="game-board">
+            <div class="grid-bg" id="grid-bg"></div>
+            <div class="tile-container" id="tile-layer"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="ctrl-btn" id="btn-undo" onclick="window.game.triggerUndo()">
+                <span class="ctrl-icon">↺</span>
+                <span class="ctrl-label">Undo</span>
+                <span class="ctrl-cost">25 ⚡</span>
+            </button>
+            <button class="ctrl-btn" id="btn-destroy" onclick="window.game.triggerDestroy()">
+                <span class="ctrl-icon">💥</span>
+                <span class="ctrl-label">Smash</span>
+                <span class="ctrl-cost">60 ⚡</span>
+            </button>
+            <button class="ctrl-btn" onclick="window.game.restart()">
+                <span class="ctrl-icon">↻</span>
+                <span class="ctrl-label">Reset</span>
+                <span class="ctrl-cost">FREE</span>
+            </button>
+            <button class="ctrl-btn" onclick="window.ui.toggleMenu()">
+                <span class="ctrl-icon">☰</span>
+                <span class="ctrl-label">Menu</span>
+                <span class="ctrl-cost">OPT</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Menu Overlay -->
+    <div id="menu">
+        <h1 style="font-size: 4rem; margin-bottom: 10px; font-weight: 800; color: #fff;">SETUP</h1>
+        <p style="color: #94a3b8; margin-bottom: 40px; letter-spacing: 1px;">SELECT GRID SIZE</p>
+        
+        <div class="menu-grid">
+            <button class="size-opt" onclick="window.ui.selectSize(3)">3 x 3</button>
+            <button class="size-opt selected" onclick="window.ui.selectSize(4)">4 x 4</button>
+            <button class="size-opt" onclick="window.ui.selectSize(5)">5 x 5</button>
+            <button class="size-opt" onclick="window.ui.selectSize(6)">6 x 6</button>
+        </div>
+        
+        <button class="play-btn" onclick="window.game.start()">PLAY</button>
+    </div>
+
+    <!-- Scripts (Order Matters) -->
+    <script src="js/config.js"></script>
+    <script src="js/tile.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
