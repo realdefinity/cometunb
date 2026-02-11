@@ -1,3 +1,8 @@
+:root {
+    --move-ms: 180ms;
+    --move-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .game-board {
     position: relative;
     padding: var(--grid-gap);
@@ -45,10 +50,27 @@
     font-size: calc(var(--tile-size) * 0.45);
     font-weight: 800;
     color: #fff;
-    /* Premium ease-out for settling into position */
-    transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    /* Custom Fluid Easing: Smooth start, smooth stop */
+    transition: transform var(--move-ms) var(--move-ease);
     will-change: transform;
     z-index: 10;
+    transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
+}
+
+.tile.moving {
+    transition-duration: 220ms;
+    transition-timing-function: cubic-bezier(0.18, 1, 0.22, 1);
+}
+
+.tile.fast {
+    transition-duration: 160ms;
+    transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tile {
+        transition-duration: 0ms !important;
+    }
 }
 
 .tile-inner {
