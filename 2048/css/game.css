@@ -105,77 +105,70 @@
 /* === GLASS FUSION MERGE ANIMATION === */
 
 .tile-merged .tile-inner {
-    animation:
-        glassFusion 420ms cubic-bezier(0.16, 1, 0.3, 1) both,
-        specularSweep 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    background: inherit;
+    border-color: inherit;
+    box-shadow: inherit;
+    animation: liquidMerge 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, filter;
+    transform: translateZ(0);
+    backface-visibility: hidden;
     z-index: 20;
-
-    /* Specular streak + Inner glass glow */
-    background:
-        linear-gradient(115deg,
-            transparent 0%,
-            rgba(255,255,255,0.00) 35%,
-            rgba(255,255,255,0.22) 48%,
-            rgba(255,255,255,0.06) 56%,
-            rgba(255,255,255,0.00) 70%,
-            transparent 100%
-        ),
-        rgba(255,255,255,0.05);
-
-    background-size: 220% 100%, cover;
-    background-repeat: no-repeat;
-
-    /* Enhanced Bloom */
-    box-shadow:
-        0 10px 28px rgba(0,0,0,0.22),
-        inset 0 1px 0 rgba(255,255,255,0.18),
-        0 0 0 1px rgba(255,255,255,0.18),
-        0 0 40px rgba(255,255,255,0.18);
-    border-color: rgba(255,255,255,0.45);
-    will-change: transform, filter, background-position;
 }
 
-/* Stronger merge for big tiles (optional) */
-.tile-merged.is-big .tile-inner {
-    animation:
-        glassFusionBig 520ms cubic-bezier(0.16, 1, 0.3, 1) both,
-        specularSweep 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+.tile-merged .tile-inner::before,
+.tile-merged .tile-inner::after {
+    content: "";
+    position: absolute;
+    inset: -14%;
+    border-radius: 999px;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: screen;
+    filter: blur(10px);
+    transform: scale(0.85);
 }
 
-/* Trigger ring pulse on merge */
 .tile-merged .tile-inner::before {
-    animation: bloomRing 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    background: radial-gradient(circle,
+        rgba(255,255,255,0.22) 0%,
+        rgba(255,255,255,0.10) 26%,
+        rgba(255,255,255,0.04) 42%,
+        transparent 62%
+    );
+    animation: liquidBloom 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* ANIMATION KEYFRAMES */
-
-/* Main smooth overshoot + brightness settle */
-@keyframes glassFusion {
-    0%   { transform: scale(1);     filter: brightness(1) saturate(1); }
-    35%  { transform: scale(1.14); filter: brightness(1.35) saturate(1.2); }
-    62%  { transform: scale(0.985); filter: brightness(1.12) saturate(1.08); }
-    100% { transform: scale(1);     filter: brightness(1) saturate(1); }
+.tile-merged .tile-inner::after {
+    background: conic-gradient(from 210deg,
+        transparent 0deg,
+        rgba(255,255,255,0.18) 28deg,
+        rgba(255,255,255,0.06) 64deg,
+        transparent 110deg,
+        transparent 360deg
+    );
+    animation: liquidSwirl 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Bigger version */
-@keyframes glassFusionBig {
-    0%   { transform: scale(1);     filter: brightness(1) saturate(1); }
-    30%  { transform: scale(1.18); filter: brightness(1.5) saturate(1.25); }
-    60%  { transform: scale(0.975); filter: brightness(1.15) saturate(1.1); }
-    100% { transform: scale(1);     filter: brightness(1) saturate(1); }
+@keyframes liquidMerge {
+    0% { transform: scale(1); filter: brightness(1) saturate(1); }
+    28% { transform: scale(1.18, 0.92); filter: brightness(1.35) saturate(1.25); }
+    48% { transform: scale(0.96, 1.08); filter: brightness(1.18) saturate(1.12); }
+    68% { transform: scale(1.05, 0.985); filter: brightness(1.08) saturate(1.06); }
+    100% { transform: scale(1); filter: brightness(1) saturate(1); }
 }
 
-/* Specular highlight sweeps across the glass */
-@keyframes specularSweep {
-    0%   { background-position: 0% 0%; }
-    100% { background-position: 140% 0%; }
+@keyframes liquidBloom {
+    0% { opacity: 0; transform: scale(0.82); }
+    30% { opacity: 1; transform: scale(1.02); }
+    60% { opacity: 0.55; transform: scale(1.10); }
+    100% { opacity: 0; transform: scale(1.22); }
 }
 
-/* Ring Pulse */
-@keyframes bloomRing {
-    0%   { opacity: 0; transform: scale(0.86); }
-    35%  { opacity: 1; transform: scale(1.02); }
-    100% { opacity: 0; transform: scale(1.18); }
+@keyframes liquidSwirl {
+    0% { opacity: 0; transform: scale(0.88) rotate(-18deg); }
+    32% { opacity: 0.85; transform: scale(1.04) rotate(22deg); }
+    62% { opacity: 0.35; transform: scale(1.14) rotate(64deg); }
+    100% { opacity: 0; transform: scale(1.26) rotate(92deg); }
 }
 
 /* Removed Shake Animation Preference */
