@@ -1,17 +1,13 @@
 :root {
     --move-ms: 120ms;
     --move-ease: cubic-bezier(0.22, 1, 0.36, 1);
-    --merge-ms: 180ms;
-    --merge-ease: cubic-bezier(0.18, 1.2, 0.22, 1);
-    --spawn-ms: 140ms;
-    --spawn-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .game-board {
     position: relative;
     padding: var(--grid-gap);
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(60px);
+    background: rgba(15, 23, 42, 0.5); /* Slightly more transparent */
+    backdrop-filter: blur(60px); /* Heavier blur */
     -webkit-backdrop-filter: blur(60px);
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -44,86 +40,163 @@
     pointer-events: none;
 }
 
-/* TILES - VARIABLE BASED MOVEMENT */
+/* TILES - ULTRA FLUID MOVEMENT */
 .tile {
     position: absolute;
     width: var(--tile-size);
     height: var(--tile-size);
-    will-change: transform;
-    transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
-    transition: transform var(--move-ms) var(--move-ease);
-    z-index: 10;
-    
-    /* Font styles */
+    border-radius: 12px;
     display: flex; justify-content: center; align-items: center;
     font-size: calc(var(--tile-size) * 0.45);
     font-weight: 800;
     color: #fff;
+    /* Custom Fluid Easing: Smooth start, smooth stop */
+    transition: transform var(--move-ms) var(--move-ease);
+    will-change: transform;
+    z-index: 10;
+    transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
 }
 
-.tile-inner {
-    width: 100%;
-    height: 100%;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    will-change: transform, filter;
-    
-    /* Glass Look */
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Sheen */
-.tile-inner::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
-    pointer-events: none;
-}
-
-/* --- ANIMATION CLASSES --- */
 .tile.moving {
     transition-duration: var(--move-ms);
 }
 
-.tile.no-transition {
+.tile.instant {
     transition-duration: 0ms !important;
 }
 
-.tile.spawning .tile-inner {
-    animation: spawn var(--spawn-ms) var(--spawn-ease) both;
+@media (prefers-reduced-motion: reduce) {
+    .tile {
+        transition-duration: 0ms !important;
+    }
 }
 
-@keyframes spawn {
-    0% { opacity: 0; transform: scale(0.7); }
-    100% { opacity: 1; transform: scale(1); }
+.tile-inner {
+    width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+    border-radius: 12px;
+    /* Deep Glass Look */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 
+        0 8px 24px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.15);
+    position: relative;
+    overflow: hidden;
+    animation: spawnSmooth 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    
+    /* Hardware acceleration for smoother animation */
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
-.tile.merging .tile-inner {
-    animation: mergePop var(--merge-ms) var(--merge-ease) both;
+/* Static sheen for normal tiles */
+.tile-inner::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* A luminous ring pulse using ::before */
+.tile-inner::before {
+    content: "";
+    position: absolute;
+    inset: -18%;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.9);
+    background: radial-gradient(circle,
+        rgba(255,255,255,0.20) 0%,
+        rgba(255,255,255,0.10) 22%,
+        rgba(255,255,255,0.05) 40%,
+        transparent 62%
+    );
+    filter: blur(6px);
+    z-index: 0;
+}
+
+@keyframes spawnSmooth { 
+    0% { opacity: 0; transform: scale(0.5); } 
+    100% { opacity: 1; transform: scale(1); } 
+}
+
+/* === GLASS FUSION MERGE ANIMATION === */
+
+.tile-merged .tile-inner {
+    background: inherit;
+    border-color: inherit;
+    box-shadow: inherit;
+    animation: liquidMerge 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, filter;
+    transform: translateZ(0);
+    backface-visibility: hidden;
     z-index: 20;
 }
 
-@keyframes mergePop {
+.tile-merged .tile-inner::before,
+.tile-merged .tile-inner::after {
+    content: "";
+    position: absolute;
+    inset: -14%;
+    border-radius: 999px;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: screen;
+    filter: blur(10px);
+    transform: scale(0.85);
+}
+
+.tile-merged .tile-inner::before {
+    background: radial-gradient(circle,
+        rgba(255,255,255,0.22) 0%,
+        rgba(255,255,255,0.10) 26%,
+        rgba(255,255,255,0.04) 42%,
+        transparent 62%
+    );
+    animation: liquidBloom 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tile-merged .tile-inner::after {
+    background: conic-gradient(from 210deg,
+        transparent 0deg,
+        rgba(255,255,255,0.18) 28deg,
+        rgba(255,255,255,0.06) 64deg,
+        transparent 110deg,
+        transparent 360deg
+    );
+    animation: liquidSwirl 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes liquidMerge {
     0% { transform: scale(1); filter: brightness(1) saturate(1); }
-    45% { transform: scale(1.14, 0.94); filter: brightness(1.25) saturate(1.15); }
-    70% { transform: scale(0.985, 1.03); filter: brightness(1.08) saturate(1.05); }
+    28% { transform: scale(1.18, 0.92); filter: brightness(1.35) saturate(1.25); }
+    48% { transform: scale(0.96, 1.08); filter: brightness(1.18) saturate(1.12); }
+    68% { transform: scale(1.05, 0.985); filter: brightness(1.08) saturate(1.06); }
     100% { transform: scale(1); filter: brightness(1) saturate(1); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .tile { transition-duration: 0ms !important; }
-    .tile.spawning .tile-inner,
-    .tile.merging .tile-inner { animation: none !important; }
+@keyframes liquidBloom {
+    0% { opacity: 0; transform: scale(0.82); }
+    30% { opacity: 1; transform: scale(1.02); }
+    60% { opacity: 0.55; transform: scale(1.10); }
+    100% { opacity: 0; transform: scale(1.22); }
 }
 
-/* Colors */
+@keyframes liquidSwirl {
+    0% { opacity: 0; transform: scale(0.88) rotate(-18deg); }
+    32% { opacity: 0.85; transform: scale(1.04) rotate(22deg); }
+    62% { opacity: 0.35; transform: scale(1.14) rotate(64deg); }
+    100% { opacity: 0; transform: scale(1.26) rotate(92deg); }
+}
+
+/* Removed Shake Animation Preference */
+.shake { 
+    /* Empty rule to prevent crash if JS calls it, but no visual effect */
+}
+
+/* Colors - Deep Neon Glass */
 .t-2 { background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 20px rgba(255,255,255,0.02); }
 .t-4 { background: rgba(255, 237, 213, 0.1); color: #fff; box-shadow: 0 0 15px rgba(255,237,213,0.05); border-color: rgba(255,237,213,0.2); }
 .t-8 { background: linear-gradient(135deg, rgba(255, 160, 120, 0.15), rgba(255, 140, 100, 0.25)); border-color: rgba(255, 160, 120, 0.3); }
