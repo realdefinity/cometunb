@@ -28,7 +28,9 @@ class Tile {
         const gap = window.CONFIG.gap;
         const xPos = this.x * (size + gap);
         const yPos = this.y * (size + gap);
-        this.dom.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        // Updated to use CSS variables for smoother transitions
+        this.dom.style.setProperty('--x', `${xPos}px`);
+        this.dom.style.setProperty('--y', `${yPos}px`);
     }
 
     remove() {
@@ -39,3 +41,41 @@ class Tile {
     }
 }
 window.Tile = Tile;
+
+// Global Helper Functions for Animations
+window.moveTileEl = function(tileEl, x, y, onLanded){
+    tileEl.classList.add("moving");
+
+    const done = (e) => {
+        if (e.propertyName !== "transform") return;
+        tileEl.removeEventListener("transitionend", done);
+        tileEl.classList.remove("moving");
+        onLanded?.();
+    };
+
+    tileEl.addEventListener("transitionend", done, { once: true });
+
+    tileEl.style.setProperty("--x", `${x}px`);
+    tileEl.style.setProperty("--y", `${y}px`);
+};
+
+window.mergeAtImpact = function(slidingEl, targetEl, mergedEl){
+    window.moveTileEl(slidingEl, window.getX(targetEl), window.getY(targetEl), () => {
+        slidingEl.remove();
+        mergedEl.classList.add("tile-merged");
+        requestAnimationFrame(() => {
+            // Remove class after animation to reset state if needed
+             // mergedEl.classList.remove("tile-merged"); 
+        });
+    });
+};
+
+window.getX = function(el){
+    const v = getComputedStyle(el).getPropertyValue("--x").trim();
+    return parseFloat(v || "0");
+};
+
+window.getY = function(el){
+    const v = getComputedStyle(el).getPropertyValue("--y").trim();
+    return parseFloat(v || "0");
+};

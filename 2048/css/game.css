@@ -1,5 +1,5 @@
 :root {
-    --move-ms: 180ms;
+    --move-ms: 120ms;
     --move-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -58,13 +58,11 @@
 }
 
 .tile.moving {
-    transition-duration: 220ms;
-    transition-timing-function: cubic-bezier(0.18, 1, 0.22, 1);
+    transition-duration: var(--move-ms);
 }
 
-.tile.fast {
-    transition-duration: 160ms;
-    transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
+.tile.instant {
+    transition-duration: 0ms !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
