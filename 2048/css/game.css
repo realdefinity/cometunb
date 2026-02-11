@@ -51,105 +51,131 @@
     z-index: 10;
 }
 
-.tile-inner{
-  transform: translateZ(0);
-  backface-visibility: hidden;
+.tile-inner {
+    width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+    border-radius: 12px;
+    /* Deep Glass Look */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 
+        0 8px 24px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.15);
+    position: relative;
+    overflow: hidden;
+    animation: spawnSmooth 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    
+    /* Hardware acceleration for smoother animation */
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
-/* When merged: drive multiple layered animations */
-.tile-merged .tile-inner{
-  animation:
-    glassFusion 420ms cubic-bezier(0.16, 1, 0.3, 1) both,
-    specularSweep 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  z-index: 20;
-}
-
-/* Stronger merge for big tiles (optional, looks sick) */
-.tile-merged.is-big .tile-inner{
-  animation:
-    glassFusionBig 520ms cubic-bezier(0.16, 1, 0.3, 1) both,
-    specularSweep 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Main smooth overshoot + brightness settle */
-@keyframes glassFusion{
-  0%   { transform: scale(1);    filter: brightness(1) saturate(1); }
-  35%  { transform: scale(1.14); filter: brightness(1.35) saturate(1.2); }
-  62%  { transform: scale(0.985); filter: brightness(1.12) saturate(1.08); }
-  100% { transform: scale(1);    filter: brightness(1) saturate(1); }
-}
-
-/* Bigger version: slightly more “wow” without being bouncy */
-@keyframes glassFusionBig{
-  0%   { transform: scale(1);    filter: brightness(1) saturate(1); }
-  30%  { transform: scale(1.18); filter: brightness(1.5) saturate(1.25); }
-  60%  { transform: scale(0.975); filter: brightness(1.15) saturate(1.1); }
-  100% { transform: scale(1);    filter: brightness(1) saturate(1); }
-}
-
-/* Specular highlight sweeps across the glass */
-@keyframes specularSweep{
-  0%   { background-position: 0% 0%; }
-  100% { background-position: 140% 0%; }
-}
-
-/* Add a moving highlight + a subtle “refraction band” */
-.tile-merged .tile-inner{
-  /* keep your existing background/border/shadow, then overlay via multiple backgrounds */
-  background:
-    /* specular streak */
-    linear-gradient(115deg,
-      transparent 0%,
-      rgba(255,255,255,0.00) 35%,
-      rgba(255,255,255,0.22) 48%,
-      rgba(255,255,255,0.06) 56%,
-      rgba(255,255,255,0.00) 70%,
-      transparent 100%
-    ),
-    /* inner glass */
-    rgba(255,255,255,0.05);
-
-  background-size: 220% 100%, cover;
-  background-repeat: no-repeat;
-
-  /* bloom that plays nice with glass */
-  box-shadow:
-    0 10px 28px rgba(0,0,0,0.22),
-    inset 0 1px 0 rgba(255,255,255,0.18),
-    /* soft outer bloom */
-    0 0 0 1px rgba(255,255,255,0.18),
-    0 0 40px rgba(255,255,255,0.18);
-  border-color: rgba(255,255,255,0.45);
-  will-change: transform, filter, background-position;
+/* Static sheen for normal tiles */
+.tile-inner::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* A luminous ring pulse using ::before */
-.tile-inner::before{
-  content:"";
-  position:absolute;
-  inset:-18%;
-  border-radius: inherit;
-  pointer-events:none;
-  opacity:0;
-  transform: scale(0.9);
-  background: radial-gradient(circle,
-    rgba(255,255,255,0.20) 0%,
-    rgba(255,255,255,0.10) 22%,
-    rgba(255,255,255,0.05) 40%,
-    transparent 62%
-  );
-  filter: blur(6px);
+.tile-inner::before {
+    content: "";
+    position: absolute;
+    inset: -18%;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.9);
+    background: radial-gradient(circle,
+        rgba(255,255,255,0.20) 0%,
+        rgba(255,255,255,0.10) 22%,
+        rgba(255,255,255,0.05) 40%,
+        transparent 62%
+    );
+    filter: blur(6px);
+    z-index: 0;
+}
+
+@keyframes spawnSmooth { 
+    0% { opacity: 0; transform: scale(0.5); } 
+    100% { opacity: 1; transform: scale(1); } 
+}
+
+/* === GLASS FUSION MERGE ANIMATION === */
+
+.tile-merged .tile-inner {
+    animation:
+        glassFusion 420ms cubic-bezier(0.16, 1, 0.3, 1) both,
+        specularSweep 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    z-index: 20;
+
+    /* Specular streak + Inner glass glow */
+    background:
+        linear-gradient(115deg,
+            transparent 0%,
+            rgba(255,255,255,0.00) 35%,
+            rgba(255,255,255,0.22) 48%,
+            rgba(255,255,255,0.06) 56%,
+            rgba(255,255,255,0.00) 70%,
+            transparent 100%
+        ),
+        rgba(255,255,255,0.05);
+
+    background-size: 220% 100%, cover;
+    background-repeat: no-repeat;
+
+    /* Enhanced Bloom */
+    box-shadow:
+        0 10px 28px rgba(0,0,0,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        0 0 0 1px rgba(255,255,255,0.18),
+        0 0 40px rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.45);
+    will-change: transform, filter, background-position;
+}
+
+/* Stronger merge for big tiles (optional) */
+.tile-merged.is-big .tile-inner {
+    animation:
+        glassFusionBig 520ms cubic-bezier(0.16, 1, 0.3, 1) both,
+        specularSweep 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Trigger ring pulse on merge */
-.tile-merged .tile-inner::before{
-  animation: bloomRing 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+.tile-merged .tile-inner::before {
+    animation: bloomRing 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes bloomRing{
-  0%   { opacity:0; transform: scale(0.86); }
-  35%  { opacity:1; transform: scale(1.02); }
-  100% { opacity:0; transform: scale(1.18); }
+/* ANIMATION KEYFRAMES */
+
+/* Main smooth overshoot + brightness settle */
+@keyframes glassFusion {
+    0%   { transform: scale(1);     filter: brightness(1) saturate(1); }
+    35%  { transform: scale(1.14); filter: brightness(1.35) saturate(1.2); }
+    62%  { transform: scale(0.985); filter: brightness(1.12) saturate(1.08); }
+    100% { transform: scale(1);     filter: brightness(1) saturate(1); }
+}
+
+/* Bigger version */
+@keyframes glassFusionBig {
+    0%   { transform: scale(1);     filter: brightness(1) saturate(1); }
+    30%  { transform: scale(1.18); filter: brightness(1.5) saturate(1.25); }
+    60%  { transform: scale(0.975); filter: brightness(1.15) saturate(1.1); }
+    100% { transform: scale(1);     filter: brightness(1) saturate(1); }
+}
+
+/* Specular highlight sweeps across the glass */
+@keyframes specularSweep {
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 140% 0%; }
+}
+
+/* Ring Pulse */
+@keyframes bloomRing {
+    0%   { opacity: 0; transform: scale(0.86); }
+    35%  { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0; transform: scale(1.18); }
 }
 
 /* Removed Shake Animation Preference */
