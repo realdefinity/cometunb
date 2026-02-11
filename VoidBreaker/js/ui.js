@@ -1,18 +1,25 @@
 window.UI = {
     // --- TAB NAVIGATION ---
     switchTab: function(tabName) {
-        // Update Buttons
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.querySelector(`.nav-btn[onclick*="${tabName}"]`);
-        if(activeBtn) activeBtn.classList.add('active');
+        // Update Nav Buttons
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
 
-        // Update Tabs
-        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
-        const activeTab = document.getElementById(`tab-${tabName}`);
-        if(activeTab) activeTab.classList.add('active');
+        // Update Sliding Indicator
+        const indicator = document.querySelector('.nav-indicator');
+        if (indicator) {
+            indicator.classList.remove('play', 'loadout');
+            indicator.classList.add(tabName);
+        }
+
+        // Update Tabs - only one visible, no overlap
+        document.querySelectorAll('.menu-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.id === `tab-${tabName}`);
+        });
 
         // Refresh data if entering loadout
-        if(tabName === 'loadout') this.updateMenuUI();
+        if (tabName === 'loadout') this.updateMenuUI();
     },
 
     // --- MAIN MENU UPDATE ---

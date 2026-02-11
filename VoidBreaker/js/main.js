@@ -54,6 +54,14 @@ if(restartBtn) {
     });
 }
 
+// Nav tab switching (delegated)
+document.querySelector('.menu-nav-container')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.nav-btn');
+    if (btn && btn.dataset.tab && window.UI) {
+        window.UI.switchTab(btn.dataset.tab);
+    }
+});
+
 // Boot
 if(window.Game) {
     window.Game.init();

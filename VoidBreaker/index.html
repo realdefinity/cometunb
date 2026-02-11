@@ -19,7 +19,7 @@
     <!-- HUD (In-Game) -->
     <div id="ui-layer">
         <div class="flex justify-between w-full items-start">
-            <div class="glass-panel" style="width: 260px;">
+            <div class="glass-panel liquid-glass" style="width: 260px;">
                 <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
                     <span>Integrity</span>
                     <span id="hp-text">100/100</span>
@@ -36,14 +36,14 @@
                 </div>
             </div>
 
-            <div class="glass-panel flex flex-col items-end">
+            <div class="glass-panel liquid-glass flex flex-col items-end">
                 <div class="text-slate-400 text-xs font-bold uppercase">Score</div>
                 <div id="scoreDisplay" class="text-4xl font-bold text-white leading-none">0</div>
                 <div id="kill-streak" class="text-sm font-bold text-yellow-400 mt-1 h-4"></div>
             </div>
         </div>
         
-        <div id="wave-display" class="glass-panel text-2xl font-bold text-yellow-400 tracking-widest absolute top-6 left-1/2 -translate-x-1/2">
+        <div id="wave-display" class="glass-panel liquid-glass text-2xl font-bold text-yellow-400 tracking-widest absolute top-6 left-1/2 -translate-x-1/2">
             WAVE 1
         </div>
         
@@ -52,7 +52,7 @@
             <div class="boss-bar-bg"><div id="boss-hp-bar" class="boss-bar-fill"></div></div>
         </div>
 
-        <div id="ability-display">
+        <div id="ability-display" class="liquid-glass">
             <div class="z-10">DASH</div>
             <div class="z-10 text-[10px] text-slate-400 mt-1">SPACE</div>
             <div id="dash-cooldown" class="cooldown-overlay"></div>
@@ -60,72 +60,74 @@
     </div>
 
     <!-- MAIN MENU SCREEN -->
-    <div id="start-screen" class="glass-dark">
+    <div id="start-screen" class="start-screen">
         
         <!-- Wallet (Top Right) -->
-        <div class="currency-badge">
-            <span class="text-slate-400 mr-2">$</span><span id="menu-credits">0</span>
+        <div class="currency-badge liquid-glass">
+            <span class="currency-icon">$</span><span id="menu-credits">0</span>
         </div>
 
-<!-- Navigation Tabs -->
-        <div class="menu-nav-container">
-            <button class="nav-btn active" onclick="window.UI.switchTab('play')">PLAY</button>
-            <button class="nav-btn" onclick="window.UI.switchTab('loadout')">LOADOUT</button>
-        </div>
+        <!-- Navigation Tabs -->
+        <nav class="menu-nav-container liquid-glass">
+            <div class="nav-indicator"></div>
+            <button class="nav-btn active" data-tab="play">PLAY</button>
+            <button class="nav-btn" data-tab="loadout">LOADOUT</button>
+        </nav>
 
-        <!-- PLAY TAB -->
-        <div id="tab-play" class="menu-tab active">
-            <div class="scroll-content center-v">
-                <div class="menu-hero">
-                    <h1 class="text-8xl mb-2">VOID<br>BREAKER</h1>
-                    <div class="status-indicator">SYSTEM ONLINE</div>
+        <!-- Tab Content Wrapper (single container, no overlap) -->
+        <div class="tab-content-wrapper">
+            <!-- PLAY TAB -->
+            <div id="tab-play" class="menu-tab active">
+                <div class="scroll-content center-v">
+                    <div class="menu-hero">
+                        <h1 class="menu-title">VOID<br>BREAKER</h1>
+                        <div class="status-indicator liquid-glass">SYSTEM ONLINE</div>
+                    </div>
+                    <div class="stats-panel mb-12">
+                        <div id="menu-stats" class="flex gap-4"></div>
+                    </div>
+                    <button id="start-btn" class="modern-btn">
+                        <span class="btn-text">PLAY</span>
+                        <div class="btn-fill"></div>
+                    </button>
                 </div>
-                
-                <div class="stats-panel mb-12">
-                     <div id="menu-stats" class="flex gap-4"></div>
+            </div>
+
+            <!-- LOADOUT TAB -->
+            <div id="tab-loadout" class="menu-tab">
+                <div class="scroll-content">
+                    <div class="loadout-spacer"></div>
+                    <div class="section-header liquid-glass">SUPPLY DROP</div>
+                    <div id="loadout-actions" class="actions-container"></div>
+                    <div class="section-header liquid-glass">ARMORY</div>
+                    <div id="weapon-grid" class="weapon-grid"></div>
                 </div>
-
-                <button id="start-btn" class="modern-btn">
-                    <span class="btn-text">PLAY</span>
-                    <div class="btn-fill"></div>
-                </button>
             </div>
         </div>
 
-        <!-- LOADOUT TAB -->
-        <div id="tab-loadout" class="menu-tab">
-            <div class="scroll-content">
-                <div style="height: 40px;"></div>
-                <div class="section-header">SUPPLY DROP</div>
-                <div id="loadout-actions" class="actions-container"></div>
-
-                <div class="section-header">ARMORY</div>
-                <div id="weapon-grid" class="weapon-grid"></div>
-            </div>
+        <!-- Upgrade Screen -->
+        <div id="upgrade-screen" class="hidden">
+            <h2 class="text-6xl font-bold text-white mb-2 tracking-tighter">UPGRADE</h2>
+            <p class="text-slate-400 mb-10 text-lg">Select Augmentation</p>
+            <div id="upgrade-container" class="upgrade-grid"></div>
         </div>
 
-    <!-- Upgrade Screen -->
-    <div id="upgrade-screen" class="hidden">
-        <h2 class="text-6xl font-bold text-white mb-2 tracking-tighter">UPGRADE</h2>
-        <p class="text-slate-400 mb-10 text-lg">Select Augmentation</p>
-        <div id="upgrade-container" class="upgrade-grid"></div>
-    </div>
-
-    <!-- Game Over -->
-    <div id="game-over-screen" class="hidden glass-dark">
-        <h2 class="text-7xl font-bold text-red-500 mb-6 tracking-tighter">FAILURE</h2>
-        <div class="flex gap-12 mt-4 bg-black/60 p-10 rounded-3xl border border-white/5 backdrop-blur-xl">
-            <div class="text-center">
-                <div class="text-sm text-slate-400 mb-2 uppercase tracking-widest">Score</div>
-                <div id="final-score" class="text-6xl font-mono font-bold text-white">0</div>
+        <!-- Game Over -->
+        <div id="game-over-screen" class="hidden game-over-screen">
+            <h2 class="text-7xl font-bold text-red-500 mb-6 tracking-tighter">FAILURE</h2>
+            <div class="flex gap-12 mt-4 bg-black/60 p-10 rounded-3xl border border-white/5 backdrop-blur-xl">
+                <div class="text-center">
+                    <div class="text-sm text-slate-400 mb-2 uppercase tracking-widest">Score</div>
+                    <div id="final-score" class="text-6xl font-mono font-bold text-white">0</div>
+                </div>
+                <div class="w-px bg-white/10"></div>
+                <div class="text-center">
+                    <div class="text-sm text-yellow-500 mb-2 uppercase tracking-widest">Credits</div>
+                    <div id="earned-credits" class="text-6xl font-mono font-bold text-yellow-400">+0</div>
+                </div>
             </div>
-            <div class="w-px bg-white/10"></div>
-            <div class="text-center">
-                <div class="text-sm text-yellow-500 mb-2 uppercase tracking-widest">Credits</div>
-                <div id="earned-credits" class="text-6xl font-mono font-bold text-yellow-400">+0</div>
-            </div>
+            <button id="restart-btn" class="modern-btn mt-12">RETURN</button>
         </div>
-        <button id="restart-btn" class="modern-btn mt-12">RETURN</button>
     </div>
 
     <div id="mobile-controls">
