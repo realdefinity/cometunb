@@ -1,6 +1,6 @@
 window.CONFIG = {
     size: 4,
-    animSpeed: 250, // Reduced slightly to match the new "snap" elastic transition
+    animSpeed: 200, // Faster, snappier movement
     gap: 12,
     maxFlux: 100,
     costs: { undo: 25, destroy: 60 }
