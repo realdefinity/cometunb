@@ -1,6 +1,6 @@
 window.CONFIG = {
     size: 4,
-    animSpeed: 300, // Matches new CSS transition time for smoothness
+    animSpeed: 250, // Reduced slightly to match the new "snap" elastic transition
     gap: 12,
     maxFlux: 100,
     costs: { undo: 25, destroy: 60 }
