@@ -1,6 +1,6 @@
 window.CONFIG = {
     size: 4,
-    animSpeed: 200,
+    animSpeed: 250, // Increased from 200 to let the liquid settle
     gap: 12,
     maxFlux: 100,
     costs: { undo: 25, destroy: 60 }
