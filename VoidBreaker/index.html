@@ -19,7 +19,7 @@
     <!-- HUD (In-Game) -->
     <div id="ui-layer">
         <div class="flex justify-between w-full items-start">
-            <div class="glass-panel liquid-glass" style="width: 260px;">
+            <div class="glass-panel liquid-glass hud-panel-left">
                 <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
                     <span>Integrity</span>
                     <span id="hp-text">100/100</span>
@@ -43,7 +43,7 @@
             </div>
         </div>
         
-        <div id="wave-display" class="glass-panel liquid-glass text-2xl font-bold text-yellow-400 tracking-widest absolute top-6 left-1/2 -translate-x-1/2">
+        <div id="wave-display" class="glass-panel liquid-glass wave-display">
             WAVE 1
         </div>
         
@@ -95,35 +95,55 @@
 
             <!-- LOADOUT TAB -->
             <div id="tab-loadout" class="menu-tab">
-                <div class="scroll-content">
-                    <div class="loadout-spacer"></div>
-                    <div class="section-header liquid-glass">SUPPLY DROP</div>
-                    <div id="loadout-actions" class="actions-container"></div>
-                    <div class="section-header liquid-glass">ARMORY</div>
-                    <div id="weapon-grid" class="weapon-grid"></div>
+                <div class="scroll-content loadout-scroll">
+                    <div class="loadout-layout">
+                        <!-- Equipped weapon preview -->
+                        <div class="loadout-equipped liquid-glass">
+                            <div class="loadout-equipped-label">EQUIPPED</div>
+                            <div id="loadout-equipped-card" class="loadout-equipped-card">
+                                <div class="loadout-equipped-placeholder">Select a weapon below</div>
+                            </div>
+                        </div>
+                        <div class="loadout-panels">
+                            <div class="loadout-panel">
+                                <div class="loadout-section-header">
+                                    <span class="loadout-section-title">SUPPLY DROP</span>
+                                    <span class="loadout-section-desc">Acquire new gear</span>
+                                </div>
+                                <div id="loadout-actions" class="loadout-actions"></div>
+                            </div>
+                            <div class="loadout-panel">
+                                <div class="loadout-section-header">
+                                    <span class="loadout-section-title">ARMORY</span>
+                                    <span class="loadout-section-desc">Select your primary</span>
+                                </div>
+                                <div id="weapon-grid" class="weapon-grid"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Upgrade Screen -->
-        <div id="upgrade-screen" class="hidden">
-            <h2 class="text-6xl font-bold text-white mb-2 tracking-tighter">UPGRADE</h2>
-            <p class="text-slate-400 mb-10 text-lg">Select Augmentation</p>
+        <div id="upgrade-screen" class="hidden upgrade-screen">
+            <h2 class="upgrade-title">UPGRADE</h2>
+            <p class="upgrade-subtitle">Select Augmentation</p>
             <div id="upgrade-container" class="upgrade-grid"></div>
         </div>
 
         <!-- Game Over -->
         <div id="game-over-screen" class="hidden game-over-screen">
-            <h2 class="text-7xl font-bold text-red-500 mb-6 tracking-tighter">FAILURE</h2>
-            <div class="flex gap-12 mt-4 bg-black/60 p-10 rounded-3xl border border-white/5 backdrop-blur-xl">
-                <div class="text-center">
-                    <div class="text-sm text-slate-400 mb-2 uppercase tracking-widest">Score</div>
-                    <div id="final-score" class="text-6xl font-mono font-bold text-white">0</div>
+            <h2 class="game-over-title">FAILURE</h2>
+            <div class="game-over-stats">
+                <div class="game-over-stat">
+                    <div class="game-over-stat-label">Score</div>
+                    <div id="final-score" class="game-over-stat-value">0</div>
                 </div>
-                <div class="w-px bg-white/10"></div>
-                <div class="text-center">
-                    <div class="text-sm text-yellow-500 mb-2 uppercase tracking-widest">Credits</div>
-                    <div id="earned-credits" class="text-6xl font-mono font-bold text-yellow-400">+0</div>
+                <div class="game-over-stat-divider"></div>
+                <div class="game-over-stat">
+                    <div class="game-over-stat-label credits">Credits</div>
+                    <div id="earned-credits" class="game-over-stat-value credits">+0</div>
                 </div>
             </div>
             <button id="restart-btn" class="modern-btn mt-12">RETURN</button>

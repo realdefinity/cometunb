@@ -37,24 +37,41 @@ window.UI = {
         
         const grid = document.getElementById('weapon-grid');
         const actions = document.getElementById('loadout-actions');
+        const equippedCard = document.getElementById('loadout-equipped-card');
         
         if(!grid || !actions) return;
         
         grid.innerHTML = '';
-        actions.innerHTML = ''; 
+        actions.innerHTML = '';
+
+        // --- EQUIPPED PREVIEW ---
+        if (equippedCard && window.WEAPONS) {
+            const w = window.WEAPONS[window.Game.currentLoadout];
+            if (w) {
+                const dmgPct = (w.damage/50)*100;
+                const spdPct = (15/w.cooldown)*100;
+                equippedCard.className = `loadout-equipped-card rarity-${w.rarity}`;
+                equippedCard.innerHTML = `
+                    <div class="loadout-equipped-name">${w.name}</div>
+                    <div class="loadout-equipped-rarity">${w.rarity}</div>
+                    <div class="loadout-equipped-desc">${w.desc}</div>
+                    <div class="loadout-equipped-stats">
+                        <div class="loadout-stat"><span class="loadout-stat-label">DMG</span><div class="loadout-stat-bar"><div class="loadout-stat-fill" style="width:${Math.min(100,dmgPct)}%"></div></div></div>
+                        <div class="loadout-stat"><span class="loadout-stat-label">SPD</span><div class="loadout-stat-bar"><div class="loadout-stat-fill" style="width:${Math.min(100,spdPct)}%"></div></div></div>
+                    </div>
+                `;
+            } else {
+                equippedCard.className = 'loadout-equipped-card';
+                equippedCard.innerHTML = '<div class="loadout-equipped-placeholder">Select a weapon below</div>';
+            }
+        }
 
         // --- ACTIONS SECTION ---
-        
-        // Prestige Button (Only if rich enough)
         if(window.Game.totalCurrency > 50000) {
             this.createActionCard(actions, 'legendary', 'PRESTIGE', 'Reset progress for multipliers.', 'RESET', () => window.UI.doPrestige());
         }
-
-        // Cosmetic Crate
         const canBuySkin = window.Game.totalCurrency >= 5000;
         this.createActionCard(actions, 'epic', 'COSMETICS', 'Unlock new ship styles.', canBuySkin ? '$5,000' : 'LOCKED', (e) => window.UI.openSkinCrate(e), !canBuySkin);
-
-        // Armory Crate
         const canBuyWep = window.Game.totalCurrency >= 1000;
         this.createActionCard(actions, 'rare', 'ARMORY', 'Get random weapons.', canBuyWep ? '$1,000' : 'LOCKED', (e) => window.UI.openLootbox(e), !canBuyWep);
 
