@@ -13,6 +13,9 @@ const perfLite = hasPerfLiteClass
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
 
+/* shared fluid easing for Web Animations API */
+const EASE_FLUID = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
   els.statLosses.textContent = stats.losses;
@@ -49,7 +52,6 @@ function makeCardDOM(cardData, faceUp = true) {
   
   const colorCls = suitClass(cardData.s);
   
-  // ——— Corners ———
   const cornerContent = `<span class="rank">${cardData.v}</span><span class="suit">${cardData.s}</span>`;
   const cornerTL = document.createElement('div');
   cornerTL.className = `corner ${colorCls}`;
@@ -62,7 +64,6 @@ function makeCardDOM(cardData, faceUp = true) {
   face.appendChild(cornerTL);
   face.appendChild(cornerBR);
 
-  // ——— Center Content ———
   const content = document.createElement('div');
   content.className = 'card-content';
   
@@ -94,13 +95,11 @@ function makeCardDOM(cardData, faceUp = true) {
   }
   face.appendChild(content);
 
-  // Bust Stamp
   const stamp = document.createElement('div');
   stamp.className = 'bust-stamp';
   stamp.textContent = 'BUSTED';
   face.appendChild(stamp);
 
-  // Assemble
   inner.appendChild(back);
   inner.appendChild(face);
   card.appendChild(inner);
@@ -117,7 +116,7 @@ function setControlsEnabled(enabled) {
   els.btnStand.disabled = !enabled;
 }
 
-// Smooth number animation with easing
+/* Smooth number animation with easeOutQuart */
 function animateValue(obj, start, end, duration) {
   if (!obj) return;
   const existingFrame = valueAnimationFrames.get(obj);
@@ -133,13 +132,13 @@ function animateValue(obj, start, end, duration) {
   }
 
   let startTimestamp = null;
-  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
   obj.classList.add('bump');
 
   const step = (timestamp) => {
     if (startTimestamp === null) startTimestamp = timestamp;
     const raw = Math.min((timestamp - startTimestamp) / duration, 1);
-    const progress = easeOutCubic(raw);
+    const progress = easeOutQuart(raw);
     const val = Math.floor(progress * (end - start) + start);
     obj.textContent = '$' + val;
 
@@ -161,11 +160,11 @@ let lastWallet = 1000;
 let lastTotalBet = 0;
 
 function updateUI() {
-  animateValue(els.wallet, lastWallet, Math.floor(wallet), 600);
+  animateValue(els.wallet, lastWallet, Math.floor(wallet), 550);
   lastWallet = Math.floor(wallet);
 
   const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 350);
+  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 320);
   lastTotalBet = Math.floor(totalBet);
 
   els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
@@ -210,10 +209,11 @@ function clearTable() {
   cards.forEach((c, i) => {
     c.animate(
       [
-        { transform: c.style.transform || 'translate(0,0) scale(1)', opacity: 1 }, 
-        { transform: 'translateY(-20px) scale(0.88) rotate(4deg)', opacity: 0 }
+        { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 }, 
+        { transform: 'translate3d(0,-16px,0) scale(0.92)', opacity: 0.6, offset: 0.4 },
+        { transform: 'translate3d(0,-24px,0) scale(0.85) rotate(3deg)', opacity: 0 }
       ],
-      { duration: 350, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay: i * 30, fill: 'forwards' }
+      { duration: perfLite ? 280 : 380, easing: EASE_FLUID, delay: i * 25, fill: 'forwards' }
     ).onfinish = () => c.remove();
   });
 }
@@ -236,7 +236,7 @@ function highlightWinner(container) {
   const timeout = window.setTimeout(() => {
     container.classList.remove('winner-pulse');
     winnerPulseTimers.delete(container);
-  }, perfLite ? 900 : 1300);
+  }, perfLite ? 900 : 1200);
   winnerPulseTimers.set(container, timeout);
 }
 
@@ -249,33 +249,38 @@ function animateChip(x, y) {
   
   const tx = window.innerWidth / 2 - 22;
   const ty = window.innerHeight - 230;
+  const dx = tx - x;
+  const dy = ty - y;
+  const arcHeight = perfLite ? 30 : 55;
   
   chip.animate(
     [
-        { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 }, 
-        { transform: `translate(${(tx - x) * 0.5}px, ${(ty - y) * 0.3 - (perfLite ? 36 : 60)}px) scale(0.85) rotate(360deg)`, opacity: 0.95, offset: 0.5 },
-        { transform: `translate(${tx - x}px, ${ty - y}px) scale(0.5) rotate(720deg)`, opacity: 0.7 }
+        { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${dx * 0.35}px, ${dy * 0.2 - arcHeight}px) scale(0.88) rotate(270deg)`, opacity: 0.95, offset: 0.4 },
+        { transform: `translate(${dx * 0.7}px, ${dy * 0.65 - arcHeight * 0.3}px) scale(0.7) rotate(540deg)`, opacity: 0.85, offset: 0.75 },
+        { transform: `translate(${dx}px, ${dy}px) scale(0.45) rotate(720deg)`, opacity: 0.6 }
     ],
-    { duration: perfLite ? 460 : 600, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+    { duration: perfLite ? 420 : 560, easing: EASE_FLUID }
   ).onfinish = () => chip.remove();
 }
 
 function triggerConfetti() {
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  const particleCount = perfLite ? 28 : 60;
-  for (let i = 0; i < particleCount; i++) {
+  const count = perfLite ? 24 : 55;
+  for (let i = 0; i < count; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = (perfLite ? 80 : 120) + Math.random() * (perfLite ? 220 : 350);
+    const dist = (perfLite ? 80 : 110) + Math.random() * (perfLite ? 200 : 320);
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
-    c.style.setProperty('--rot', Math.random() * 720 + 'deg');
-    c.style.setProperty('--dur', ((perfLite ? 550 : 800) + Math.random() * (perfLite ? 450 : 700)) + 'ms');
-    c.style.width = (6 + Math.random() * 6) + 'px';
-    c.style.height = (6 + Math.random() * 6) + 'px';
+    c.style.setProperty('--rot', (Math.random() * 600 + 120) + 'deg');
+    c.style.setProperty('--dur', ((perfLite ? 500 : 750) + Math.random() * (perfLite ? 400 : 650)) + 'ms');
+    const size = 5 + Math.random() * 6;
+    c.style.width = size + 'px';
+    c.style.height = size + 'px';
     c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
     c.addEventListener('animationend', () => c.remove(), { once: true });
     fragment.appendChild(c);
@@ -290,8 +295,8 @@ function spawnCard(handArr, container, faceUp, delay) {
     playSound('card');
     
     const cardEl = makeCardDOM(cardData, faceUp);
-    const dealDuration = perfLite ? 460 : 640;
-    const flipDuration = perfLite ? 430 : 620;
+    const dealDuration = perfLite ? 420 : 600;
+    const flipDuration = perfLite ? 380 : 560;
     cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
     cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
     
@@ -305,7 +310,7 @@ function spawnCard(handArr, container, faceUp, delay) {
     });
     
     if (faceUp) {
-        const revealDelay = Math.max(80, Math.round(dealDuration * 0.32));
+        const revealDelay = Math.max(70, Math.round(dealDuration * 0.3));
         setTimeout(() => {
             cardEl.classList.remove('face-down');
         }, revealDelay);
