@@ -19,8 +19,8 @@
     <!-- HUD (In-Game) -->
     <div id="ui-layer">
         <div class="flex justify-between w-full items-start">
-            <div class="glass-panel liquid-glass hud-panel-left">
-                <div class="hud-row-header">
+            <div class="glass-panel" style="width: 260px;">
+                <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
                     <span>Health</span>
                     <span id="hp-text">100/100</span>
                 </div>
@@ -28,143 +28,112 @@
                     <div id="health-bar" class="bar-fill bg-emerald-500" style="width: 100%"></div>
                 </div>
                 
-                <div class="hud-row-header">
-                    <span>Level <span id="level-display">1</span></span>
+                <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
+                    <span>Level <span id="level-display" class="text-white">1</span></span>
                 </div>
                 <div class="bar-container">
                     <div id="xp-bar" class="bar-fill bg-indigo-500" style="width: 0%"></div>
                 </div>
             </div>
 
-            <div class="glass-panel liquid-glass hud-panel-right">
-                <div class="hud-label">Score</div>
-                <div id="scoreDisplay" class="hud-score-value">0</div>
+            <div class="glass-panel flex flex-col items-end">
+                <div class="text-slate-400 text-xs font-bold uppercase">Score</div>
+                <div id="scoreDisplay" class="text-4xl font-bold text-white leading-none">0</div>
             </div>
         </div>
         
-        <div id="wave-display" class="glass-panel liquid-glass wave-display">
+        <div id="wave-display" class="glass-panel text-2xl font-bold text-yellow-400 tracking-widest absolute top-6 left-1/2 -translate-x-1/2">
             ROUND 1
         </div>
         
         <div id="boss-hud">
-            <div class="boss-label">BOSS</div>
+            <div class="text-center text-red-500 font-bold tracking-[0.3em] mb-1 text-sm text-shadow">BOSS</div>
             <div class="boss-bar-bg"><div id="boss-hp-bar" class="boss-bar-fill"></div></div>
         </div>
 
-        <div id="ability-display" class="liquid-glass">
-            <div class="ability-name">Dash</div>
+        <div id="ability-display">
+            <div class="z-10">DASH</div>
+            <div class="z-10 text-[10px] text-slate-400 mt-1">Tap</div>
             <div id="dash-cooldown" class="cooldown-overlay"></div>
         </div>
     </div>
 
     <!-- MAIN MENU SCREEN -->
-    <div id="start-screen" class="start-screen">
+    <div id="start-screen" class="glass-dark">
         
-        <div class="menu-layout">
-            <!-- Sidebar (Nav + Profile) -->
-            <aside class="menu-sidebar liquid-glass">
-                <div class="sidebar-header">
-                    <h1 class="sidebar-title">VOID<br>BREAKER</h1>
-                    <div class="sidebar-status">
-                        <div class="status-dot"></div> SYSTEM ONLINE
-                    </div>
+        <!-- Wallet (Top Right) -->
+        <div class="currency-badge">
+            <span class="text-slate-400 mr-2">$</span><span id="menu-credits">0</span>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="menu-nav-container">
+            <button class="nav-btn active" onclick="window.UI.switchTab('play')">PLAY</button>
+            <button class="nav-btn" onclick="window.UI.switchTab('loadout')">LOADOUT</button>
+        </div>
+
+        <!-- PLAY TAB -->
+        <div id="tab-play" class="menu-tab active">
+            <div class="scroll-content center-v">
+                <div class="menu-hero">
+                    <h1 class="text-8xl mb-2">VOID<br>BREAKER</h1>
+                    <div class="status-indicator">Ready</div>
                 </div>
-
-                <nav class="sidebar-nav">
-                    <button class="nav-item active" data-tab="play">
-                        <span class="nav-icon">▶</span> PLAY
-                    </button>
-                    <button class="nav-item" data-tab="loadout">
-                        <span class="nav-icon">⚔</span> LOADOUT
-                    </button>
-                    <button class="nav-item disabled">
-                        <span class="nav-icon">⚙</span> SETTINGS
-                    </button>
-                </nav>
-
-                <div class="sidebar-footer">
-                    <div class="currency-display">
-                        <span class="currency-label">CREDITS</span>
-                        <div class="currency-value"><span class="currency-symbol">$</span><span id="menu-credits">0</span></div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Main Content Area -->
-            <main class="menu-content">
                 
-                <!-- PLAY TAB -->
-                <section id="tab-play" class="content-tab active">
-                    <div class="play-hero">
-                        <div class="hero-content">
-                            <h2 class="hero-title">READY TO DEPLOY</h2>
-                            <p class="hero-subtitle">Sector 7 is overrun. Clear the area.</p>
-                            
-                            <div class="hero-stats-grid" id="menu-stats">
-                                <!-- Populated by JS -->
-                            </div>
+                <div class="stats-panel mb-12">
+                     <div id="menu-stats" class="flex gap-4"></div>
+                </div>
 
-                            <button id="start-btn" class="deploy-btn">
-                                <span class="deploy-text">INITIATE SEQUENCE</span>
-                                <div class="deploy-glitch"></div>
-                            </button>
-                        </div>
-                    </div>
-                </section>
+                <button id="start-btn" class="modern-btn">
+                    <span class="btn-text">PLAY</span>
+                    <div class="btn-fill"></div>
+                </button>
+            </div>
+        </div>
 
-                <!-- LOADOUT TAB -->
-                <section id="tab-loadout" class="content-tab">
-                    <div class="loadout-container">
-                        <!-- Left: Equipped -->
-                        <div class="loadout-left">
-                            <div class="equipped-header">ACTIVE WEAPON</div>
-                            <div id="loadout-equipped-card" class="equipped-card-display">
-                                <!-- Populated by JS -->
-                            </div>
-                            <div id="loadout-actions" class="loadout-mini-actions">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
+        <!-- LOADOUT TAB -->
+        <div id="tab-loadout" class="menu-tab">
+            <div class="scroll-content">
+                <div style="height: 40px;"></div>
+                <div class="section-header">SHOP</div>
+                <div id="loadout-actions" class="actions-container"></div>
 
-                        <!-- Right: Armory Grid -->
-                        <div class="loadout-right">
-                            <div class="section-header">
-                                <span class="section-title">ARMORY</span>
-                                <span class="section-count" id="armory-count">0/0</span>
-                            </div>
-                            <div id="weapon-grid" class="armory-grid">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-            </main>
+                <div class="section-header">WEAPONS</div>
+                <div id="weapon-grid" class="weapon-grid"></div>
+            </div>
         </div>
     </div>
 
     <!-- Upgrade Screen -->
-    <div id="upgrade-screen" class="hidden upgrade-screen">
-        <h2 class="upgrade-title">UPGRADE</h2>
-        <p class="upgrade-subtitle">Pick an upgrade</p>
-        <div id="upgrade-container" class="upgrade-grid"></div>
+    <div id="upgrade-screen" class="hidden upgrade-overlay">
+        <div class="upgrade-inner">
+            <h2 class="upgrade-heading">Level Up!</h2>
+            <p class="upgrade-sub">Pick an upgrade</p>
+            <div id="upgrade-container" class="upgrade-grid"></div>
+        </div>
     </div>
 
     <!-- Game Over -->
-    <div id="game-over-screen" class="hidden game-over-screen">
-        <h2 class="game-over-title">Game Over</h2>
-        <div class="game-over-stats">
-            <div class="game-over-stat">
-                <div class="game-over-stat-label">Score</div>
-                <div id="final-score" class="game-over-stat-value">0</div>
+    <div id="game-over-screen" class="hidden gameover-overlay">
+        <div class="gameover-inner">
+            <h2 class="gameover-title">Game Over</h2>
+            <p class="gameover-sub">Better luck next time</p>
+            
+            <div class="gameover-stats">
+                <div class="gameover-stat-card">
+                    <div class="gameover-stat-icon">🏆</div>
+                    <div class="gameover-stat-label">Score</div>
+                    <div id="final-score" class="gameover-stat-value">0</div>
+                </div>
+                <div class="gameover-stat-card gold">
+                    <div class="gameover-stat-icon">💰</div>
+                    <div class="gameover-stat-label">Gold Earned</div>
+                    <div id="earned-credits" class="gameover-stat-value">+0</div>
+                </div>
             </div>
-            <div class="game-over-stat-divider"></div>
-            <div class="game-over-stat">
-                <div class="game-over-stat-label credits">Gold</div>
-                <div id="earned-credits" class="game-over-stat-value credits">+0</div>
-            </div>
+            
+            <button id="restart-btn" class="gameover-btn">BACK TO MENU</button>
         </div>
-        <button id="restart-btn" class="modern-btn mt-12">RETURN</button>
     </div>
 
     <div id="mobile-controls">

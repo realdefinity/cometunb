@@ -1,22 +1,18 @@
 window.UI = {
     // --- TAB NAVIGATION ---
     switchTab: function(tabName) {
-        // Update Nav Buttons
-        document.querySelectorAll('.nav-item').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
-        });
+        // Update Buttons
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.querySelector(`.nav-btn[onclick*="${tabName}"]`);
+        if(activeBtn) activeBtn.classList.add('active');
 
-        // Update Tabs - Fade transition
-        document.querySelectorAll('.content-tab').forEach(tab => {
-            if (tab.id === `tab-${tabName}`) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
+        // Update Tabs
+        document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+        const activeTab = document.getElementById(`tab-${tabName}`);
+        if(activeTab) activeTab.classList.add('active');
 
         // Refresh data if entering loadout
-        if (tabName === 'loadout') this.updateMenuUI();
+        if(tabName === 'loadout') this.updateMenuUI();
     },
 
     // --- MAIN MENU UPDATE ---
@@ -27,97 +23,48 @@ window.UI = {
         const statsEl = document.getElementById('menu-stats');
         if(statsEl && window.GAME_DATA) {
              statsEl.innerHTML = `
-                <div class="stat-pill"><span class="label">XP</span> <span class="val" style="color:var(--accent-secondary)">x${window.GAME_DATA.multipliers.xp.toFixed(1)}</span></div>
-                <div class="stat-pill"><span class="label">GOLD</span> <span class="val" style="color:var(--accent-gold)">x${window.GAME_DATA.multipliers.gold.toFixed(1)}</span></div>
+                <div class="stat-pill"><span class="label">XP</span> <span class="val text-indigo-400">x${window.GAME_DATA.multipliers.xp.toFixed(1)}</span></div>
+                <div class="stat-pill"><span class="label">GOLD</span> <span class="val text-yellow-400">x${window.GAME_DATA.multipliers.gold.toFixed(1)}</span></div>
              `;
         }
         
         const grid = document.getElementById('weapon-grid');
         const actions = document.getElementById('loadout-actions');
-        const equippedCard = document.getElementById('loadout-equipped-card');
-        const armoryCount = document.getElementById('armory-count');
         
         if(!grid || !actions) return;
         
         grid.innerHTML = '';
-        actions.innerHTML = '';
-
-        // --- EQUIPPED PREVIEW ---
-        if (equippedCard && window.WEAPONS) {
-            const w = window.WEAPONS[window.Game.currentLoadout];
-            if (w) {
-                const dmgPct = (w.damage/50)*100;
-                const spdPct = (15/w.cooldown)*100;
-                
-                // Set rarity color variable
-                equippedCard.className = `equipped-card-display rarity-${w.rarity}`; 
-                
-                const eqLvl = window.GAME_DATA.weaponLevels?.[window.Game.currentLoadout] || 1;
-                
-                equippedCard.innerHTML = `
-                    <div class="weapon-card-name" style="font-size: 2.5rem; margin-bottom: 4px;">${w.name} <span style="font-size: 0.4em; opacity: 0.6; vertical-align: middle; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:8px; font-weight:700;">LVL ${eqLvl}</span></div>
-                    <div class="weapon-card-meta" style="margin-bottom: 32px;">
-                        <span class="rarity-${w.rarity}" style="font-weight:900; letter-spacing:3px; font-size:0.9rem;">${w.rarity}</span>
-                        <span style="opacity:0.5; font-weight:700; letter-spacing:1px;">RANGED WEAPON</span>
-                    </div>
-                    
-                    <div class="stat-row" style="margin-bottom: 20px;">
-                        <span class="stat-label">DMG</span>
-                        <div class="stat-track"><div class="stat-bar rarity-${w.rarity}" style="width: ${Math.min(100,dmgPct)}%"></div></div>
-                    </div>
-                    <div class="stat-row" style="margin-bottom: 32px;">
-                        <span class="stat-label">SPD</span>
-                        <div class="stat-track"><div class="stat-bar rarity-${w.rarity}" style="width: ${Math.min(100,spdPct)}%"></div></div>
-                    </div>
-                    
-                    <div style="font-size: 1.1rem; color: rgba(255,255,255,0.6); line-height: 1.6; font-weight: 400; max-width: 80%;">${w.desc}</div>
-                `;
-            } else {
-                equippedCard.innerHTML = '<div style="opacity:0.5; text-align:center; padding: 20px; font-weight: 700; font-size: 1.2rem;">SELECT A WEAPON</div>';
-            }
-        }
+        actions.innerHTML = ''; 
 
         // --- ACTIONS SECTION ---
+        
+        // Prestige Button (Only if rich enough)
         if(window.Game.totalCurrency > 50000) {
-            this.createActionCard(actions, 'legendary', 'Prestige', 'RESET PROGRESS', () => window.UI.doPrestige());
+            this.createActionCard(actions, 'legendary', 'PRESTIGE', 'Reset everything for better bonuses.', 'RESET', () => window.UI.doPrestige());
         }
+
+        // Cosmetic Crate
         const canBuySkin = window.Game.totalCurrency >= 5000;
-        this.createActionCard(actions, 'epic', 'Skin Crate', canBuySkin ? '5,000' : 'LOCKED', (e) => window.UI.openSkinCrate(e), !canBuySkin);
+        this.createActionCard(actions, 'epic', 'SKINS', 'Unlock new looks.', canBuySkin ? '$5,000' : 'LOCKED', (e) => window.UI.openSkinCrate(e), !canBuySkin);
+
+        // Armory Crate
         const canBuyWep = window.Game.totalCurrency >= 1000;
-        this.createActionCard(actions, 'rare', 'Weapon Crate', canBuyWep ? '1,000' : 'LOCKED', (e) => window.UI.openLootbox(e), !canBuyWep);
+        this.createActionCard(actions, 'rare', 'WEAPON CRATE', 'Get a random weapon.', canBuyWep ? '$1,000' : 'LOCKED', (e) => window.UI.openLootbox(e), !canBuyWep);
 
         // --- WEAPONS GRID ---
         if(window.WEAPONS) {
-            if(!window.GAME_DATA.weaponLevels) window.GAME_DATA.weaponLevels = {};
-            const keys = Object.keys(window.WEAPONS);
-            const unlocked = keys.filter(k => window.Game.unlockedWeapons.includes(k));
-            
-            if(armoryCount) armoryCount.innerText = `${unlocked.length}/${keys.length}`;
-
-            keys.forEach(key => {
+            Object.keys(window.WEAPONS).forEach(key => {
+                // Only show unlocked weapons in the grid
                 if(!window.Game.unlockedWeapons.includes(key)) return; 
                 
                 const w = window.WEAPONS[key];
                 const isSelected = window.Game.currentLoadout === key;
-                const lvl = window.GAME_DATA.weaponLevels[key] || 1;
-                const upgradeCost = 500 * lvl;
-                const canUpgrade = lvl < 10 && window.Game.totalCurrency >= upgradeCost;
                 
                 const card = document.createElement('div');
                 card.className = `weapon-card rarity-${w.rarity} ${isSelected ? 'selected' : ''}`;
-                card.onclick = (e) => { 
-                    if(e.target.closest('.weapon-upgrade-btn')) return;
+                card.onclick = () => { 
                     window.Game.currentLoadout = key; 
                     window.UI.updateMenuUI(); 
-                    
-                    // Trigger animation on equipped card
-                    const eqCard = document.getElementById('loadout-equipped-card');
-                    if(eqCard) {
-                        eqCard.style.animation = 'none';
-                        eqCard.offsetHeight; 
-                        eqCard.style.animation = 'cardSlideIn 0.4s var(--ease-spring)';
-                    }
-
                     if(window.AudioSys) window.AudioSys.play('sine', 400, 0.1);
                 };
 
@@ -125,11 +72,11 @@ window.UI = {
                 const spdPct = (15/w.cooldown)*100;
 
                 card.innerHTML = `
-                    <div class="weapon-card-name">${w.name}</div>
-                    <div class="weapon-card-meta">
-                        <span>${w.rarity}</span>
-                        <span>LVL ${lvl}</span>
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-xl font-bold text-white leading-none">${w.name}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-widest opacity-60">${w.rarity}</div>
                     </div>
+                    <div class="text-xs text-slate-400 mb-4 h-8 leading-tight">${w.desc}</div>
                     
                     <div class="stat-row">
                         <span class="stat-label">DMG</span>
@@ -139,35 +86,20 @@ window.UI = {
                         <span class="stat-label">SPD</span>
                         <div class="stat-track"><div class="stat-bar" style="width: ${Math.min(100, spdPct)}%"></div></div>
                     </div>
-                    
-                    ${lvl < 10 ? `
-                    <button class="weapon-upgrade-btn ${canUpgrade ? '' : 'disabled'}" ${canUpgrade ? '' : 'disabled'}>
-                        UPGRADE <span style="opacity:0.7">$${upgradeCost}</span>
-                    </button>
-                    ` : '<div class="weapon-maxed">MAX LEVEL</div>'}
                 `;
-                
-                const upgradeBtn = card.querySelector('.weapon-upgrade-btn');
-                if(upgradeBtn && canUpgrade) {
-                    upgradeBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        window.Game.totalCurrency -= upgradeCost;
-                        window.GAME_DATA.weaponLevels[key] = (window.GAME_DATA.weaponLevels[key] || 1) + 1;
-                        window.Game.saveData();
-                        window.UI.updateMenuUI();
-                        if(window.AudioSys) window.AudioSys.play('sine', 600, 0.15);
-                    };
-                }
                 grid.appendChild(card);
             });
         }
     },
 
-    createActionCard: function(parent, rarity, title, btnText, onClick, disabled=false) {
+    createActionCard: function(parent, rarity, title, desc, btnText, onClick, disabled=false) {
         const div = document.createElement('div');
         div.className = `action-card rarity-${rarity}`;
         div.innerHTML = `
-            <div class="action-title">${title}</div>
+            <div>
+                <div class="action-title">${title}</div>
+                <div class="action-desc mt-1">${desc}</div>
+            </div>
             <div class="action-btn ${disabled ? 'disabled' : ''}">${btnText}</div>
         `;
         div.onclick = disabled ? null : onClick;
@@ -226,9 +158,8 @@ window.UI = {
                 window.Game.saveData();
             }
             
-            const rarityColors = { common: '#94a3b8', rare: '#38bdf8', epic: '#a855f7', legendary: '#fbbf24' };
             modal.querySelector('#reward-rarity').innerText = w.rarity;
-            modal.querySelector('#reward-rarity').style.color = rarityColors[w.rarity] || '#94a3b8';
+            modal.querySelector('#reward-rarity').className = `text-sm font-bold uppercase mb-2 text-${w.rarity}`;
             modal.querySelector('#reward-name').innerText = w.name;
             
             card.classList.add('show');
@@ -249,7 +180,7 @@ window.UI = {
             <div class="crate-container">
                 <div class="crate" id="crate-box" style="border-color:#d946ef; font-size:6rem;">🎨</div>
                 <div class="reward-card" id="reward-card">
-                    <div class="text-sm font-bold uppercase mb-2 text-fuchsia-400">COSMETIC UNLOCKED</div>
+                    <div class="text-sm font-bold uppercase mb-2 text-fuchsia-400">NEW SKIN UNLOCKED</div>
                     <div class="text-3xl font-bold text-white mb-4" id="reward-name"></div>
                     <button class="modern-btn" onclick="this.closest('.lootbox-modal').remove(); window.UI.updateMenuUI();">
                         <span class="btn-text">EQUIP</span>
@@ -284,7 +215,7 @@ window.UI = {
     },
 
     doPrestige: function() {
-        if(!confirm("Reset everything for +20% bonus to XP and Gold?")) return;
+        if(!confirm("Are you sure? This resets your progress but gives you +0.2x bonus to XP and gold.")) return;
         
         window.GAME_DATA.multipliers.xp += 0.2;
         window.GAME_DATA.multipliers.gold += 0.2;
@@ -298,24 +229,26 @@ window.UI = {
         location.reload();
     },
 
+    // --- Upgrade Icons Map ---
+    upgradeIcons: {
+        dmg: '⚔️', rate: '🔥', speed: '👟', hp: '❤️', mag: '🧲',
+        pierce: '🏹', multi: '🎯', regen: '💚', crit: '💥', backshot: '↩️',
+        bounce: '🔄', homing: '🎯', explode: '💣', dash_nova: '💨', vamp: '🩸',
+        tesla: '⚡', freeze: '❄️', god_mode: '🛡️', black_hole: '🌀',
+        chain_lightning: '⛓️', shatter: '💎', cluster: '🧨',
+        dash_cd: '⏱️', luck: '🍀', greed: '💰',
+        executioner: '🗡️', rage: '😤', ghost: '👻',
+        sniper_training: '🎯', spray_pray: '🌪️',
+        orbitals: '🪐', split_shot: '🔱', rear_guard: '🛡️',
+        time_warp: '⏳', clone: '👥', nuke: '☢️', blood_pact: '🩸'
+    },
+
     // --- IN-GAME UPGRADES ---
     generateUpgrades: function() {
         const container = document.getElementById('upgrade-container');
         container.innerHTML = '';
         document.getElementById('upgrade-screen').classList.remove('hidden');
         
-        const icons = {
-            dmg: '💥', rate: '⏩', speed: '👟', hp: '❤️', mag: '🧲',
-            pierce: '🏹', multi: '🥢', regen: '🩹', crit: '🎯', backshot: '🔙',
-            bounce: '🎱', homing: '🧠', explode: '💣', dash_nova: '💨',
-            vamp: '🩸', tesla: '⚡', freeze: '❄️', god_mode: '🛡️',
-            black_hole: '⚫', chain_lightning: '⛓️', shatter: '🧊', cluster: '🧨',
-            dash_cd: '⏱️', luck: '🍀', greed: '💰', executioner: '☠️', rage: '😡',
-            ghost: '👻', sniper_training: '🔭', spray_pray: '🔫', orbitals: '🪐',
-            split_shot: '🔱', rear_guard: '🔙', time_warp: '⏳', clone: '👥',
-            nuke: '☢️', blood_pact: '🩸'
-        };
-
         // Filter Pool
         let pool = window.UPGRADES_DB.filter(u => {
             if(u.minWave && window.Game.wave < u.minWave) return false;
@@ -342,21 +275,34 @@ window.UI = {
             }
         }
 
-        selected.forEach(upg => {
+        selected.forEach((upg, idx) => {
             const currentLvl = window.Game.player.upgradeLevels[upg.id] || 0;
+            const icon = this.upgradeIcons[upg.id] || '✨';
+            
+            // Build level dots
+            let dotsHTML = '';
+            for(let d = 0; d < upg.max; d++) {
+                dotsHTML += `<div class="upgrade-level-dot ${d < currentLvl ? 'filled' : ''} ${d === currentLvl ? 'filled' : ''}"></div>`;
+            }
+
             const el = document.createElement('div');
             el.className = `upgrade-card rarity-${upg.rarity}`;
+            el.style.animationDelay = `${0.1 + idx * 0.1}s`;
+            el.style.animation = `upgradeCardAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards`;
+            el.style.opacity = '0';
+            el.style.animationDelay = `${0.15 + idx * 0.12}s`;
+
             el.innerHTML = `
-                <div class="upgrade-card-header">
-                    <span class="upgrade-rarity">${upg.rarity}</span>
-                    <span class="upgrade-level">Lv.${currentLvl} &rarr; ${currentLvl+1}</span>
-                </div>
-                <div class="upgrade-icon">${icons[upg.id] || '✨'}</div>
-                <div class="upgrade-info">
-                    <div class="upgrade-name">${upg.name}</div>
-                    <div class="upgrade-desc">${upg.desc}</div>
+                <div class="upgrade-icon">${icon}</div>
+                <div class="upgrade-rarity">${upg.rarity}</div>
+                <div class="upgrade-name">${upg.name}</div>
+                <div class="upgrade-desc">${upg.desc}</div>
+                <div class="upgrade-level">
+                    <span>Lv ${currentLvl + 1} / ${upg.max}</span>
+                    <div class="upgrade-level-dots">${dotsHTML}</div>
                 </div>
             `;
+
             el.onclick = () => {
                 // Apply Effect
                 if(upg.type === 'stat') window.Game.player[upg.stat] *= upg.val;
@@ -381,34 +327,26 @@ window.UI = {
     updateHud: function() {
         if (!window.Game.player) return;
         
-        const scoreEl = document.getElementById('scoreDisplay');
-        if(scoreEl) scoreEl.innerText = window.Game.score.toLocaleString();
-        
         // Health Bar
         const hpPct = Math.max(0, (window.Game.player.hp/window.Game.player.maxHp)*100);
-        const healthBar = document.getElementById('health-bar');
-        const hpText = document.getElementById('hp-text');
-        if (healthBar) healthBar.style.width = hpPct + '%';
-        if (hpText) hpText.innerText = `${Math.ceil(window.Game.player.hp)}/${Math.ceil(window.Game.player.maxHp)}`;
+        document.getElementById('health-bar').style.width = hpPct + '%';
+        document.getElementById('hp-text').innerText = `${Math.ceil(window.Game.player.hp)}/${Math.ceil(window.Game.player.maxHp)}`;
         
         // XP Bar
         const xpPct = (window.Game.currentXp/window.Game.xpNeeded)*100;
-        const xpBar = document.getElementById('xp-bar');
-        const levelDisplay = document.getElementById('level-display');
-        if (xpBar) xpBar.style.width = xpPct + '%';
-        if (levelDisplay) levelDisplay.innerText = window.Game.level;
-        
+        document.getElementById('xp-bar').style.width = xpPct + '%';
+        document.getElementById('level-display').innerText = window.Game.level;
+
         // Boss HUD Visibility Logic
         const bossHud = document.getElementById('boss-hud');
-        if(bossHud && window.Game.bossActive) {
+        if(window.Game.bossActive) {
             bossHud.classList.add('active'); 
             const boss = window.Game.enemies.find(e => e.type === 'boss');
             if(boss) {
                 const bossPct = (boss.hp / boss.maxHp) * 100;
-                const bossHpBar = document.getElementById('boss-hp-bar');
-                if (bossHpBar) bossHpBar.style.width = bossPct + '%';
+                document.getElementById('boss-hp-bar').style.width = bossPct + '%';
             }
-        } else if (bossHud) {
+        } else {
             bossHud.classList.remove('active'); 
         }
     },
@@ -416,7 +354,6 @@ window.UI = {
     gameOver: function() {
         document.getElementById('game-over-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = window.Game.score.toLocaleString();
-        const earned = window.Game.lastAwardedGold ?? window.Game.sessionCredits;
-        document.getElementById('earned-credits').innerText = "+" + earned.toLocaleString();
+        document.getElementById('earned-credits').innerText = "+" + window.Game.sessionCredits.toLocaleString();
     }
 };
