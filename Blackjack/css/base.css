@@ -18,6 +18,7 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-fluid: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* ——— Liquid Glass System ——— */
   --glass-blur: 32px;

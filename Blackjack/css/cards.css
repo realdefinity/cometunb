@@ -10,7 +10,7 @@
   transform: translate3d(60vw, -60vh, 0) rotate(120deg) scale(0.5); 
   opacity: 0;
   will-change: auto;
-  transition: transform 0.65s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.35s ease-out;
+  transition: none;
   transform-style: preserve-3d;
 }
 
@@ -25,6 +25,7 @@
   opacity: 1;
   transform: translate3d(0,0,0) rotate(var(--rot)) scale(1);
   z-index: auto;
+  animation: cardDealIn var(--deal-duration, 640ms) var(--ease-fluid, cubic-bezier(0.22, 1, 0.36, 1)) both;
 }
 
 /* Flipper Container */
@@ -33,7 +34,7 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform var(--flip-duration, 620ms) cubic-bezier(0.2, 0.85, 0.22, 1);
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   /* DEFAULT: Face Up */
@@ -42,6 +43,21 @@
 
 .card.dealt .inner {
   box-shadow: 0 8px 24px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+}
+
+@keyframes cardDealIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(60vw, -60vh, 0) rotate(120deg) scale(0.5);
+  }
+  70% {
+    opacity: 1;
+    transform: translate3d(-6px, 6px, 0) rotate(calc(var(--rot) + 2deg)) scale(1.025);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(var(--rot)) scale(1);
+  }
 }
 
 /* Face Down State */
@@ -196,5 +212,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .card .inner { transition: none !important; animation: none !important; }
+  .card {
+    transition: none !important;
+    animation: none !important;
+    transform: translate3d(0,0,0) rotate(var(--rot)) scale(1) !important;
+    opacity: 1 !important;
+  }
+  .card .inner {
+    transition: none !important;
+    animation: none !important;
+  }
 }

@@ -11,6 +11,7 @@ const perfLite = hasPerfLiteClass
   || (cpuCores > 0 && cpuCores <= 4)
   || (memoryGb > 0 && memoryGb <= 4);
 const valueAnimationFrames = new WeakMap();
+const winnerPulseTimers = new WeakMap();
 
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
@@ -229,7 +230,14 @@ function markBusted(container) {
 
 function highlightWinner(container) {
   if (!container) return;
+  const existing = winnerPulseTimers.get(container);
+  if (existing) window.clearTimeout(existing);
   container.classList.add('winner-pulse');
+  const timeout = window.setTimeout(() => {
+    container.classList.remove('winner-pulse');
+    winnerPulseTimers.delete(container);
+  }, perfLite ? 900 : 1300);
+  winnerPulseTimers.set(container, timeout);
 }
 
 function animateChip(x, y) {
@@ -282,6 +290,10 @@ function spawnCard(handArr, container, faceUp, delay) {
     playSound('card');
     
     const cardEl = makeCardDOM(cardData, faceUp);
+    const dealDuration = perfLite ? 460 : 640;
+    const flipDuration = perfLite ? 430 : 620;
+    cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
+    cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
     
     if (faceUp) {
         cardEl.classList.add('face-down');
@@ -293,9 +305,10 @@ function spawnCard(handArr, container, faceUp, delay) {
     });
     
     if (faceUp) {
+        const revealDelay = Math.max(80, Math.round(dealDuration * 0.32));
         setTimeout(() => {
             cardEl.classList.remove('face-down');
-        }, perfLite ? 90 : 120);
+        }, revealDelay);
     }
   }, delay);
 }
