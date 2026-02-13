@@ -352,24 +352,29 @@ window.UI = {
         
         // Health Bar
         const hpPct = Math.max(0, (window.Game.player.hp/window.Game.player.maxHp)*100);
-        document.getElementById('health-bar').style.width = hpPct + '%';
-        document.getElementById('hp-text').innerText = `${Math.ceil(window.Game.player.hp)}/${Math.ceil(window.Game.player.maxHp)}`;
+        const healthBar = document.getElementById('health-bar');
+        const hpText = document.getElementById('hp-text');
+        if (healthBar) healthBar.style.width = hpPct + '%';
+        if (hpText) hpText.innerText = `${Math.ceil(window.Game.player.hp)}/${Math.ceil(window.Game.player.maxHp)}`;
         
         // XP Bar
         const xpPct = (window.Game.currentXp/window.Game.xpNeeded)*100;
-        document.getElementById('xp-bar').style.width = xpPct + '%';
-        document.getElementById('level-display').innerText = window.Game.level;
+        const xpBar = document.getElementById('xp-bar');
+        const levelDisplay = document.getElementById('level-display');
+        if (xpBar) xpBar.style.width = xpPct + '%';
+        if (levelDisplay) levelDisplay.innerText = window.Game.level;
         
         // Boss HUD Visibility Logic
         const bossHud = document.getElementById('boss-hud');
-        if(window.Game.bossActive) {
+        if(bossHud && window.Game.bossActive) {
             bossHud.classList.add('active'); 
             const boss = window.Game.enemies.find(e => e.type === 'boss');
             if(boss) {
                 const bossPct = (boss.hp / boss.maxHp) * 100;
-                document.getElementById('boss-hp-bar').style.width = bossPct + '%';
+                const bossHpBar = document.getElementById('boss-hp-bar');
+                if (bossHpBar) bossHpBar.style.width = bossPct + '%';
             }
-        } else {
+        } else if (bossHud) {
             bossHud.classList.remove('active'); 
         }
     },
@@ -377,6 +382,7 @@ window.UI = {
     gameOver: function() {
         document.getElementById('game-over-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = window.Game.score.toLocaleString();
-        document.getElementById('earned-credits').innerText = "+" + window.Game.sessionCredits.toLocaleString();
+        const earned = window.Game.lastAwardedGold ?? window.Game.sessionCredits;
+        document.getElementById('earned-credits').innerText = "+" + earned.toLocaleString();
     }
 };

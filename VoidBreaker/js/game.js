@@ -66,8 +66,8 @@ window.Game = {
         this.waveEnemiesTotal = Math.floor(12 + this.wave * 2.5);
         this.waveEnemiesSpawned = 0;
         const disp = document.getElementById('wave-display');
-        if(disp) disp.innerText = `WAVE ${this.wave}`;
-        this.createPopup(this.width/2, this.height/3, `WAVE ${this.wave}`, '#fbbf24', 40);
+        if(disp) disp.innerText = `ROUND ${this.wave}`;
+        this.createPopup(this.width/2, this.height/3, `ROUND ${this.wave}`, '#fbbf24', 40);
     },
 
     loop() {
@@ -155,12 +155,11 @@ window.Game = {
         if(this.waveEnemiesSpawned >= this.waveEnemiesTotal && this.enemies.length === 0) {
             const rewardXP = this.wave * 100;
             this.createXP(this.player.x, this.player.y - 60, rewardXP); // Use createXP helper
-            this.createPopup(this.player.x, this.player.y - 80, `WAVE CLEAR!`, '#fbbf24', 24);
+            this.createPopup(this.player.x, this.player.y - 80, `ROUND CLEAR!`, '#fbbf24', 24);
             this.wave++;
             if(this.wave % 5 === 0) {
                 this.bossActive = true;
                 this.enemies.push(new Enemy('boss', 2 + this.wave * 0.2));
-                document.getElementById('boss-hud').style.opacity = 1;
                 window.AudioSys.bossWarn();
                 return;
             }
@@ -227,6 +226,7 @@ window.Game = {
         this.gameState = 'GAMEOVER';
         const mult = window.GAME_DATA.multipliers.gold || 1.0;
         const finalGold = Math.floor(this.sessionCredits * mult);
+        this.lastAwardedGold = finalGold;
         this.totalCurrency += finalGold;
         this.saveData();
         window.UI.gameOver();
@@ -515,7 +515,6 @@ class Enemy {
             
             if(this.type === 'boss') {
                 window.Game.bossActive = false;
-                document.getElementById('boss-hud').style.opacity = 0;
                 window.Game.createExplosion(this.x, this.y, 50, this.color);
                 window.Game.createPopup(window.Game.width/2, window.Game.height/3, "BOSS DEFEATED", '#a855f7', 40);
             } else {
