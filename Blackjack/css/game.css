@@ -195,7 +195,7 @@
 
 .score-badge {
   position: absolute;
-  right: -8px;
+  right: -75px;
   top: 50%;
   transform: translateY(-50%) translateX(16px) translateZ(0) scale(0.88);
   padding: 9px 20px;
