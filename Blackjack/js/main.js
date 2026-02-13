@@ -1,4 +1,11 @@
 const initGame = () => {
+  const prefersReducedMotion = typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cpuCores = Number(navigator.hardwareConcurrency || 0);
+  const memoryGb = Number(navigator.deviceMemory || 0);
+  const lowPowerDevice = (cpuCores > 0 && cpuCores <= 4) || (memoryGb > 0 && memoryGb <= 4);
+  document.body.classList.toggle('perf-lite', prefersReducedMotion || lowPowerDevice);
+
   els = {
     wallet: document.getElementById('wallet-val'),
     bet: document.getElementById('bet-val'),

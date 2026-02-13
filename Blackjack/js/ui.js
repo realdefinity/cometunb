@@ -1,6 +1,17 @@
 function getPlayerCardsContainer(i) { return i === 0 ? els.pCards0 : els.pCards1; }
 function getPlayerScoreEl(i) { return i === 0 ? els.pScore0 : els.pScore1; }
 
+const prefersReducedMotion = typeof window.matchMedia === 'function'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cpuCores = Number(navigator.hardwareConcurrency || 0);
+const memoryGb = Number(navigator.deviceMemory || 0);
+const hasPerfLiteClass = !!(document.body && document.body.classList.contains('perf-lite'));
+const perfLite = hasPerfLiteClass
+  || prefersReducedMotion
+  || (cpuCores > 0 && cpuCores <= 4)
+  || (memoryGb > 0 && memoryGb <= 4);
+const valueAnimationFrames = new WeakMap();
+
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
   els.statLosses.textContent = stats.losses;
@@ -107,26 +118,42 @@ function setControlsEnabled(enabled) {
 
 // Smooth number animation with easing
 function animateValue(obj, start, end, duration) {
+  if (!obj) return;
+  const existingFrame = valueAnimationFrames.get(obj);
+  if (existingFrame) {
+    window.cancelAnimationFrame(existingFrame);
+    valueAnimationFrames.delete(obj);
+  }
+
+  if (start === end) {
+    obj.textContent = '$' + end;
+    obj.classList.remove('bump');
+    return;
+  }
+
   let startTimestamp = null;
   const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  obj.classList.add('bump');
+
   const step = (timestamp) => {
-    if (!startTimestamp) startTimestamp = timestamp;
+    if (startTimestamp === null) startTimestamp = timestamp;
     const raw = Math.min((timestamp - startTimestamp) / duration, 1);
     const progress = easeOutCubic(raw);
     const val = Math.floor(progress * (end - start) + start);
     obj.textContent = '$' + val;
+
     if (raw < 1) {
-      window.requestAnimationFrame(step);
-    } else {
-        obj.classList.remove('bump');
+      const frameId = window.requestAnimationFrame(step);
+      valueAnimationFrames.set(obj, frameId);
+      return;
     }
+
+    obj.classList.remove('bump');
+    valueAnimationFrames.delete(obj);
   };
-  if(start !== end) {
-      obj.classList.add('bump');
-      window.requestAnimationFrame(step);
-  } else {
-      obj.textContent = '$' + end;
-  }
+
+  const frameId = window.requestAnimationFrame(step);
+  valueAnimationFrames.set(obj, frameId);
 }
 
 let lastWallet = 1000;
@@ -218,26 +245,27 @@ function animateChip(x, y) {
   chip.animate(
     [
         { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 }, 
-        { transform: `translate(${(tx - x) * 0.5}px, ${(ty - y) * 0.3 - 60}px) scale(0.85) rotate(360deg)`, opacity: 0.95, offset: 0.5 },
+        { transform: `translate(${(tx - x) * 0.5}px, ${(ty - y) * 0.3 - (perfLite ? 36 : 60)}px) scale(0.85) rotate(360deg)`, opacity: 0.95, offset: 0.5 },
         { transform: `translate(${tx - x}px, ${ty - y}px) scale(0.5) rotate(720deg)`, opacity: 0.7 }
     ],
-    { duration: 600, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+    { duration: perfLite ? 460 : 600, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
   ).onfinish = () => chip.remove();
 }
 
 function triggerConfetti() {
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  for (let i = 0; i < 60; i++) {
+  const particleCount = perfLite ? 28 : 60;
+  for (let i = 0; i < particleCount; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = 120 + Math.random() * 350;
+    const dist = (perfLite ? 80 : 120) + Math.random() * (perfLite ? 220 : 350);
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
     c.style.setProperty('--rot', Math.random() * 720 + 'deg');
-    c.style.setProperty('--dur', (800 + Math.random() * 700) + 'ms');
+    c.style.setProperty('--dur', ((perfLite ? 550 : 800) + Math.random() * (perfLite ? 450 : 700)) + 'ms');
     c.style.width = (6 + Math.random() * 6) + 'px';
     c.style.height = (6 + Math.random() * 6) + 'px';
     c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
@@ -260,15 +288,14 @@ function spawnCard(handArr, container, faceUp, delay) {
     }
     
     container.appendChild(cardEl);
-    
-    void cardEl.offsetWidth;
-    
-    cardEl.classList.add('dealt');
+    window.requestAnimationFrame(() => {
+      cardEl.classList.add('dealt');
+    });
     
     if (faceUp) {
         setTimeout(() => {
             cardEl.classList.remove('face-down');
-        }, 120); 
+        }, perfLite ? 90 : 120);
     }
   }, delay);
 }

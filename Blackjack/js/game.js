@@ -224,18 +224,6 @@ function bet2x() {
   updateUI();
 }
 
-function spawnCard(handArr, container, faceUp, delay) {
-  const cardData = deck.pop();
-  handArr.push(cardData);
-  setTimeout(() => {
-    playSound('card');
-    const cardEl = makeCardDOM(cardData, faceUp);
-    container.appendChild(cardEl);
-    void cardEl.offsetWidth;
-    cardEl.classList.add('dealt');
-  }, delay);
-}
-
 function updateAllPlayerScores(showDealer) {
   for (let i = 0; i < playerHands.length; i++) {
     const hand = playerHands[i];
