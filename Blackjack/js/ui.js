@@ -13,7 +13,8 @@ const perfLite = hasPerfLiteClass
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
 
-const EASE_FLUID = 'cubic-bezier(0.22, 1, 0.36, 1)';
+/** Matches CSS --ease for WAAPI and inline animations */
+const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
@@ -156,40 +157,45 @@ function animateValue(obj, start, end, duration) {
 
 let lastWallet = 1000;
 let lastTotalBet = 0;
+let updateUIRafId = null;
 
 function updateUI() {
-  animateValue(els.wallet, lastWallet, Math.floor(wallet), 480);
-  lastWallet = Math.floor(wallet);
+  if (updateUIRafId != null) return;
+  updateUIRafId = requestAnimationFrame(() => {
+    updateUIRafId = null;
+    animateValue(els.wallet, lastWallet, Math.floor(wallet), 480);
+    lastWallet = Math.floor(wallet);
 
-  const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 280);
-  lastTotalBet = Math.floor(totalBet);
+    const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
+    animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 280);
+    lastTotalBet = Math.floor(totalBet);
 
-  els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
-  els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet >= lastBet);
-  els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
-  els.btnSplit.disabled = !canSplit();
-  els.btnSurrender.style.display = canSurrender() ? '' : 'none';
+    els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
+    els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet >= lastBet);
+    els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
+    els.btnSplit.disabled = !canSplit();
+    els.btnSurrender.style.display = canSurrender() ? '' : 'none';
 
-  if (loan > 0) {
-    els.loanBox.style.display = '';
-    els.loanVal.textContent = '$' + Math.floor(loan);
-  } else {
-    els.loanBox.style.display = 'none';
-  }
+    if (loan > 0) {
+      els.loanBox.style.display = '';
+      els.loanVal.textContent = '$' + Math.floor(loan);
+    } else {
+      els.loanBox.style.display = 'none';
+    }
 
-  const totalBetNow = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-  const showTakeLoan = gameState === 'BETTING' && wallet <= 0 && totalBetNow <= 0;
-  els.takeLoanStrip.style.display = showTakeLoan ? 'flex' : 'none';
+    const totalBetNow = currentBets.reduce((a, b) => a + b, 0) || currentBet;
+    const showTakeLoan = gameState === 'BETTING' && wallet <= 0 && totalBetNow <= 0;
+    els.takeLoanStrip.style.display = showTakeLoan ? 'flex' : 'none';
 
-  const showPayback = gameState === 'BETTING' && loan > 0 && wallet > 0;
-  els.btnPayback.style.display = showPayback ? '' : 'none';
-  els.btnPayall.style.display = showPayback ? '' : 'none';
-  els.btnPayback.textContent = 'Pay $' + Math.min(100, Math.floor(wallet), Math.floor(loan));
+    const showPayback = gameState === 'BETTING' && loan > 0 && wallet > 0;
+    els.btnPayback.style.display = showPayback ? '' : 'none';
+    els.btnPayall.style.display = showPayback ? '' : 'none';
+    els.btnPayback.textContent = 'Pay $' + Math.min(100, Math.floor(wallet), Math.floor(loan));
 
-  const canPlay = gameState === 'PLAYING';
-  setControlsEnabled(canPlay);
-  updateStatsUI();
+    const canPlay = gameState === 'PLAYING';
+    setControlsEnabled(canPlay);
+    updateStatsUI();
+  });
 }
 
 function showMsg(text, color = 'white') {
@@ -212,7 +218,7 @@ function clearTable() {
         { transform: 'translate3d(0,-12px,0) scale(0.94)', opacity: 0.45, offset: 0.45 },
         { transform: 'translate3d(0,-20px,0) scale(0.86) rotate(2deg)', opacity: 0 }
       ],
-      { duration: dur, easing: EASE_FLUID, delay: i * 20, fill: 'forwards' }
+      { duration: dur, easing: EASE, delay: i * 20, fill: 'forwards' }
     ).onfinish = () => c.remove();
   });
 }
@@ -250,8 +256,8 @@ function animateChip(x, y) {
   const ty = window.innerHeight - 200;
   const dx = tx - x;
   const dy = ty - y;
-  const arc = perfLite ? 24 : 44;
-  const dur = perfLite ? 380 : 480;
+  const arc = perfLite ? 20 : 44;
+  const dur = perfLite ? 320 : 480;
 
   chip.animate(
     [
@@ -260,24 +266,24 @@ function animateChip(x, y) {
       { transform: `translate(${dx * 0.7}px, ${dy * 0.58 - arc * 0.3}px) scale(0.66) rotate(460deg)`, opacity: 0.78, offset: 0.74 },
       { transform: `translate(${dx}px, ${dy}px) scale(0.4) rotate(640deg)`, opacity: 0.5 }
     ],
-    { duration: dur, easing: EASE_FLUID }
+    { duration: dur, easing: EASE }
   ).onfinish = () => chip.remove();
 }
 
 function triggerConfetti() {
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  const count = perfLite ? 20 : 45;
+  const count = perfLite ? 16 : 45;
   for (let i = 0; i < count; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = (perfLite ? 70 : 95) + Math.random() * (perfLite ? 170 : 280);
+    const dist = (perfLite ? 60 : 95) + Math.random() * (perfLite ? 140 : 280);
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
     c.style.setProperty('--rot', (Math.random() * 500 + 100) + 'deg');
-    c.style.setProperty('--dur', ((perfLite ? 450 : 650) + Math.random() * (perfLite ? 350 : 550)) + 'ms');
+    c.style.setProperty('--dur', ((perfLite ? 380 : 650) + Math.random() * (perfLite ? 280 : 550)) + 'ms');
     const size = 4 + Math.random() * 5;
     c.style.width = size + 'px';
     c.style.height = size + 'px';

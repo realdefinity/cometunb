@@ -182,7 +182,9 @@ function deal() {
       return;
     }
     if (dealerAce && isBlackjack(playerHands[0])) stand(true);
-    else { els.gameControls.classList.add('active'); updateUI(); }
+    else {
+      setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100);
+    }
   }, 880);
 }
 
@@ -195,13 +197,13 @@ function takeInsurance() {
   insuranceBet = insAmt;
   els.insuranceStrip.style.display = 'none';
   if (isBlackjack(playerHands[0])) stand(true);
-  else { els.gameControls.classList.add('active'); updateUI(); }
+  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100); }
 }
 
 function declineInsurance() {
   els.insuranceStrip.style.display = 'none';
   if (isBlackjack(playerHands[0])) stand(true);
-  else { els.gameControls.classList.add('active'); updateUI(); }
+  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100); }
 }
 
 function surrender() {

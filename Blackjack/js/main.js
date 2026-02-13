@@ -3,8 +3,10 @@ const initGame = () => {
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cpuCores = Number(navigator.hardwareConcurrency || 0);
   const memoryGb = Number(navigator.deviceMemory || 0);
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const slowConnection = conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g');
   const lowPowerDevice = (cpuCores > 0 && cpuCores <= 4) || (memoryGb > 0 && memoryGb <= 4);
-  document.body.classList.toggle('perf-lite', prefersReducedMotion || lowPowerDevice);
+  document.body.classList.toggle('perf-lite', prefersReducedMotion || lowPowerDevice || slowConnection);
 
   els = {
     wallet: document.getElementById('wallet-val'),
