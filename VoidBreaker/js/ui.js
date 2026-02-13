@@ -2,20 +2,17 @@ window.UI = {
     // --- TAB NAVIGATION ---
     switchTab: function(tabName) {
         // Update Nav Buttons
-        document.querySelectorAll('.nav-btn').forEach(btn => {
+        document.querySelectorAll('.nav-item').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
 
-        // Update Sliding Indicator
-        const indicator = document.querySelector('.nav-indicator');
-        if (indicator) {
-            indicator.classList.remove('play', 'loadout');
-            indicator.classList.add(tabName);
-        }
-
-        // Update Tabs - only one visible, no overlap
-        document.querySelectorAll('.menu-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.id === `tab-${tabName}`);
+        // Update Tabs - Fade transition
+        document.querySelectorAll('.content-tab').forEach(tab => {
+            if (tab.id === `tab-${tabName}`) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
         });
 
         // Refresh data if entering loadout
@@ -38,6 +35,7 @@ window.UI = {
         const grid = document.getElementById('weapon-grid');
         const actions = document.getElementById('loadout-actions');
         const equippedCard = document.getElementById('loadout-equipped-card');
+        const armoryCount = document.getElementById('armory-count');
         
         if(!grid || !actions) return;
         
@@ -50,36 +48,50 @@ window.UI = {
             if (w) {
                 const dmgPct = (w.damage/50)*100;
                 const spdPct = (15/w.cooldown)*100;
-                equippedCard.className = `loadout-equipped-card rarity-${w.rarity}`;
+                // equippedCard.className = `equipped-card-display rarity-${w.rarity}`; // Keeps ID styling, add rarity class if needed
                 const eqLvl = window.GAME_DATA.weaponLevels?.[window.Game.currentLoadout] || 1;
+                
                 equippedCard.innerHTML = `
-                    <div class="loadout-equipped-name">${w.name} <span class="loadout-equipped-lvl">Lv.${eqLvl}</span></div>
-                    <div class="loadout-equipped-rarity">${w.rarity}</div>
-                    <div class="loadout-equipped-desc">${w.desc}</div>
-                    <div class="loadout-equipped-stats">
-                        <div class="loadout-stat"><span class="loadout-stat-label">DMG</span><div class="loadout-stat-bar"><div class="loadout-stat-fill" style="width:${Math.min(100,dmgPct)}%"></div></div></div>
-                        <div class="loadout-stat"><span class="loadout-stat-label">SPD</span><div class="loadout-stat-bar"><div class="loadout-stat-fill" style="width:${Math.min(100,spdPct)}%"></div></div></div>
+                    <div class="weapon-card-name" style="font-size: 1.5rem; margin-bottom: 2px;">${w.name} <span style="font-size: 0.5em; opacity: 0.6; vertical-align: middle;">LVL ${eqLvl}</span></div>
+                    <div class="weapon-card-meta" style="margin-bottom: 16px;">
+                        <span class="rarity-${w.rarity}" style="color: var(--card-color);">${w.rarity}</span>
+                        <span>TYPE: RANGED</span>
                     </div>
+                    
+                    <div class="stat-row" style="margin-bottom: 12px;">
+                        <span class="stat-label">DMG</span>
+                        <div class="stat-track"><div class="stat-bar rarity-${w.rarity}" style="width: ${Math.min(100,dmgPct)}%"></div></div>
+                    </div>
+                    <div class="stat-row" style="margin-bottom: 20px;">
+                        <span class="stat-label">SPD</span>
+                        <div class="stat-track"><div class="stat-bar rarity-${w.rarity}" style="width: ${Math.min(100,spdPct)}%"></div></div>
+                    </div>
+                    
+                    <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">${w.desc}</div>
                 `;
             } else {
-                equippedCard.className = 'loadout-equipped-card';
-                equippedCard.innerHTML = '<div class="loadout-equipped-placeholder">Select a weapon below</div>';
+                equippedCard.innerHTML = '<div style="opacity:0.5; text-align:center; padding: 20px;">Select a weapon</div>';
             }
         }
 
         // --- ACTIONS SECTION ---
         if(window.Game.totalCurrency > 50000) {
-            this.createActionCard(actions, 'legendary', 'Prestige', 'Reset for bonus multipliers.', 'Reset', () => window.UI.doPrestige());
+            this.createActionCard(actions, 'legendary', 'Prestige', 'Reset', () => window.UI.doPrestige());
         }
         const canBuySkin = window.Game.totalCurrency >= 5000;
-        this.createActionCard(actions, 'epic', 'Skins', 'Unlock new colors.', canBuySkin ? '5,000' : 'LOCKED', (e) => window.UI.openSkinCrate(e), !canBuySkin);
+        this.createActionCard(actions, 'epic', 'Skin Crate', canBuySkin ? '5,000' : 'LOCKED', (e) => window.UI.openSkinCrate(e), !canBuySkin);
         const canBuyWep = window.Game.totalCurrency >= 1000;
-        this.createActionCard(actions, 'rare', 'Weapon Crate', 'Get a random weapon.', canBuyWep ? '1,000' : 'LOCKED', (e) => window.UI.openLootbox(e), !canBuyWep);
+        this.createActionCard(actions, 'rare', 'Weapon Crate', canBuyWep ? '1,000' : 'LOCKED', (e) => window.UI.openLootbox(e), !canBuyWep);
 
         // --- WEAPONS GRID ---
         if(window.WEAPONS) {
             if(!window.GAME_DATA.weaponLevels) window.GAME_DATA.weaponLevels = {};
-            Object.keys(window.WEAPONS).forEach(key => {
+            const keys = Object.keys(window.WEAPONS);
+            const unlocked = keys.filter(k => window.Game.unlockedWeapons.includes(k));
+            
+            if(armoryCount) armoryCount.innerText = `${unlocked.length}/${keys.length}`;
+
+            keys.forEach(key => {
                 if(!window.Game.unlockedWeapons.includes(key)) return; 
                 
                 const w = window.WEAPONS[key];
@@ -101,14 +113,11 @@ window.UI = {
                 const spdPct = (15/w.cooldown)*100;
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="weapon-card-name">${w.name}</div>
-                        <div class="weapon-card-meta">
-                            <span class="weapon-level">Lv.${lvl}</span>
-                            <span class="weapon-rarity">${w.rarity}</span>
-                        </div>
+                    <div class="weapon-card-name">${w.name}</div>
+                    <div class="weapon-card-meta">
+                        <span>${w.rarity}</span>
+                        <span>LVL ${lvl}</span>
                     </div>
-                    <div class="weapon-card-desc">${w.desc}</div>
                     
                     <div class="stat-row">
                         <span class="stat-label">DMG</span>
@@ -118,11 +127,12 @@ window.UI = {
                         <span class="stat-label">SPD</span>
                         <div class="stat-track"><div class="stat-bar" style="width: ${Math.min(100, spdPct)}%"></div></div>
                     </div>
+                    
                     ${lvl < 10 ? `
                     <button class="weapon-upgrade-btn ${canUpgrade ? '' : 'disabled'}" ${canUpgrade ? '' : 'disabled'}>
-                        Upgrade ${canUpgrade ? upgradeCost : '—'}
+                        UPGRADE <span style="opacity:0.7">$${upgradeCost}</span>
                     </button>
-                    ` : '<div class="weapon-maxed">Max level</div>'}
+                    ` : '<div class="weapon-maxed">MAX LEVEL</div>'}
                 `;
                 
                 const upgradeBtn = card.querySelector('.weapon-upgrade-btn');
@@ -141,14 +151,11 @@ window.UI = {
         }
     },
 
-    createActionCard: function(parent, rarity, title, desc, btnText, onClick, disabled=false) {
+    createActionCard: function(parent, rarity, title, btnText, onClick, disabled=false) {
         const div = document.createElement('div');
         div.className = `action-card rarity-${rarity}`;
         div.innerHTML = `
-            <div>
-                <div class="action-title">${title}</div>
-                <div class="action-desc mt-1">${desc}</div>
-            </div>
+            <div class="action-title">${title}</div>
             <div class="action-btn ${disabled ? 'disabled' : ''}">${btnText}</div>
         `;
         div.onclick = disabled ? null : onClick;
