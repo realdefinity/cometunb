@@ -2,7 +2,6 @@ window.Game = {
     canvas: null, ctx: null, width: 0, height: 0,
     gameState: 'MENU', currentLoadout: 'rifle',
     score: 0, frameCount: 0, sessionCredits: 0,
-    killStreak: 0, killStreakTimer: 0,
     
     // Wave System
     wave: 1, waveEnemiesTotal: 0, waveEnemiesSpawned: 0,
@@ -55,7 +54,7 @@ window.Game = {
         this.player = new Player(this.currentLoadout);
         this.enemies=[]; this.bullets=[]; this.enemyBullets=[]; this.particles=[]; this.xpOrbs=[]; this.textPopups=[];
         this.score=0; this.sessionCredits=0; this.level=1; this.currentXp=0; this.xpNeeded=100; this.frameCount=0;
-        this.killStreak=0; this.wave=1; this.waveTimer=0; this.bossActive=false;
+        this.wave=1; this.bossActive=false;
         
         this.startWave();
         this.gameState = 'PLAYING';
@@ -78,7 +77,6 @@ window.Game = {
         this.frameCount++;
         this.manageWaves();
         
-        if(this.killStreakTimer > 0) this.killStreakTimer--; else this.killStreak = 0;
         this.shake.val = Math.max(0, this.shake.val * 0.9);
 
         this.ctx.fillStyle = '#020617'; this.ctx.fillRect(0,0,this.width,this.height);
@@ -239,11 +237,14 @@ window.Game = {
 class Player {
     constructor(weaponKey) {
         const w = window.WEAPONS[weaponKey] || window.WEAPONS['rifle'];
+        const lvl = (window.GAME_DATA.weaponLevels || {})[weaponKey] || 1;
+        const dmgMult = 1 + (lvl - 1) * 0.1;
+        
         this.x = window.Game.width/2; this.y = window.Game.height/2;
         this.vel = {x:0, y:0}; this.angle = 0;
         this.maxHp = 100; this.hp = 100; this.regen = 0; this.maxSpeed = 5; this.acc = 0.8; this.drag = 0.9;
         
-        this.weaponKey = weaponKey; this.damage = w.damage; this.maxCooldown = w.cooldown;
+        this.weaponKey = weaponKey; this.damage = Math.floor(w.damage * dmgMult); this.maxCooldown = w.cooldown;
         this.bulletSpeed = w.speed; this.spread = w.spread; this.count = w.count; this.pierce = w.pierce;
         this.bulletColor = w.color;
         
@@ -516,7 +517,7 @@ class Enemy {
                 window.Game.bossActive = false;
                 document.getElementById('boss-hud').style.opacity = 0;
                 window.Game.createExplosion(this.x, this.y, 50, this.color);
-                window.Game.createPopup(window.Game.width/2, window.Game.height/3, "TITAN DESTROYED", '#a855f7', 40);
+                window.Game.createPopup(window.Game.width/2, window.Game.height/3, "BOSS DEFEATED", '#a855f7', 40);
             } else {
                 window.Game.createExplosion(this.x, this.y, 8, this.color);
             }
@@ -528,20 +529,11 @@ class Enemy {
                 });
             }
 
-            window.Game.killStreak++; window.Game.killStreakTimer = 120;
-            if(window.Game.killStreak % 5 === 0) {
-                let msg = window.Game.killStreak + " KILLS";
-                if(window.Game.killStreak === 20) msg = "UNSTOPPABLE";
-                window.Game.createPopup(window.Game.player.x, window.Game.player.y - 50, msg, '#f43f5e', 30);
-                window.Game.sessionCredits += 5;
-            }
-
             if(window.Game.player.explosive) {
                  window.Game.createExplosion(this.x, this.y, 6, '#f97316');
                  window.Game.enemies.forEach(e => { if(e !== this && Math.hypot(e.x-this.x, e.y-this.y) < 100) e.takeDamage(window.Game.player.damage * 0.5, false); });
             }
             if(Math.random() < window.Game.player.lifesteal) { window.Game.player.hp = Math.min(window.Game.player.maxHp, window.Game.player.hp + 5); window.Game.createPopup(window.Game.player.x, window.Game.player.y, "+5 HP", '#22c55e'); }
-            document.getElementById('scoreDisplay').innerText = window.Game.score.toLocaleString();
         }
     }
 

@@ -20,26 +20,25 @@
     <div id="ui-layer">
         <div class="flex justify-between w-full items-start">
             <div class="glass-panel liquid-glass hud-panel-left">
-                <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
-                    <span>Integrity</span>
+                <div class="hud-row-header">
+                    <span>Health</span>
                     <span id="hp-text">100/100</span>
                 </div>
                 <div class="bar-container mb-3">
                     <div id="health-bar" class="bar-fill bg-emerald-500" style="width: 100%"></div>
                 </div>
                 
-                <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-1">
-                    <span>Level <span id="level-display" class="text-white">1</span></span>
+                <div class="hud-row-header">
+                    <span>Level <span id="level-display">1</span></span>
                 </div>
                 <div class="bar-container">
                     <div id="xp-bar" class="bar-fill bg-indigo-500" style="width: 0%"></div>
                 </div>
             </div>
 
-            <div class="glass-panel liquid-glass flex flex-col items-end">
-                <div class="text-slate-400 text-xs font-bold uppercase">Score</div>
-                <div id="scoreDisplay" class="text-4xl font-bold text-white leading-none">0</div>
-                <div id="kill-streak" class="text-sm font-bold text-yellow-400 mt-1 h-4"></div>
+            <div class="glass-panel liquid-glass hud-panel-right">
+                <div class="hud-label">Score</div>
+                <div id="scoreDisplay" class="hud-score-value">0</div>
             </div>
         </div>
         
@@ -48,13 +47,12 @@
         </div>
         
         <div id="boss-hud">
-            <div class="text-center text-red-500 font-bold tracking-[0.3em] mb-1 text-sm text-shadow">BOSS DETECTED</div>
+            <div class="boss-label">BOSS</div>
             <div class="boss-bar-bg"><div id="boss-hp-bar" class="boss-bar-fill"></div></div>
         </div>
 
         <div id="ability-display" class="liquid-glass">
-            <div class="z-10">DASH</div>
-            <div class="z-10 text-[10px] text-slate-400 mt-1">SPACE</div>
+            <div class="ability-name">Dash</div>
             <div id="dash-cooldown" class="cooldown-overlay"></div>
         </div>
     </div>
@@ -81,7 +79,7 @@
                 <div class="scroll-content center-v">
                     <div class="menu-hero">
                         <h1 class="menu-title">VOID<br>BREAKER</h1>
-                        <div class="status-indicator liquid-glass">SYSTEM ONLINE</div>
+                        <div class="status-indicator liquid-glass">Ready</div>
                     </div>
                     <div class="stats-panel mb-12">
                         <div id="menu-stats" class="flex gap-4"></div>
@@ -107,15 +105,15 @@
                         <div class="loadout-panels">
                             <div class="loadout-panel">
                                 <div class="loadout-section-header">
-                                    <span class="loadout-section-title">SUPPLY DROP</span>
-                                    <span class="loadout-section-desc">Acquire new gear</span>
+                                    <span class="loadout-section-title">Shop</span>
+                                    <span class="loadout-section-desc">Buy new gear</span>
                                 </div>
                                 <div id="loadout-actions" class="loadout-actions"></div>
                             </div>
                             <div class="loadout-panel">
                                 <div class="loadout-section-header">
-                                    <span class="loadout-section-title">ARMORY</span>
-                                    <span class="loadout-section-desc">Select your primary</span>
+                                    <span class="loadout-section-title">Weapons</span>
+                                    <span class="loadout-section-desc">Choose your weapon</span>
                                 </div>
                                 <div id="weapon-grid" class="weapon-grid"></div>
                             </div>
@@ -128,13 +126,13 @@
         <!-- Upgrade Screen -->
         <div id="upgrade-screen" class="hidden upgrade-screen">
             <h2 class="upgrade-title">UPGRADE</h2>
-            <p class="upgrade-subtitle">Select Augmentation</p>
+            <p class="upgrade-subtitle">Pick an upgrade</p>
             <div id="upgrade-container" class="upgrade-grid"></div>
         </div>
 
         <!-- Game Over -->
         <div id="game-over-screen" class="hidden game-over-screen">
-            <h2 class="game-over-title">FAILURE</h2>
+            <h2 class="game-over-title">Game Over</h2>
             <div class="game-over-stats">
                 <div class="game-over-stat">
                     <div class="game-over-stat-label">Score</div>
@@ -142,7 +140,7 @@
                 </div>
                 <div class="game-over-stat-divider"></div>
                 <div class="game-over-stat">
-                    <div class="game-over-stat-label credits">Credits</div>
+                    <div class="game-over-stat-label credits">Gold</div>
                     <div id="earned-credits" class="game-over-stat-value credits">+0</div>
                 </div>
             </div>
