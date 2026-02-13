@@ -24,81 +24,89 @@ function suitClass(s) { return (s === '♥' || s === '♦') ? 'pip-red' : 'pip-b
 function makeCardDOM(cardData, faceUp = true) {
   const card = document.createElement('div');
   card.className = 'card';
-  // Random slight rotation for realism
   card.style.setProperty('--rot', (Math.random() - 0.5) * 6 + 'deg');
-  
+
   const inner = document.createElement('div');
   inner.className = 'inner';
-  
+
+  // Front (Face)
   const face = document.createElement('div');
   face.className = 'card-face';
   
+  // Back
   const back = document.createElement('div');
   back.className = 'card-back';
   
+  // Design Logic
   const colorCls = suitClass(cardData.s);
+  
+  // Top Left
   const cornerTL = document.createElement('div');
   cornerTL.className = `corner ${colorCls}`;
-  cornerTL.innerHTML = `<div class="rank">${cardData.v}</div><div class="suit">${cardData.s}</div>`;
+  cornerTL.innerHTML = `<span class="rank">${cardData.v}</span><span class="suit">${cardData.s}</span>`;
   
+  // Bottom Right
   const cornerBR = document.createElement('div');
   cornerBR.className = `corner bottom ${colorCls}`;
-  cornerBR.innerHTML = `<div class="rank">${cardData.v}</div><div class="suit">${cardData.s}</div>`;
+  cornerBR.innerHTML = `<span class="rank">${cardData.v}</span><span class="suit">${cardData.s}</span>`;
   
+  // Middle Grid
   const grid = document.createElement('div');
   grid.className = `pip-grid ${colorCls}`;
   
-  if (!isNaN(parseInt(cardData.v, 10))) {
-    const n = parseInt(cardData.v, 10);
-    const layout = PIP_LAYOUTS[n] || [];
-    for (const [c, r] of layout) {
-      const pip = document.createElement('div');
-      pip.className = 'pip';
-      pip.textContent = cardData.s;
-      pip.style.gridColumn = String(c);
-      pip.style.gridRow = String(r);
-      if (r > 3) pip.style.transform = 'rotate(180deg)';
-      grid.appendChild(pip);
-    }
+  // Simple Pip Logic for now (can be expanded)
+  if (['J','Q','K'].includes(cardData.v)) {
+      const art = document.createElement('div');
+      art.className = 'face-card-art';
+      art.textContent = cardData.s; // Placeholder
+      face.appendChild(art);
   } else {
-    const pip = document.createElement('div');
-    pip.className = 'pip big';
-    pip.textContent = cardData.s;
-    pip.style.gridColumn = '2';
-    pip.style.gridRow = '3';
-    grid.appendChild(pip);
-    if (cardData.v === 'A') {
-      const pip2 = document.createElement('div');
-      pip2.className = 'pip';
-      pip2.textContent = cardData.s;
-      pip2.style.gridColumn = '2';
-      pip2.style.gridRow = '2';
-      grid.appendChild(pip2);
-      const pip3 = document.createElement('div');
-      pip3.className = 'pip';
-      pip3.textContent = cardData.s;
-      pip3.style.gridColumn = '2';
-      pip3.style.gridRow = '4';
-      pip3.style.transform = 'rotate(180deg)';
-      grid.appendChild(pip3);
-    }
+      // Basic Pips (reuse existing if logic)
+      if (!isNaN(parseInt(cardData.v, 10))) {
+        const n = parseInt(cardData.v, 10);
+        const layout = PIP_LAYOUTS[n] || [];
+        for (const [c, r] of layout) {
+          const pip = document.createElement('div');
+          pip.className = 'pip';
+          pip.textContent = cardData.s;
+          pip.style.gridColumn = String(c);
+          pip.style.gridRow = String(r);
+          if (r > 3) pip.style.transform = 'rotate(180deg)';
+          grid.appendChild(pip);
+        }
+      } else if (cardData.v === 'A') {
+         const pip = document.createElement('div');
+         pip.className = 'pip big';
+         pip.textContent = cardData.s;
+         pip.style.gridColumn = '2';
+         pip.style.gridRow = '3';
+         grid.appendChild(pip);
+      }
+      face.appendChild(grid);
   }
   
   const stamp = document.createElement('div');
   stamp.className = 'bust-stamp';
   stamp.textContent = 'BUSTED';
-  
+
   face.appendChild(cornerTL);
-  face.appendChild(grid);
   face.appendChild(cornerBR);
   face.appendChild(stamp);
-  
+
   inner.appendChild(face);
   inner.appendChild(back);
   card.appendChild(inner);
+
+  // If we want it face up, we start with the back showing (flipped), then unflip.
+  // The 'is-flipping' class rotates Y 180.
+  // Face is at 0. Back is at 180.
+  // So adding 'is-flipping' shows the Back.
   
-  // Start flipped (showing back) for animation
-  card.classList.add('is-flipping');
+  if (faceUp) {
+      card.classList.add('is-flipping');
+  } else {
+      card.classList.add('is-flipping'); // Initially show back for hole card too
+  }
   
   return card;
 }
@@ -248,19 +256,28 @@ function spawnCard(handArr, container, faceUp, delay) {
   handArr.push(cardData);
   setTimeout(() => {
     playSound('card');
+    
+    // Create card (initially showing BACK via is-flipping)
     const cardEl = makeCardDOM(cardData, faceUp);
     container.appendChild(cardEl);
     
-    // Force reflow
+    // Force reflow to ensure the initial transform (offscreen) is registered
     void cardEl.offsetWidth;
     
+    // Fly in
     cardEl.classList.add('dealt');
     
-    // If it should be face up, flip it after it lands
+    // If it should be Face Up, remove 'is-flipping' to show Face
     if (faceUp) {
         setTimeout(() => {
             cardEl.classList.remove('is-flipping');
-        }, 300); // Start flip mid-flight or just after landing
+        }, 150); // Flip mid-flight
+    } else {
+        // If it's a hole card (face down), we KEEP 'is-flipping'.
+        // This means we are showing the BACK.
+        // Wait... is-flipping rotates Inner by 180Y.
+        // Face is at 0. Back is at 180.
+        // If Inner is 180, Back is at 360 (Front). So 'is-flipping' shows Back. Correct.
     }
   }, delay);
 }
