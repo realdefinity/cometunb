@@ -307,6 +307,13 @@ class Player {
         this.dashNova = false; this.cluster = false; this.shatter = false;
         this.blackHole = false;
 
+        // New Upgrades
+        this.luck = 0; this.goldMult = 1.0; 
+        this.executioner = false; this.rage = false; this.dodgeChance = 0;
+        this.orbitals = 0; this.orbitalAngle = 0;
+        this.splitShot = false; this.rearGuard = false; 
+        this.clone = false; this.nuke = false; this.nukeTimer = 600;
+
         this.teslaRange = 200; this.teslaCount = 1;
         this.dashCd = 0; this.dashCdMax = 120; this.dashing = 0; this.invuln = 0;
     }
@@ -314,6 +321,37 @@ class Player {
     update() {
         if(window.Game.frameCount % 60 === 0 && this.regen > 0 && this.hp < this.maxHp) this.hp += this.regen;
         
+        // Orbitals
+        if(this.orbitals > 0) {
+            this.orbitalAngle += 0.05;
+            for(let i=0; i<this.orbitals; i++) {
+                const angle = this.orbitalAngle + (Math.PI * 2 / this.orbitals) * i;
+                const ox = this.x + Math.cos(angle) * 60;
+                const oy = this.y + Math.sin(angle) * 60;
+                
+                // Orbital Damage
+                window.Game.enemies.forEach(e => {
+                    if(Math.hypot(e.x - ox, e.y - oy) < 20 && window.Game.frameCount % 10 === 0) {
+                        e.takeDamage(this.damage * 0.5, false);
+                        window.Game.createExplosion(ox, oy, 2, '#818cf8');
+                    }
+                });
+            }
+        }
+
+        // Nuke
+        if(this.nuke) {
+            this.nukeTimer--;
+            if(this.nukeTimer <= 0) {
+                this.nukeTimer = 600; // 10s
+                window.Game.createExplosion(this.x, this.y, 50, '#f43f5e');
+                window.Game.enemies.forEach(e => e.takeDamage(500, true));
+                window.Game.shake.add(20);
+                window.AudioSys.play('noise', 100, 1, 0.5);
+                window.Game.createPopup(this.x, this.y - 50, "ORBITAL STRIKE", '#f43f5e', 24);
+            }
+        }
+
         if(this.tesla && window.Game.frameCount % 30 === 0) {
             let hits = 0;
             const targets = window.Game.enemies.filter(e => Math.hypot(e.x-this.x, e.y-this.y) < this.teslaRange);
@@ -360,6 +398,11 @@ class Player {
         if(this.invuln > 0) this.invuln--;
         if((window.mouse.down || window.mobileInput.aim.active) && this.cooldown <= 0 && this.dashing <= 0) this.shoot();
     }
+    
+    // Helper to fire bullets
+    fire(x, y, angle, damage, speed, pierce, color) {
+         window.Game.bullets.push(new Bullet(x, y, angle, damage, speed, pierce, color, this));
+    }
 
     dash() {
         this.dashing = 10; this.invuln = 15; this.dashCd = this.dashCdMax;
@@ -393,27 +436,64 @@ class Player {
         const startA = this.angle - totalArc/2;
         const step = this.count > 1 ? totalArc / (this.count-1) : 0;
 
+        // Main Shot
         for(let i=0; i<this.count; i++) {
             const baseA = this.count > 1 ? startA + step*i : this.angle;
             const finalA = baseA + (Math.random()-0.5) * this.spread * 0.5; 
-            window.Game.bullets.push(new Bullet(
-                this.x + Math.cos(this.angle)*15, this.y + Math.sin(this.angle)*15,
-                finalA, this.damage, this.bulletSpeed, this.pierce, this.bulletColor, this
-            ));
+            this.fire(this.x + Math.cos(this.angle)*15, this.y + Math.sin(this.angle)*15, finalA, this.damage, this.bulletSpeed, this.pierce, this.bulletColor);
+            
+            // Clone Shot
+            if(this.clone) {
+                 this.fire(this.x + Math.cos(this.angle)*15 + 40, this.y + Math.sin(this.angle)*15, finalA, this.damage * 0.5, this.bulletSpeed, this.pierce, '#9ca3af');
+            }
         }
 
-        if(this.backshot) {
-            window.Game.bullets.push(new Bullet(
-                this.x - Math.cos(this.angle)*15, this.y - Math.sin(this.angle)*15,
-                this.angle + Math.PI, this.damage, this.bulletSpeed, this.pierce, this.bulletColor, this
-            ));
+        // Back Shot / Rear Guard
+        if(this.backshot || this.rearGuard) {
+            let count = this.rearGuard ? 3 : 1;
+            let spread = this.rearGuard ? 0.3 : 0;
+            for(let i=0; i<count; i++) {
+                 let a = this.angle + Math.PI + (i - (count-1)/2) * spread;
+                 this.fire(this.x, this.y, a, this.damage * 0.7, this.bulletSpeed, this.pierce, this.bulletColor);
+            }
+        }
+        
+        // Split Shot
+        if(this.splitShot) {
+             this.fire(this.x, this.y, this.angle + Math.PI/2, this.damage * 0.6, this.bulletSpeed, this.pierce, this.bulletColor);
+             this.fire(this.x, this.y, this.angle - Math.PI/2, this.damage * 0.6, this.bulletSpeed, this.pierce, this.bulletColor);
         }
     }
 
     draw(ctx) {
-        ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+        ctx.save(); ctx.translate(this.x, this.y); 
+        
+        // Draw Orbitals
+        if(this.orbitals > 0) {
+            for(let i=0; i<this.orbitals; i++) {
+                const angle = this.orbitalAngle + (Math.PI * 2 / this.orbitals) * i;
+                const ox = Math.cos(angle) * 60;
+                const oy = Math.sin(angle) * 60;
+                ctx.fillStyle = '#818cf8';
+                ctx.shadowBlur = 10; ctx.shadowColor = '#818cf8';
+                ctx.beginPath(); ctx.arc(ox, oy, 6, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        ctx.rotate(this.angle);
         if(this.invuln > 0 && window.Game.frameCount % 4 < 2) ctx.globalAlpha = 0.5;
         
+        // Clone Effect
+        if(this.clone) {
+             ctx.save();
+             ctx.translate(40, 0); // Offset clone
+             ctx.globalAlpha = 0.4;
+             ctx.fillStyle = '#9ca3af';
+             ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(-10, 10); ctx.lineTo(-8, 0); ctx.lineTo(-10, -10); ctx.fill();
+             ctx.restore();
+        }
+
         // Skin System
         const skinColor = window.GAME_DATA.skins.find(s => s.id === window.GAME_DATA.currentSkin)?.color || '#38bdf8';
         ctx.fillStyle = this.dashing > 0 ? '#38bdf8' : 'white';
@@ -430,6 +510,7 @@ class Player {
 
     takeDamage(amt) {
         if(this.invuln > 0 || this.dashing > 0) return;
+        if(Math.random() < this.dodgeChance) { window.Game.createPopup(this.x, this.y - 30, "GHOST", '#cbd5e1'); return; }
         if(Math.random() < this.dodge) { window.Game.createPopup(this.x, this.y - 30, "DODGE", '#cbd5e1'); return; }
         this.hp -= amt; this.invuln = 30; window.Game.shake.add(15); window.AudioSys.hit();
         window.UI.updateHud();
@@ -496,14 +577,15 @@ class Enemy {
         else if (type === 'kamikaze') { this.hp = 25*scale; this.speed = 2.5; this.color = '#f87171'; this.r = 12; }
         else if (type === 'carrier') { this.hp = 300*scale; this.speed = 0.8; this.color = '#64748b'; this.r = 30; this.timer = 0; this.xp = 100; }
         else if (type === 'boss') {
-            this.hp = 2000 * scale; this.maxHp = this.hp; this.xp = 500; this.score = 5000; this.credits = 100; 
+            this.hp = 2000 * scale; this.xp = 500; this.score = 5000; this.credits = 100; 
             this.speed = 0.5; this.color = '#a855f7'; this.r = 40; this.phase = 0; this.timer = 0;
         }
+        this.maxHp = this.hp;
     }
 
     update() {
         if(this.flash > 0) this.flash--;
-        let moveSpeed = this.speed;
+        let moveSpeed = this.speed * (window.GAME_DATA.multipliers.enemySpeed || 1.0);
         if(this.frozen > 0) { moveSpeed *= 0.5; this.frozen--; }
         this.visAngle += 0.05;
 
@@ -554,9 +636,17 @@ class Enemy {
     }
 
     takeDamage(amt, isCrit, freeze=false) {
-        this.hp -= amt; this.flash = 3;
+        let finalDmg = amt;
+        const p = window.Game.player;
+        if(p.executioner && this.hp < this.maxHp * 0.3) finalDmg *= 1.5;
+        if(p.rage) {
+             const missingPct = Math.max(0, (p.maxHp - p.hp) / p.maxHp);
+             finalDmg *= (1 + missingPct);
+        }
+
+        this.hp -= finalDmg; this.flash = 3;
         if(freeze) this.frozen = 60;
-        window.Game.createPopup(this.x, this.y - 20, Math.floor(amt), isCrit ? '#fbbf24' : 'white', isCrit ? 24 : 16);
+        window.Game.createPopup(this.x, this.y - 20, Math.floor(finalDmg), isCrit ? '#fbbf24' : 'white', isCrit ? 24 : 16);
         
         if(this.hp <= 0 && !this.marked) {
             this.marked = true;

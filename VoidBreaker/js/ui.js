@@ -290,7 +290,11 @@ window.UI = {
             pierce: '🏹', multi: '🥢', regen: '🩹', crit: '🎯', backshot: '🔙',
             bounce: '🎱', homing: '🧠', explode: '💣', dash_nova: '💨',
             vamp: '🩸', tesla: '⚡', freeze: '❄️', god_mode: '🛡️',
-            black_hole: '⚫', chain_lightning: '⛓️', shatter: '🧊', cluster: '🧨'
+            black_hole: '⚫', chain_lightning: '⛓️', shatter: '🧊', cluster: '🧨',
+            dash_cd: '⏱️', luck: '🍀', greed: '💰', executioner: '☠️', rage: '😡',
+            ghost: '👻', sniper_training: '🔭', spray_pray: '🔫', orbitals: '🪐',
+            split_shot: '🔱', rear_guard: '🔙', time_warp: '⏳', clone: '👥',
+            nuke: '☢️', blood_pact: '🩸'
         };
 
         // Filter Pool

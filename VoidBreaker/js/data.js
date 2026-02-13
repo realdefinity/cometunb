@@ -41,11 +41,35 @@ window.UPGRADES_DB = [
     { id: 'black_hole', name: 'Vortex', desc: 'Chance to spawn vortexes', rarity: 'legendary', weight: 1, minWave: 12, max: 1, type: 'bool', stat: 'blackHole' },
     { id: 'chain_lightning', name: 'Chain Zap', desc: 'Lightning hits more targets', rarity: 'legendary', weight: 5, req: 'tesla', max: 1, type: 'complex', apply: (p) => { p.teslaRange = 400; p.teslaCount = 3; } },
     { id: 'shatter', name: 'Shatter', desc: 'Frozen enemies explode', rarity: 'legendary', weight: 5, req: 'freeze', max: 1, type: 'bool', stat: 'shatter' },
-    { id: 'cluster', name: 'Cluster', desc: 'Explosions spawn mini-bombs', rarity: 'legendary', weight: 5, req: 'explode', max: 1, type: 'bool', stat: 'cluster' }
+    { id: 'cluster', name: 'Cluster', desc: 'Explosions spawn mini-bombs', rarity: 'legendary', weight: 5, req: 'explode', max: 1, type: 'bool', stat: 'cluster' },
+    
+    // --- NEW UPGRADES ---
+    // Utility / Stats
+    { id: 'dash_cd', name: 'Reflexes', desc: '-15% Dash Cooldown', rarity: 'common', weight: 80, max: 5, type: 'stat', stat: 'dashCooldown', val: 0.85 },
+    { id: 'luck', name: 'Luck', desc: '+10% Better Drop Rate', rarity: 'uncommon', weight: 60, max: 5, type: 'add', stat: 'luck', val: 0.1 },
+    { id: 'greed', name: 'Greed', desc: '+20% Gold Gain', rarity: 'uncommon', weight: 60, max: 5, type: 'stat', stat: 'goldMult', val: 1.2 },
+    
+    // Combat Mechanics
+    { id: 'executioner', name: 'Executioner', desc: '+50% Dmg to enemies <30% HP', rarity: 'rare', weight: 40, minWave: 4, max: 1, type: 'bool', stat: 'executioner' },
+    { id: 'rage', name: 'Berserk', desc: '+1% Dmg per 1% missing HP', rarity: 'rare', weight: 40, minWave: 5, max: 1, type: 'bool', stat: 'rage' },
+    { id: 'ghost', name: 'Ghost', desc: '15% Chance to dodge attacks', rarity: 'rare', weight: 30, minWave: 6, max: 3, type: 'add', stat: 'dodgeChance', val: 0.15 },
+    { id: 'sniper_training', name: 'Sniper Training', desc: '+30% Range & Speed, -10% Fire Rate', rarity: 'rare', weight: 35, minWave: 3, max: 3, type: 'complex', apply: (p) => { p.range *= 1.3; p.speed *= 1.3; p.cooldown *= 1.1; } },
+    { id: 'spray_pray', name: 'Spray & Pray', desc: '+25% Fire Rate, -15% Accuracy', rarity: 'rare', weight: 35, minWave: 3, max: 3, type: 'complex', apply: (p) => { p.cooldown *= 0.75; p.spread += 0.1; } },
+
+    // Advanced / OP Upgrades (Late Game)
+    { id: 'orbitals', name: 'Orbitals', desc: '2 Projectiles circle you', rarity: 'epic', weight: 15, minWave: 8, max: 3, type: 'complex', apply: (p) => { p.orbitals = (p.orbitals || 0) + 2; } },
+    { id: 'split_shot', name: 'Split Shot', desc: 'Fire 2 extra shots sideways', rarity: 'epic', weight: 15, minWave: 10, max: 1, type: 'bool', stat: 'splitShot' },
+    { id: 'rear_guard', name: 'Rear Guard', desc: 'Fire 2 extra shots backwards', rarity: 'epic', weight: 15, minWave: 8, max: 1, type: 'bool', stat: 'rearGuard' }, // Upgrade to backshot
+    
+    // LEGENDARY / OP
+    { id: 'time_warp', name: 'Time Warp', desc: 'Enemies move 30% slower permanently', rarity: 'legendary', weight: 3, minWave: 15, max: 1, type: 'complex', apply: (p) => { window.GAME_DATA.multipliers.enemySpeed = 0.7; } },
+    { id: 'clone', name: 'Shadow Clone', desc: 'A clone shoots where you shoot', rarity: 'legendary', weight: 2, minWave: 20, max: 1, type: 'bool', stat: 'clone' },
+    { id: 'nuke', name: 'Orbital Strike', desc: 'Massive explosion every 10s', rarity: 'legendary', weight: 2, minWave: 18, max: 1, type: 'bool', stat: 'nuke' },
+    { id: 'blood_pact', name: 'Blood Pact', desc: '+100% Damage, -50% Max HP', rarity: 'legendary', weight: 1, minWave: 12, max: 1, type: 'complex', apply: (p) => { p.damage *= 2; p.maxHp *= 0.5; p.hp = Math.min(p.hp, p.maxHp); } }
 ];
 
 window.GAME_DATA = {
-    multipliers: { xp: 1.0, gold: 1.0, damage: 1.0 },
+    multipliers: { xp: 1.0, gold: 1.0, damage: 1.0, enemySpeed: 1.0 },
     prestigeLevel: 0,
     weaponLevels: {},
     skins: [
