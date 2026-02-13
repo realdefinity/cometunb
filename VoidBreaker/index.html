@@ -60,69 +60,87 @@
     <!-- MAIN MENU SCREEN -->
     <div id="start-screen" class="start-screen">
         
-        <!-- Wallet (Top Right) -->
-        <div class="currency-badge liquid-glass">
-            <span class="currency-icon">$</span><span id="menu-credits">0</span>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <nav class="menu-nav-container liquid-glass">
-            <div class="nav-indicator"></div>
-            <button class="nav-btn active" data-tab="play">PLAY</button>
-            <button class="nav-btn" data-tab="loadout">LOADOUT</button>
-        </nav>
-
-        <!-- Tab Content Wrapper (single container, no overlap) -->
-        <div class="tab-content-wrapper">
-            <!-- PLAY TAB -->
-            <div id="tab-play" class="menu-tab active">
-                <div class="scroll-content center-v">
-                    <div class="menu-hero">
-                        <h1 class="menu-title">VOID<br>BREAKER</h1>
-                        <div class="status-indicator liquid-glass">Ready</div>
+        <div class="menu-layout">
+            <!-- Sidebar (Nav + Profile) -->
+            <aside class="menu-sidebar liquid-glass">
+                <div class="sidebar-header">
+                    <h1 class="sidebar-title">VOID<br>BREAKER</h1>
+                    <div class="sidebar-status">
+                        <div class="status-dot"></div> SYSTEM ONLINE
                     </div>
-                    <div class="stats-panel mb-12">
-                        <div id="menu-stats" class="flex gap-4"></div>
-                    </div>
-                    <button id="start-btn" class="modern-btn">
-                        <span class="btn-text">PLAY</span>
-                        <div class="btn-fill"></div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <button class="nav-item active" data-tab="play">
+                        <span class="nav-icon">▶</span> PLAY
                     </button>
-                </div>
-            </div>
+                    <button class="nav-item" data-tab="loadout">
+                        <span class="nav-icon">⚔</span> LOADOUT
+                    </button>
+                    <button class="nav-item disabled">
+                        <span class="nav-icon">⚙</span> SETTINGS
+                    </button>
+                </nav>
 
-            <!-- LOADOUT TAB -->
-            <div id="tab-loadout" class="menu-tab">
-                <div class="scroll-content loadout-scroll">
-                    <div class="loadout-layout">
-                        <!-- Equipped weapon preview -->
-                        <div class="loadout-equipped liquid-glass">
-                            <div class="loadout-equipped-label">EQUIPPED</div>
-                            <div id="loadout-equipped-card" class="loadout-equipped-card">
-                                <div class="loadout-equipped-placeholder">Select a weapon below</div>
+                <div class="sidebar-footer">
+                    <div class="currency-display">
+                        <span class="currency-label">CREDITS</span>
+                        <div class="currency-value"><span class="currency-symbol">$</span><span id="menu-credits">0</span></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="menu-content">
+                
+                <!-- PLAY TAB -->
+                <section id="tab-play" class="content-tab active">
+                    <div class="play-hero">
+                        <div class="hero-content">
+                            <h2 class="hero-title">READY TO DEPLOY</h2>
+                            <p class="hero-subtitle">Sector 7 is overrun. Clear the area.</p>
+                            
+                            <div class="hero-stats-grid" id="menu-stats">
+                                <!-- Populated by JS -->
+                            </div>
+
+                            <button id="start-btn" class="deploy-btn">
+                                <span class="deploy-text">INITIATE SEQUENCE</span>
+                                <div class="deploy-glitch"></div>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- LOADOUT TAB -->
+                <section id="tab-loadout" class="content-tab">
+                    <div class="loadout-container">
+                        <!-- Left: Equipped -->
+                        <div class="loadout-left">
+                            <div class="equipped-header">ACTIVE WEAPON</div>
+                            <div id="loadout-equipped-card" class="equipped-card-display">
+                                <!-- Populated by JS -->
+                            </div>
+                            <div id="loadout-actions" class="loadout-mini-actions">
+                                <!-- Populated by JS -->
                             </div>
                         </div>
-                        <div class="loadout-panels">
-                            <div class="loadout-panel">
-                                <div class="loadout-section-header">
-                                    <span class="loadout-section-title">Shop</span>
-                                    <span class="loadout-section-desc">Buy new gear</span>
-                                </div>
-                                <div id="loadout-actions" class="loadout-actions"></div>
+
+                        <!-- Right: Armory Grid -->
+                        <div class="loadout-right">
+                            <div class="section-header">
+                                <span class="section-title">ARMORY</span>
+                                <span class="section-count" id="armory-count">0/0</span>
                             </div>
-                            <div class="loadout-panel">
-                                <div class="loadout-section-header">
-                                    <span class="loadout-section-title">Weapons</span>
-                                    <span class="loadout-section-desc">Choose your weapon</span>
-                                </div>
-                                <div id="weapon-grid" class="weapon-grid"></div>
+                            <div id="weapon-grid" class="armory-grid">
+                                <!-- Populated by JS -->
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
+                </section>
 
+            </main>
+        </div>
     </div>
 
     <!-- Upgrade Screen -->

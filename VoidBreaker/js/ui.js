@@ -1,10 +1,12 @@
 window.UI = {
     // --- TAB NAVIGATION ---
     switchTab: function(tabName) {
+        // Update Nav Buttons
         document.querySelectorAll('.nav-item').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
 
+        // Update Tabs - Fade transition
         document.querySelectorAll('.content-tab').forEach(tab => {
             if (tab.id === `tab-${tabName}`) {
                 tab.classList.add('active');
@@ -13,6 +15,7 @@ window.UI = {
             }
         });
 
+        // Refresh data if entering loadout
         if (tabName === 'loadout') this.updateMenuUI();
     },
 
@@ -46,6 +49,7 @@ window.UI = {
                 const dmgPct = (w.damage/50)*100;
                 const spdPct = (15/w.cooldown)*100;
                 
+                // Set rarity color variable
                 equippedCard.className = `equipped-card-display rarity-${w.rarity}`; 
                 
                 const eqLvl = window.GAME_DATA.weaponLevels?.[window.Game.currentLoadout] || 1;
@@ -54,7 +58,7 @@ window.UI = {
                     <div class="weapon-card-name" style="font-size: 2.5rem; margin-bottom: 4px;">${w.name} <span style="font-size: 0.4em; opacity: 0.6; vertical-align: middle; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:8px; font-weight:700;">LVL ${eqLvl}</span></div>
                     <div class="weapon-card-meta" style="margin-bottom: 32px;">
                         <span class="rarity-${w.rarity}" style="font-weight:900; letter-spacing:3px; font-size:0.9rem;">${w.rarity}</span>
-                        <span style="opacity:0.5; font-weight:700; letter-spacing:1px;">Weapon</span>
+                        <span style="opacity:0.5; font-weight:700; letter-spacing:1px;">RANGED WEAPON</span>
                     </div>
                     
                     <div class="stat-row" style="margin-bottom: 20px;">
@@ -69,13 +73,13 @@ window.UI = {
                     <div style="font-size: 1.1rem; color: rgba(255,255,255,0.6); line-height: 1.6; font-weight: 400; max-width: 80%;">${w.desc}</div>
                 `;
             } else {
-                equippedCard.innerHTML = '<div style="opacity:0.5; text-align:center; padding: 20px; font-weight: 700; font-size: 1.2rem;">Select a Weapon</div>';
+                equippedCard.innerHTML = '<div style="opacity:0.5; text-align:center; padding: 20px; font-weight: 700; font-size: 1.2rem;">SELECT A WEAPON</div>';
             }
         }
 
         // --- ACTIONS SECTION ---
         if(window.Game.totalCurrency > 50000) {
-            this.createActionCard(actions, 'legendary', 'Prestige', 'Reset', () => window.UI.doPrestige());
+            this.createActionCard(actions, 'legendary', 'Prestige', 'RESET PROGRESS', () => window.UI.doPrestige());
         }
         const canBuySkin = window.Game.totalCurrency >= 5000;
         this.createActionCard(actions, 'epic', 'Skin Crate', canBuySkin ? '5,000' : 'LOCKED', (e) => window.UI.openSkinCrate(e), !canBuySkin);
@@ -106,6 +110,7 @@ window.UI = {
                     window.Game.currentLoadout = key; 
                     window.UI.updateMenuUI(); 
                     
+                    // Trigger animation on equipped card
                     const eqCard = document.getElementById('loadout-equipped-card');
                     if(eqCard) {
                         eqCard.style.animation = 'none';
@@ -205,6 +210,7 @@ window.UI = {
             crate.classList.add('open');
             if(window.AudioSys) window.AudioSys.play('sine', 800, 0.5);
             
+            // Weighted Random Weapon
             const keys = Object.keys(window.WEAPONS);
             let wKeys = [];
             keys.forEach(k => {
@@ -284,6 +290,7 @@ window.UI = {
         window.GAME_DATA.multipliers.gold += 0.2;
         window.GAME_DATA.prestigeLevel++;
         
+        // Reset Progress
         window.Game.totalCurrency = 0;
         window.Game.unlockedWeapons = ['rifle'];
         
@@ -339,21 +346,26 @@ window.UI = {
             const currentLvl = window.Game.player.upgradeLevels[upg.id] || 0;
             const el = document.createElement('div');
             el.className = `upgrade-card rarity-${upg.rarity}`;
-            
-            // Simpler, cleaner layout for upgrades
             el.innerHTML = `
-                <div style="font-size: 4rem; margin-bottom: 20px; filter: drop-shadow(0 0 15px currentColor);">${icons[upg.id] || '✨'}</div>
-                <div class="upgrade-name" style="font-size: 1.4rem; margin-bottom: 8px;">${upg.name}</div>
-                <div class="upgrade-desc" style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 16px;">${upg.desc}</div>
-                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; color: var(--card-color); border: 1px solid var(--card-color); padding: 6px 12px; border-radius: 100px; display: inline-block;">${upg.rarity}</div>
+                <div class="upgrade-card-header">
+                    <span class="upgrade-rarity">${upg.rarity}</span>
+                    <span class="upgrade-level">Lv.${currentLvl} &rarr; ${currentLvl+1}</span>
+                </div>
+                <div class="upgrade-icon">${icons[upg.id] || '✨'}</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${upg.name}</div>
+                    <div class="upgrade-desc">${upg.desc}</div>
+                </div>
             `;
             el.onclick = () => {
+                // Apply Effect
                 if(upg.type === 'stat') window.Game.player[upg.stat] *= upg.val;
                 else if (upg.type === 'add') window.Game.player[upg.stat] += upg.val;
                 else if (upg.type === 'heal') { window.Game.player.maxHp += upg.val; window.Game.player.hp += upg.val; }
                 else if (upg.type === 'bool') window.Game.player[upg.stat] = true;
                 else if (upg.type === 'complex') upg.apply(window.Game.player);
                 
+                // Track Level
                 if(!window.Game.player.upgradeLevels[upg.id]) window.Game.player.upgradeLevels[upg.id] = 0;
                 window.Game.player.upgradeLevels[upg.id]++;
 
@@ -365,24 +377,28 @@ window.UI = {
         });
     },
 
+    // --- IN-GAME HUD ---
     updateHud: function() {
         if (!window.Game.player) return;
         
         const scoreEl = document.getElementById('scoreDisplay');
         if(scoreEl) scoreEl.innerText = window.Game.score.toLocaleString();
         
+        // Health Bar
         const hpPct = Math.max(0, (window.Game.player.hp/window.Game.player.maxHp)*100);
         const healthBar = document.getElementById('health-bar');
         const hpText = document.getElementById('hp-text');
         if (healthBar) healthBar.style.width = hpPct + '%';
         if (hpText) hpText.innerText = `${Math.ceil(window.Game.player.hp)}/${Math.ceil(window.Game.player.maxHp)}`;
         
+        // XP Bar
         const xpPct = (window.Game.currentXp/window.Game.xpNeeded)*100;
         const xpBar = document.getElementById('xp-bar');
         const levelDisplay = document.getElementById('level-display');
         if (xpBar) xpBar.style.width = xpPct + '%';
         if (levelDisplay) levelDisplay.innerText = window.Game.level;
         
+        // Boss HUD Visibility Logic
         const bossHud = document.getElementById('boss-hud');
         if(bossHud && window.Game.bossActive) {
             bossHud.classList.add('active'); 
@@ -399,30 +415,8 @@ window.UI = {
 
     gameOver: function() {
         document.getElementById('game-over-screen').classList.remove('hidden');
-        
-        const finalScoreEl = document.getElementById('final-score');
-        const earnedCreditsEl = document.getElementById('earned-credits');
-        
-        // Simple counting animation
-        const animateValue = (obj, start, end, duration) => {
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    if(obj === earnedCreditsEl) obj.innerHTML = "+" + end.toLocaleString();
-                }
-            };
-            window.requestAnimationFrame(step);
-        };
-
-        const score = window.Game.score;
+        document.getElementById('final-score').innerText = window.Game.score.toLocaleString();
         const earned = window.Game.lastAwardedGold ?? window.Game.sessionCredits;
-        
-        animateValue(finalScoreEl, 0, score, 1500);
-        animateValue(earnedCreditsEl, 0, earned, 1500);
+        document.getElementById('earned-credits').innerText = "+" + earned.toLocaleString();
     }
 };
