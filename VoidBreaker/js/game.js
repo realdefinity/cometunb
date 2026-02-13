@@ -126,11 +126,38 @@ window.Game = {
         });
 
         this.xpOrbs = this.xpOrbs.filter(x => {
-            const d = Math.hypot(this.player.x-x.x, this.player.y-x.y);
-            if(d < this.player.pickupRange) { x.x += (this.player.x-x.x)*0.1; x.y += (this.player.y-x.y)*0.1; }
-            if(d < 20) { this.createXP(x.x, x.y, x.amt); return false; } // Handled via helper now
-            x.x += x.vx; x.y += x.vy; x.vx *= 0.95; x.vy *= 0.95; x.life--;
-            this.ctx.fillStyle = '#6366f1'; this.ctx.beginPath(); this.ctx.arc(x.x, x.y, 3, 0, 7); this.ctx.fill();
+            const dx = this.player.x - x.x;
+            const dy = this.player.y - x.y;
+            const dist = Math.hypot(dx, dy);
+            
+            // Magnet
+            if(dist < this.player.pickupRange) { 
+                x.x += dx * 0.08; 
+                x.y += dy * 0.08; 
+            }
+            
+            // Pickup
+            if(dist < 20) { 
+                this.gainXP(x.amt); 
+                this.createPopup(this.player.x, this.player.y - 20, `+${x.amt}`, x.color, 12);
+                return false; 
+            }
+            
+            // Physics
+            x.x += x.vx; x.y += x.vy; 
+            x.vx *= 0.94; x.vy *= 0.94; 
+            x.life--;
+            
+            // Draw
+            this.ctx.save();
+            this.ctx.shadowBlur = x.glow; 
+            this.ctx.shadowColor = x.color; 
+            this.ctx.fillStyle = x.color;
+            this.ctx.beginPath(); 
+            this.ctx.arc(x.x, x.y, x.r, 0, Math.PI*2); 
+            this.ctx.fill();
+            this.ctx.restore();
+            
             return x.life > 0;
         });
 
@@ -154,7 +181,7 @@ window.Game = {
         if(this.bossActive) return;
         if(this.waveEnemiesSpawned >= this.waveEnemiesTotal && this.enemies.length === 0) {
             const rewardXP = this.wave * 100;
-            this.createXP(this.player.x, this.player.y - 60, rewardXP); // Use createXP helper
+            this.spawnXP(this.player.x, this.player.y - 60, rewardXP); // Use spawnXP helper
             this.createPopup(this.player.x, this.player.y - 80, `ROUND CLEAR!`, '#fbbf24', 24);
             this.wave++;
             if(this.wave % 5 === 0) {
@@ -202,16 +229,39 @@ window.Game = {
         window.UI.updateHud();
     },
 
-    createXP(x, y, amt) {
-        // Consolidated XP logic
+    spawnXP(x, y, rawAmt) {
         const mult = window.GAME_DATA.multipliers.xp || 1.0;
-        const realAmt = Math.ceil(amt * mult);
-        if(this.xpOrbs) { 
-             // Push to array if it exists, otherwise just add value directly to avoid visual clutter on massive drops
-             this.currentXp += realAmt; 
-             this.checkLevelUp();
-             this.createPopup(x, y, `+${realAmt} XP`, '#818cf8', 12);
-        }
+        const amt = Math.ceil(rawAmt * mult);
+        
+        let color = '#22d3ee'; // Cyan (Common)
+        let r = 3;
+        let glow = 5;
+
+        // Color coding based on amount
+        if (amt >= 250) { color = '#c084fc'; r = 6; glow = 15; }      // Purple (Epic)
+        else if (amt >= 100) { color = '#fb923c'; r = 5; glow = 12; } // Orange (Rare)
+        else if (amt >= 25) { color = '#a3e635'; r = 4; glow = 8; }   // Lime (Uncommon)
+
+        // Explosion scatter effect
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        
+        this.xpOrbs.push({
+            x: x, y: y, 
+            vx: Math.cos(angle) * speed, 
+            vy: Math.sin(angle) * speed,
+            amt: amt, 
+            color: color, 
+            r: r,
+            glow: glow,
+            life: 1200 // 20 seconds
+        });
+    },
+
+    gainXP(amt) {
+        this.currentXp += amt;
+        this.checkLevelUp();
+        window.AudioSys.xp(Math.min(1000, amt * 2));
     },
 
     createExplosion(x, y, n, color) {
@@ -511,7 +561,7 @@ class Enemy {
         if(this.hp <= 0 && !this.marked) {
             this.marked = true;
             window.Game.score += this.score; window.Game.sessionCredits += this.credits;
-            window.Game.createXP(this.x, this.y, this.xp); window.Game.shake.add(4);
+            window.Game.spawnXP(this.x, this.y, this.xp); window.Game.shake.add(4);
             
             if(this.type === 'boss') {
                 window.Game.bossActive = false;

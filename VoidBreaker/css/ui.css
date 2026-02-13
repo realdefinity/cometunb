@@ -978,16 +978,69 @@
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 22px;
-    padding: 28px;
+    padding: 24px;
     cursor: pointer;
     transition: all 0.25s var(--ease-soft);
     position: relative;
     overflow: hidden;
     animation: upgradeCardIn 0.35s var(--ease-soft) both;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .upgrade-card:nth-child(1) { animation-delay: 0.1s; }
 .upgrade-card:nth-child(2) { animation-delay: 0.2s; }
 .upgrade-card:nth-child(3) { animation-delay: 0.3s; }
+
+.upgrade-card-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.upgrade-rarity {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--card-color, #94a3b8);
+}
+
+.upgrade-level {
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.6;
+}
+
+.upgrade-icon {
+    font-size: 3rem;
+    margin: 12px 0 16px;
+    filter: drop-shadow(0 0 15px var(--card-color));
+    transition: transform 0.3s var(--ease-pop);
+}
+
+.upgrade-card:hover .upgrade-icon {
+    transform: scale(1.2) rotate(6deg);
+}
+
+.upgrade-info {
+    text-align: center;
+    width: 100%;
+}
+
+.upgrade-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+    color: white;
+}
+
+.upgrade-desc {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    line-height: 1.4;
+}
 
 @keyframes upgradeCardIn {
     from {

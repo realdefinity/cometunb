@@ -285,6 +285,14 @@ window.UI = {
         container.innerHTML = '';
         document.getElementById('upgrade-screen').classList.remove('hidden');
         
+        const icons = {
+            dmg: '💥', rate: '⏩', speed: '👟', hp: '❤️', mag: '🧲',
+            pierce: '🏹', multi: '🥢', regen: '🩹', crit: '🎯', backshot: '🔙',
+            bounce: '🎱', homing: '🧠', explode: '💣', dash_nova: '💨',
+            vamp: '🩸', tesla: '⚡', freeze: '❄️', god_mode: '🛡️',
+            black_hole: '⚫', chain_lightning: '⛓️', shatter: '🧊', cluster: '🧨'
+        };
+
         // Filter Pool
         let pool = window.UPGRADES_DB.filter(u => {
             if(u.minWave && window.Game.wave < u.minWave) return false;
@@ -316,12 +324,15 @@ window.UI = {
             const el = document.createElement('div');
             el.className = `upgrade-card rarity-${upg.rarity}`;
             el.innerHTML = `
-                <div class="flex justify-between">
-                    <div class="text-xs font-bold uppercase mb-1 text-slate-400">${upg.rarity}</div>
-                    <div class="text-xs font-bold text-white">Lvl ${currentLvl} > ${currentLvl+1}</div>
+                <div class="upgrade-card-header">
+                    <span class="upgrade-rarity">${upg.rarity}</span>
+                    <span class="upgrade-level">Lv.${currentLvl} &rarr; ${currentLvl+1}</span>
                 </div>
-                <div class="text-xl font-bold text-white mb-2">${upg.name}</div>
-                <div class="text-sm text-slate-300">${upg.desc}</div>
+                <div class="upgrade-icon">${icons[upg.id] || '✨'}</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${upg.name}</div>
+                    <div class="upgrade-desc">${upg.desc}</div>
+                </div>
             `;
             el.onclick = () => {
                 // Apply Effect
