@@ -55,9 +55,9 @@ if(restartBtn) {
 }
 
 // Nav tab switching (delegated)
-document.querySelector('.menu-nav-container')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.nav-btn');
-    if (btn && btn.dataset.tab && window.UI) {
+document.querySelector('.sidebar-nav')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.nav-item');
+    if (btn && btn.dataset.tab && window.UI && !btn.classList.contains('disabled')) {
         window.UI.switchTab(btn.dataset.tab);
     }
 });

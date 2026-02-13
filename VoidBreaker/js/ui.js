@@ -27,8 +27,8 @@ window.UI = {
         const statsEl = document.getElementById('menu-stats');
         if(statsEl && window.GAME_DATA) {
              statsEl.innerHTML = `
-                <div class="stat-pill"><span class="label">XP</span> <span class="val text-indigo-400">x${window.GAME_DATA.multipliers.xp.toFixed(1)}</span></div>
-                <div class="stat-pill"><span class="label">GOLD</span> <span class="val text-yellow-400">x${window.GAME_DATA.multipliers.gold.toFixed(1)}</span></div>
+                <div class="stat-pill"><span class="label">XP</span> <span class="val" style="color:var(--accent-secondary)">x${window.GAME_DATA.multipliers.xp.toFixed(1)}</span></div>
+                <div class="stat-pill"><span class="label">GOLD</span> <span class="val" style="color:var(--accent-gold)">x${window.GAME_DATA.multipliers.gold.toFixed(1)}</span></div>
              `;
         }
         
@@ -48,35 +48,38 @@ window.UI = {
             if (w) {
                 const dmgPct = (w.damage/50)*100;
                 const spdPct = (15/w.cooldown)*100;
-                // equippedCard.className = `equipped-card-display rarity-${w.rarity}`; // Keeps ID styling, add rarity class if needed
+                
+                // Set rarity color variable
+                equippedCard.className = `equipped-card-display rarity-${w.rarity}`; 
+                
                 const eqLvl = window.GAME_DATA.weaponLevels?.[window.Game.currentLoadout] || 1;
                 
                 equippedCard.innerHTML = `
-                    <div class="weapon-card-name" style="font-size: 1.5rem; margin-bottom: 2px;">${w.name} <span style="font-size: 0.5em; opacity: 0.6; vertical-align: middle;">LVL ${eqLvl}</span></div>
-                    <div class="weapon-card-meta" style="margin-bottom: 16px;">
-                        <span class="rarity-${w.rarity}" style="color: var(--card-color);">${w.rarity}</span>
-                        <span>TYPE: RANGED</span>
+                    <div class="weapon-card-name" style="font-size: 2.5rem; margin-bottom: 4px;">${w.name} <span style="font-size: 0.4em; opacity: 0.6; vertical-align: middle; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:8px; font-weight:700;">LVL ${eqLvl}</span></div>
+                    <div class="weapon-card-meta" style="margin-bottom: 32px;">
+                        <span class="rarity-${w.rarity}" style="font-weight:900; letter-spacing:3px; font-size:0.9rem;">${w.rarity}</span>
+                        <span style="opacity:0.5; font-weight:700; letter-spacing:1px;">RANGED WEAPON</span>
                     </div>
                     
-                    <div class="stat-row" style="margin-bottom: 12px;">
+                    <div class="stat-row" style="margin-bottom: 20px;">
                         <span class="stat-label">DMG</span>
                         <div class="stat-track"><div class="stat-bar rarity-${w.rarity}" style="width: ${Math.min(100,dmgPct)}%"></div></div>
                     </div>
-                    <div class="stat-row" style="margin-bottom: 20px;">
+                    <div class="stat-row" style="margin-bottom: 32px;">
                         <span class="stat-label">SPD</span>
                         <div class="stat-track"><div class="stat-bar rarity-${w.rarity}" style="width: ${Math.min(100,spdPct)}%"></div></div>
                     </div>
                     
-                    <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">${w.desc}</div>
+                    <div style="font-size: 1.1rem; color: rgba(255,255,255,0.6); line-height: 1.6; font-weight: 400; max-width: 80%;">${w.desc}</div>
                 `;
             } else {
-                equippedCard.innerHTML = '<div style="opacity:0.5; text-align:center; padding: 20px;">Select a weapon</div>';
+                equippedCard.innerHTML = '<div style="opacity:0.5; text-align:center; padding: 20px; font-weight: 700; font-size: 1.2rem;">SELECT A WEAPON</div>';
             }
         }
 
         // --- ACTIONS SECTION ---
         if(window.Game.totalCurrency > 50000) {
-            this.createActionCard(actions, 'legendary', 'Prestige', 'Reset', () => window.UI.doPrestige());
+            this.createActionCard(actions, 'legendary', 'Prestige', 'RESET PROGRESS', () => window.UI.doPrestige());
         }
         const canBuySkin = window.Game.totalCurrency >= 5000;
         this.createActionCard(actions, 'epic', 'Skin Crate', canBuySkin ? '5,000' : 'LOCKED', (e) => window.UI.openSkinCrate(e), !canBuySkin);
@@ -106,6 +109,15 @@ window.UI = {
                     if(e.target.closest('.weapon-upgrade-btn')) return;
                     window.Game.currentLoadout = key; 
                     window.UI.updateMenuUI(); 
+                    
+                    // Trigger animation on equipped card
+                    const eqCard = document.getElementById('loadout-equipped-card');
+                    if(eqCard) {
+                        eqCard.style.animation = 'none';
+                        eqCard.offsetHeight; 
+                        eqCard.style.animation = 'cardSlideIn 0.4s var(--ease-spring)';
+                    }
+
                     if(window.AudioSys) window.AudioSys.play('sine', 400, 0.1);
                 };
 
