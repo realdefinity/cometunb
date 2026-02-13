@@ -11,21 +11,42 @@
   --card-w: 128px;
   --card-h: 180px;
   --chip-size: 64px;
+
+  /* Timing curves */
   --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
-  /* Liquid glass */
-  --glass-blur: 24px;
-  --glass-bg: rgba(255, 255, 255, 0.055);
-  --glass-bg-strong: rgba(255, 255, 255, 0.12);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-border-hover: rgba(255, 255, 255, 0.24);
-  --glass-shine: rgba(255, 255, 255, 0.2);
-  --glass-edge: rgba(255, 255, 255, 0.08);
-  --shadow-1: 0 10px 40px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(0,0,0,0.1);
-  --shadow-2: 0 24px 56px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(0,0,0,0.08);
-  --glow-soft: 0 0 40px rgba(255, 255, 255, 0.04);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ——— Liquid Glass System ——— */
+  --glass-blur: 32px;
+  --glass-saturate: 1.8;
+  --glass-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  --glass-bg-strong: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  --glass-border: 1px solid rgba(255, 255, 255, 0.12);
+  --glass-border-hover: 1px solid rgba(255, 255, 255, 0.28);
+  --glass-shine-top: inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+  --glass-shine-bottom: inset 0 -1px 0 0 rgba(255, 255, 255, 0.06);
+  --glass-inner-glow: inset 0 0 20px rgba(255, 255, 255, 0.04);
+  --glass-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  --glass-shadow-lg: 
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 4px 16px rgba(0, 0, 0, 0.25);
+  --glass-glow: 0 0 40px rgba(255, 255, 255, 0.05);
+  --glass-glow-gold: 0 0 30px rgba(232, 197, 71, 0.12);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -48,4 +69,31 @@ body {
     radial-gradient(ellipse 60% 40% at 80% 60%, rgba(61, 216, 138, 0.06) 0%, transparent 45%),
     radial-gradient(ellipse 120% 100% at 50% 50%, var(--felt-highlight) 0%, var(--felt-base) 55%, var(--felt-shadow) 100%),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* ——— Reusable Glass Mixin via Class ——— */
+.glass {
+  background: var(--glass-bg);
+  border: var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow), var(--glass-shine-top), var(--glass-shine-bottom), var(--glass-inner-glow);
+  transition: all 0.4s var(--ease-smooth);
+  transform: translateZ(0);
+  position: relative;
+  overflow: hidden;
+}
+.glass::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+.glass:hover {
+  border: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-lg), var(--glass-glow), var(--glass-shine-top), var(--glass-shine-bottom), var(--glass-inner-glow);
 }

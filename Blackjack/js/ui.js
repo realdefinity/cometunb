@@ -89,13 +89,10 @@ function makeCardDOM(cardData, faceUp = true) {
   face.appendChild(stamp);
 
   // Assemble
-  inner.appendChild(back); // Back first in DOM, covered by Face in 3D usually, but we manage via transforms
+  inner.appendChild(back);
   inner.appendChild(face);
   card.appendChild(inner);
 
-  // LOGIC INVERSION:
-  // If card is NOT Face Up (i.e. Hole Card), we add .face-down.
-  // Otherwise default is Face Up.
   if (!faceUp) {
       card.classList.add('face-down');
   }
@@ -108,15 +105,17 @@ function setControlsEnabled(enabled) {
   els.btnStand.disabled = !enabled;
 }
 
-// Helper for number animation
+// Smooth number animation with easing
 function animateValue(obj, start, end, duration) {
   let startTimestamp = null;
+  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
   const step = (timestamp) => {
     if (!startTimestamp) startTimestamp = timestamp;
-    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const raw = Math.min((timestamp - startTimestamp) / duration, 1);
+    const progress = easeOutCubic(raw);
     const val = Math.floor(progress * (end - start) + start);
     obj.textContent = '$' + val;
-    if (progress < 1) {
+    if (raw < 1) {
       window.requestAnimationFrame(step);
     } else {
         obj.classList.remove('bump');
@@ -134,12 +133,11 @@ let lastWallet = 1000;
 let lastTotalBet = 0;
 
 function updateUI() {
-  // Animate Wallet
-  animateValue(els.wallet, lastWallet, Math.floor(wallet), 500);
+  animateValue(els.wallet, lastWallet, Math.floor(wallet), 600);
   lastWallet = Math.floor(wallet);
 
   const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 300);
+  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 350);
   lastTotalBet = Math.floor(totalBet);
 
   els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
@@ -183,8 +181,11 @@ function clearTable() {
   const cards = document.querySelectorAll('.card');
   cards.forEach((c, i) => {
     c.animate(
-      [{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: 'translateY(-28px) scale(0.92)', opacity: 0 }],
-      { duration: 280, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay: i * 22 }
+      [
+        { transform: c.style.transform || 'translate(0,0) scale(1)', opacity: 1 }, 
+        { transform: 'translateY(-20px) scale(0.88) rotate(4deg)', opacity: 0 }
+      ],
+      { duration: 350, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', delay: i * 30, fill: 'forwards' }
     ).onfinish = () => c.remove();
   });
 }
@@ -214,29 +215,32 @@ function animateChip(x, y) {
   const tx = window.innerWidth / 2 - 22;
   const ty = window.innerHeight - 230;
   
-  // More dynamic curve
   chip.animate(
     [
         { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 }, 
-        { transform: `translate(${tx - x}px, ${ty - y}px) scale(0.6) rotate(720deg)`, opacity: 0.8 }
+        { transform: `translate(${(tx - x) * 0.5}px, ${(ty - y) * 0.3 - 60}px) scale(0.85) rotate(360deg)`, opacity: 0.95, offset: 0.5 },
+        { transform: `translate(${tx - x}px, ${ty - y}px) scale(0.5) rotate(720deg)`, opacity: 0.7 }
     ],
-    { duration: 500, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+    { duration: 600, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
   ).onfinish = () => chip.remove();
 }
 
 function triggerConfetti() {
-  const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a'];
+  const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 60; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = 150 + Math.random() * 400;
+    const dist = 120 + Math.random() * 350;
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
     c.style.setProperty('--rot', Math.random() * 720 + 'deg');
-    c.style.setProperty('--dur', (800 + Math.random() * 800) + 'ms');
+    c.style.setProperty('--dur', (800 + Math.random() * 700) + 'ms');
+    c.style.width = (6 + Math.random() * 6) + 'px';
+    c.style.height = (6 + Math.random() * 6) + 'px';
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
     c.addEventListener('animationend', () => c.remove(), { once: true });
     fragment.appendChild(c);
   }
@@ -249,28 +253,22 @@ function spawnCard(handArr, container, faceUp, delay) {
   setTimeout(() => {
     playSound('card');
     
-    // Default is Face Up. If !faceUp, it has .face-down class.
     const cardEl = makeCardDOM(cardData, faceUp);
     
-    // Animation Hack: If it is supposed to be Face Up, start with .face-down 
-    // so it flips open upon landing.
     if (faceUp) {
         cardEl.classList.add('face-down');
     }
     
     container.appendChild(cardEl);
     
-    // Force reflow
     void cardEl.offsetWidth;
     
-    // Fly in
     cardEl.classList.add('dealt');
     
-    // Flip open if needed
     if (faceUp) {
         setTimeout(() => {
             cardEl.classList.remove('face-down');
-        }, 100); 
+        }, 120); 
     }
   }, delay);
 }
