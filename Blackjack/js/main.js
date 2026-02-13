@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+const initGame = () => {
   els = {
     wallet: document.getElementById('wallet-val'),
     bet: document.getElementById('bet-val'),
@@ -36,6 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   updateUI();
-  els.betUI.classList.remove('hidden');
+  if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);
-});
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGame);
+} else {
+  initGame();
+}
