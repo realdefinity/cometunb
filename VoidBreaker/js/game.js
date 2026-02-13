@@ -199,15 +199,22 @@ window.Game = {
             if(this.frameCount % spawnRate === 0) {
                 const r = Math.random();
                 let type = 'basic';
-                if(this.wave > 1 && r > 0.6) type = 'dasher';
-                if(this.wave > 3 && r > 0.75) type = 'shooter';
-                if(this.wave > 4 && r > 0.8) type = 'swarmer';
-                if(this.wave > 5 && r > 0.85) type = 'heavy';
-                if(this.wave > 6 && r > 0.88) type = 'sniper';
-                if(this.wave > 7 && r > 0.9) type = 'orbiter';
-                if(this.wave > 8 && r > 0.92) type = 'kamikaze';
-                if(this.wave > 9 && r > 0.95) type = 'carrier';
                 
+                // Progressive Difficulty Spawn Logic
+                if(this.wave >= 2 && r > 0.6) type = 'dasher';
+                if(this.wave >= 3 && r > 0.7) type = 'shooter';
+                if(this.wave >= 4 && r > 0.75) type = 'heavy';
+                if(this.wave >= 5 && r > 0.8) type = 'charger';
+                if(this.wave >= 5 && r > 0.82) type = 'swarmer'; // Added back
+                if(this.wave >= 6 && r > 0.85) type = 'sniper';
+                if(this.wave >= 7 && r > 0.88) type = 'snake';
+                if(this.wave >= 8 && r > 0.9) type = 'orbiter';
+                if(this.wave >= 9 && r > 0.92) type = 'kamikaze';
+                if(this.wave >= 10 && r > 0.94) type = 'teleporter';
+                if(this.wave >= 12 && r > 0.95) type = 'carrier';
+                if(this.wave >= 15 && r > 0.97) type = 'summoner';
+                if(this.wave >= 20 && r > 0.98) type = 'tank';
+
                 if(type === 'swarmer') {
                     for(let i=0; i<3; i++) { this.enemies.push(new Enemy('swarmer', 1 + this.wave * 0.1)); this.waveEnemiesSpawned++; }
                 } else {
@@ -580,6 +587,13 @@ class Enemy {
             this.hp = 2000 * scale; this.xp = 500; this.score = 5000; this.credits = 100; 
             this.speed = 0.5; this.color = '#a855f7'; this.r = 40; this.phase = 0; this.timer = 0;
         }
+        
+        // NEW TYPES
+        else if (type === 'charger') { this.hp = 80*scale; this.speed = 2; this.color = '#f59e0b'; this.r = 16; this.state = 'idle'; this.timer = 60; this.chargeAngle = 0; this.xp = 35; }
+        else if (type === 'snake') { this.hp = 40*scale; this.speed = 3; this.color = '#10b981'; this.r = 12; this.timer = 0; this.xp = 20; }
+        else if (type === 'summoner') { this.hp = 150*scale; this.speed = 1; this.color = '#8b5cf6'; this.r = 20; this.timer = 0; this.xp = 60; }
+        else if (type === 'teleporter') { this.hp = 50*scale; this.speed = 0; this.color = '#06b6d4'; this.r = 14; this.timer = 60; this.xp = 35; }
+
         this.maxHp = this.hp;
     }
 
@@ -587,20 +601,102 @@ class Enemy {
         if(this.flash > 0) this.flash--;
         let moveSpeed = this.speed * (window.GAME_DATA.multipliers.enemySpeed || 1.0);
         if(this.frozen > 0) { moveSpeed *= 0.5; this.frozen--; }
-        this.visAngle += 0.05;
+        
+        const dx = window.Game.player.x - this.x; 
+        const dy = window.Game.player.y - this.y;
+        const dist = Math.hypot(dx, dy); 
+        
+        // Default facing: towards player
+        let faceAngle = Math.atan2(dy, dx); 
+        this.visAngle = faceAngle;
 
-        const dx = window.Game.player.x - this.x; const dy = window.Game.player.y - this.y;
-        const dist = Math.hypot(dx, dy); const angle = Math.atan2(dy, dx);
+        // Collision Check (Don't overlap player)
+        // If too close, stop moving forward, but allow other behaviors
+        const minDist = this.r + 20; 
+        let canMove = true;
+        if(dist < minDist && this.type !== 'kamikaze' && this.type !== 'dasher') {
+             canMove = false;
+        }
 
         if(this.type === 'boss') {
-            this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
+            if(canMove) { this.x += Math.cos(faceAngle) * moveSpeed; this.y += Math.sin(faceAngle) * moveSpeed; }
             this.timer++;
             if(this.timer % 20 === 0) { 
                 const spiral = (this.timer / 20) + (this.phase * 0.5);
                 window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(spiral)*5, vy:Math.sin(spiral)*5, life:120, r:6, color:'#a855f7'});
                 window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(spiral+Math.PI)*5, vy:Math.sin(spiral+Math.PI)*5, life:120, r:6, color:'#a855f7'});
             }
-        } else if(this.type === 'orbiter') {
+        } 
+        else if (this.type === 'charger') {
+            if(this.state === 'idle') {
+                this.visAngle = faceAngle;
+                this.timer--;
+                // Slowly track
+                if(canMove) {
+                    this.x += Math.cos(this.visAngle) * moveSpeed * 0.5;
+                    this.y += Math.sin(this.visAngle) * moveSpeed * 0.5;
+                }
+                
+                if(this.timer <= 0) {
+                    this.state = 'charge';
+                    this.timer = 40;
+                    this.chargeAngle = this.visAngle;
+                    window.Game.createPopup(this.x, this.y - 20, "!", '#f59e0b', 24);
+                }
+            } else {
+                // CHARGE!
+                this.visAngle = this.chargeAngle;
+                this.x += Math.cos(this.chargeAngle) * (moveSpeed * 5);
+                this.y += Math.sin(this.chargeAngle) * (moveSpeed * 5);
+                this.timer--;
+                if(this.timer <= 0) { this.state = 'idle'; this.timer = 80; }
+            }
+        }
+        else if (this.type === 'snake') {
+            this.timer += 0.1;
+            const sineOffset = Math.sin(this.timer) * 1.5;
+            const moveAngle = faceAngle + sineOffset;
+            this.visAngle = moveAngle;
+            if(canMove) {
+                this.x += Math.cos(moveAngle) * moveSpeed;
+                this.y += Math.sin(moveAngle) * moveSpeed;
+            }
+        }
+        else if (this.type === 'summoner') {
+            if(dist < 300) { // Run away if too close
+                 this.x -= Math.cos(this.visAngle) * moveSpeed;
+                 this.y -= Math.sin(this.visAngle) * moveSpeed;
+            } else if (dist > 500 && canMove) { // Get closer
+                 this.x += Math.cos(this.visAngle) * moveSpeed;
+                 this.y += Math.sin(this.visAngle) * moveSpeed;
+            }
+            
+            this.timer++;
+            if(this.timer % 300 === 0) { // Spawn enemies
+                 for(let i=0; i<3; i++) {
+                     const e = new Enemy('swarmer', 1);
+                     e.x = this.x + (Math.random()-0.5)*40;
+                     e.y = this.y + (Math.random()-0.5)*40;
+                     window.Game.enemies.push(e);
+                 }
+                 window.Game.createExplosion(this.x, this.y, 10, '#d946ef');
+            }
+        }
+        else if (this.type === 'teleporter') {
+            this.timer--;
+            if(this.timer <= 0) {
+                this.timer = 120 + Math.random() * 60;
+                // Teleport closer
+                const angle = Math.atan2(dy, dx) + (Math.random()-0.5);
+                const jumpDist = Math.min(dist - 50, 150);
+                window.Game.createExplosion(this.x, this.y, 8, '#06b6d4');
+                this.x += Math.cos(angle) * jumpDist;
+                this.y += Math.sin(angle) * jumpDist;
+                window.Game.createExplosion(this.x, this.y, 8, '#06b6d4');
+                window.AudioSys.play('sine', 800, 0.1);
+            }
+        }
+        else if(this.type === 'orbiter') {
             this.angle += 0.02;
             const orbitX = window.Game.player.x + Math.cos(this.angle) * 150;
             const orbitY = window.Game.player.y + Math.sin(this.angle) * 150;
@@ -608,28 +704,28 @@ class Enemy {
         } else if(this.type === 'shooter') {
             this.timer++;
             if(this.state === 'move') {
-                this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
+                if(canMove) { this.x += Math.cos(faceAngle) * moveSpeed; this.y += Math.sin(faceAngle) * moveSpeed; }
                 if(dist < 300) this.state = 'shoot';
             } else {
-                this.x += Math.cos(angle + 1.5) * 0.5; this.y += Math.sin(angle + 1.5) * 0.5; 
-                if(this.timer % 100 === 0) window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(angle)*5, vy:Math.sin(angle)*5, life:100, r:4, color:'#fbbf24'});
+                if(canMove) { this.x += Math.cos(faceAngle + 1.5) * 0.5; this.y += Math.sin(faceAngle + 1.5) * 0.5; }
+                if(this.timer % 100 === 0) window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(faceAngle)*5, vy:Math.sin(faceAngle)*5, life:100, r:4, color:'#fbbf24'});
                 if(dist > 450) this.state = 'move';
             }
         } else if (this.type === 'sniper') {
             this.timer++;
-            if(dist < 400) { this.x -= Math.cos(angle) * moveSpeed; this.y -= Math.sin(angle) * moveSpeed; }
-            else if(dist > 600) { this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed; }
-            if(this.timer % 180 === 0) window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(angle)*12, vy:Math.sin(angle)*12, life:100, r:3, color:'#22d3ee'});
+            if(dist < 400) { this.x -= Math.cos(faceAngle) * moveSpeed; this.y -= Math.sin(faceAngle) * moveSpeed; }
+            else if(dist > 600 && canMove) { this.x += Math.cos(faceAngle) * moveSpeed; this.y += Math.sin(faceAngle) * moveSpeed; }
+            if(this.timer % 180 === 0) window.Game.enemyBullets.push({x:this.x, y:this.y, vx:Math.cos(faceAngle)*12, vy:Math.sin(faceAngle)*12, life:100, r:3, color:'#22d3ee'});
         } else if (this.type === 'kamikaze') {
             if(dist < 200) moveSpeed *= 2.5;
-            this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
+            this.x += Math.cos(faceAngle) * moveSpeed; this.y += Math.sin(faceAngle) * moveSpeed;
             if(dist < this.r + 20) { this.hp = 0; window.Game.player.takeDamage(30); this.takeDamage(999, false); }
         } else if (this.type === 'carrier') {
             this.timer++;
-            this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
+            if(canMove) { this.x += Math.cos(faceAngle) * moveSpeed; this.y += Math.sin(faceAngle) * moveSpeed; }
             if(this.timer % 200 === 0) window.Game.enemies.push(new Enemy('swarmer', 1));
         } else {
-            this.x += Math.cos(angle) * moveSpeed; this.y += Math.sin(angle) * moveSpeed;
+            if(canMove) { this.x += Math.cos(faceAngle) * moveSpeed; this.y += Math.sin(faceAngle) * moveSpeed; }
         }
 
         if(dist < this.r + 15) window.Game.player.takeDamage(10);
@@ -682,18 +778,43 @@ class Enemy {
         ctx.shadowBlur = this.type === 'boss' ? 30 : 10; ctx.shadowColor = this.color;
         ctx.strokeStyle = this.color; ctx.lineWidth = 2;
 
+        // Most enemies now rotate to face their movement/target
+        if(this.type !== 'orbiter' && this.type !== 'teleporter') ctx.rotate(this.visAngle);
+
         if (this.type === 'basic') {
-            ctx.rotate(this.visAngle);
             ctx.beginPath(); ctx.rect(-this.r/2, -this.r/2, this.r, this.r); ctx.stroke();
             ctx.globalAlpha = 0.3; ctx.fill(); ctx.globalAlpha = 1;
         }
         else if (this.type === 'dasher') {
-            ctx.rotate(this.visAngle * 2);
             ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r/2, 0); ctx.lineTo(-this.r, -this.r); ctx.closePath();
             ctx.stroke();
         }
+        else if (this.type === 'charger') {
+            ctx.beginPath(); 
+            ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r*0.8); ctx.lineTo(-this.r*0.5, 0); ctx.lineTo(-this.r, -this.r*0.8); 
+            ctx.closePath(); ctx.fill();
+        }
+        else if (this.type === 'snake') {
+            ctx.beginPath(); ctx.arc(0, 0, this.r, 0, Math.PI*2); ctx.stroke();
+            ctx.fillStyle = 'white';
+            ctx.beginPath(); ctx.arc(4, -4, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(4, 4, 2, 0, Math.PI*2); ctx.fill();
+        }
+        else if (this.type === 'summoner') {
+            ctx.beginPath();
+            for(let i=0; i<6; i++) {
+                const a = (i/6)*Math.PI*2;
+                ctx.lineTo(Math.cos(a)*this.r, Math.sin(a)*this.r);
+            }
+            ctx.closePath(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0,0,this.r*0.5,0,Math.PI*2); ctx.fill();
+        }
+        else if (this.type === 'teleporter') {
+             ctx.globalAlpha = 0.6 + Math.sin(window.Game.frameCount * 0.2) * 0.4;
+             ctx.beginPath(); ctx.moveTo(0, -this.r); ctx.lineTo(this.r, 0); ctx.lineTo(0, this.r); ctx.lineTo(-this.r, 0); ctx.closePath();
+             ctx.fill(); ctx.globalAlpha = 1;
+        }
         else if (this.type === 'heavy' || this.type === 'tank') {
-            ctx.rotate(this.visAngle * 0.5);
             ctx.beginPath();
             for(let i=0; i<6; i++) {
                 const a = (i/6) * Math.PI*2;
@@ -703,16 +824,13 @@ class Enemy {
             ctx.stroke(); ctx.globalAlpha=0.5; ctx.fill(); ctx.globalAlpha=1;
         }
         else if (this.type === 'swarmer') {
-            ctx.rotate(this.visAngle * 3);
             ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r, -this.r); ctx.fill();
         }
         else if (this.type === 'sniper') {
-            ctx.rotate(this.visAngle);
             ctx.strokeRect(-this.r/2, -this.r/2, this.r, this.r);
             ctx.beginPath(); ctx.moveTo(0, -this.r); ctx.lineTo(0, this.r); ctx.moveTo(-this.r, 0); ctx.lineTo(this.r, 0); ctx.stroke();
         }
         else if (this.type === 'kamikaze') {
-            ctx.rotate(this.visAngle * 4);
             ctx.beginPath();
             for(let i=0; i<8; i++) {
                 const a = (i/8)*Math.PI*2;
@@ -724,21 +842,18 @@ class Enemy {
         }
         else if (this.type === 'orbiter') { 
             ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.stroke();
-            ctx.beginPath(); ctx.arc(Math.cos(this.visAngle)*this.r, Math.sin(this.visAngle)*this.r, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(Math.cos(window.Game.frameCount*0.1)*this.r, Math.sin(window.Game.frameCount*0.1)*this.r, 4, 0, Math.PI*2); ctx.fill();
         }
         else if (this.type === 'carrier') {
             ctx.strokeRect(-this.r, -this.r, this.r*2, this.r*2);
             ctx.strokeRect(-this.r/2, -this.r/2, this.r, this.r);
         }
         else if (this.type === 'boss') {
-            ctx.rotate(this.visAngle * 0.2);
             ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
             ctx.beginPath(); ctx.rect(-this.r*0.7, -this.r*0.7, this.r*1.4, this.r*1.4); ctx.stroke();
-            ctx.rotate(this.visAngle);
             ctx.strokeRect(-this.r/3, -this.r/3, this.r*0.66, this.r*0.66);
         }
         else if (this.type === 'shooter') {
-            ctx.rotate(this.visAngle);
             ctx.beginPath(); ctx.moveTo(this.r, 0); ctx.lineTo(-this.r, this.r); ctx.lineTo(-this.r, -this.r); ctx.stroke();
         }
         
