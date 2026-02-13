@@ -1,8 +1,25 @@
+/* Cryptographically random integer in [0, max) */
+function cryptoRandInt(max) {
+  if (max <= 0) return 0;
+  const arr = new Uint32Array(1);
+  (window.crypto || window.msCrypto).getRandomValues(arr);
+  return arr[0] % max;
+}
+
+/* 6-deck shoe with Fisher-Yates using crypto random */
 function createDeck() {
   deck = [];
-  for (const s of SUITS) for (const v of VALUES) deck.push({ s, v });
+  const NUM_DECKS = 6;
+  for (let d = 0; d < NUM_DECKS; d++) {
+    for (const s of SUITS) {
+      for (const v of VALUES) {
+        deck.push({ s, v });
+      }
+    }
+  }
+  /* Fisher-Yates with crypto.getRandomValues */
   for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = cryptoRandInt(i + 1);
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
 }
@@ -268,9 +285,10 @@ function split() {
       setTimeout(() => {
         playSound('card');
         const el = makeCardDOM(cardData, true);
+        el.style.setProperty('--deal-duration', (perfLite ? 400 : 560) + 'ms');
+        el.style.setProperty('--flip-duration', (perfLite ? 360 : 520) + 'ms');
         container.appendChild(el);
-        void el.offsetWidth;
-        el.classList.add('dealt');
+        window.requestAnimationFrame(() => { el.classList.add('dealt'); });
       }, d);
     });
   };
@@ -311,34 +329,34 @@ function stand(revealInstant = false) {
   if (gameState !== 'PLAYING') return;
 
   const holeCardEl = els.dCards.children[1];
-      const doReveal = () => {
-        if (playerHands.length === 1) {
-          if (holeCardEl) holeCardEl.classList.remove('face-down');
-          gameState = 'DEALER_TURN';
-          els.gameControls.classList.remove('active');
-          setTimeout(() => {
-            updateAllPlayerScores(true);
-            setTimeout(() => dealerAI(revealInstant), revealInstant ? 180 : 400);
-          }, revealInstant ? 160 : 280);
-          return;
-        }
-        activeHandIndex++;
-        if (activeHandIndex < playerHands.length) {
-          els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
-            slot.classList.toggle('active', i === activeHandIndex);
-            slot.classList.toggle('inactive', i !== activeHandIndex);
-          });
-          updateUI();
-          return;
-        }
-        if (holeCardEl) holeCardEl.classList.remove('face-down');
-        gameState = 'DEALER_TURN';
-        els.gameControls.classList.remove('active');
-        setTimeout(() => {
-          updateAllPlayerScores(true);
-          setTimeout(() => dealerAI(false), 400);
-        }, 280);
-      };
+  const doReveal = () => {
+    if (playerHands.length === 1) {
+      if (holeCardEl) holeCardEl.classList.remove('face-down');
+      gameState = 'DEALER_TURN';
+      els.gameControls.classList.remove('active');
+      setTimeout(() => {
+        updateAllPlayerScores(true);
+        setTimeout(() => dealerAI(revealInstant), revealInstant ? 180 : 400);
+      }, revealInstant ? 160 : 280);
+      return;
+    }
+    activeHandIndex++;
+    if (activeHandIndex < playerHands.length) {
+      els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
+        slot.classList.toggle('active', i === activeHandIndex);
+        slot.classList.toggle('inactive', i !== activeHandIndex);
+      });
+      updateUI();
+      return;
+    }
+    if (holeCardEl) holeCardEl.classList.remove('face-down');
+    gameState = 'DEALER_TURN';
+    els.gameControls.classList.remove('active');
+    setTimeout(() => {
+      updateAllPlayerScores(true);
+      setTimeout(() => dealerAI(false), 400);
+    }, 280);
+  };
 
   const goingToDealer = playerHands.length === 1 || activeHandIndex + 1 >= playerHands.length;
   const showPeek = !revealInstant && goingToDealer && holeCardEl && dealerUpcardIsAceOr10();
@@ -366,16 +384,16 @@ function advanceToNextHandOrDealer() {
     });
     els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
     updateUI();
-      } else {
-        gameState = 'DEALER_TURN';
-        els.gameControls.classList.remove('active');
-        const holeCardEl = els.dCards.children[1];
-        if (holeCardEl) holeCardEl.classList.remove('face-down');
-        setTimeout(() => {
-          updateAllPlayerScores(true);
-          dealerAI(false);
-        }, 320);
-      }
+  } else {
+    gameState = 'DEALER_TURN';
+    els.gameControls.classList.remove('active');
+    const holeCardEl = els.dCards.children[1];
+    if (holeCardEl) holeCardEl.classList.remove('face-down');
+    setTimeout(() => {
+      updateAllPlayerScores(true);
+      dealerAI(false);
+    }, 320);
+  }
 }
 
 function doubleDown() {

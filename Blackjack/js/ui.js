@@ -13,9 +13,7 @@ const perfLite = hasPerfLiteClass
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
 
-/* Shared easing for Web Animations API */
 const EASE_FLUID = 'cubic-bezier(0.22, 1, 0.36, 1)';
-const EASE_SPRING = 'cubic-bezier(0.175, 0.885, 0.32, 1.1)';
 
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
@@ -47,52 +45,52 @@ function makeCardDOM(cardData, faceUp = true) {
 
   const face = document.createElement('div');
   face.className = 'card-face';
-  
+
   const back = document.createElement('div');
   back.className = 'card-back';
-  
+
   const colorCls = suitClass(cardData.s);
-  
+
   const cornerContent = `<span class="rank">${cardData.v}</span><span class="suit">${cardData.s}</span>`;
   const cornerTL = document.createElement('div');
   cornerTL.className = `corner ${colorCls}`;
   cornerTL.innerHTML = cornerContent;
-  
+
   const cornerBR = document.createElement('div');
   cornerBR.className = `corner bottom ${colorCls}`;
   cornerBR.innerHTML = cornerContent;
-  
+
   face.appendChild(cornerTL);
   face.appendChild(cornerBR);
 
   const content = document.createElement('div');
   content.className = 'card-content';
-  
+
   if (['J','Q','K'].includes(cardData.v)) {
-      const art = document.createElement('div');
-      art.className = `face-art ${colorCls}`;
-      art.textContent = cardData.v; 
-      content.appendChild(art);
+    const art = document.createElement('div');
+    art.className = `face-art ${colorCls}`;
+    art.textContent = cardData.v;
+    content.appendChild(art);
   } else if (cardData.v === 'A') {
-      const ace = document.createElement('div');
-      ace.className = `pip ace ${colorCls}`;
-      ace.textContent = cardData.s;
-      content.appendChild(ace);
+    const ace = document.createElement('div');
+    ace.className = `pip ace ${colorCls}`;
+    ace.textContent = cardData.s;
+    content.appendChild(ace);
   } else {
-      const grid = document.createElement('div');
-      grid.className = `pip-grid ${colorCls}`;
-      const n = parseInt(cardData.v, 10);
-      const layout = PIP_LAYOUTS[n] || [];
-      for (const [c, r] of layout) {
-          const pip = document.createElement('div');
-          pip.className = 'pip';
-          pip.textContent = cardData.s;
-          pip.style.gridColumn = String(c);
-          pip.style.gridRow = String(r);
-          if (r > 3) pip.style.transform = 'rotate(180deg)';
-          grid.appendChild(pip);
-      }
-      content.appendChild(grid);
+    const grid = document.createElement('div');
+    grid.className = `pip-grid ${colorCls}`;
+    const n = parseInt(cardData.v, 10);
+    const layout = PIP_LAYOUTS[n] || [];
+    for (const [c, r] of layout) {
+      const pip = document.createElement('div');
+      pip.className = 'pip';
+      pip.textContent = cardData.s;
+      pip.style.gridColumn = String(c);
+      pip.style.gridRow = String(r);
+      if (r > 3) pip.style.transform = 'rotate(180deg)';
+      grid.appendChild(pip);
+    }
+    content.appendChild(grid);
   }
   face.appendChild(content);
 
@@ -106,7 +104,7 @@ function makeCardDOM(cardData, faceUp = true) {
   card.appendChild(inner);
 
   if (!faceUp) {
-      card.classList.add('face-down');
+    card.classList.add('face-down');
   }
 
   return card;
@@ -117,7 +115,6 @@ function setControlsEnabled(enabled) {
   els.btnStand.disabled = !enabled;
 }
 
-/* Smooth number animation */
 function animateValue(obj, start, end, duration) {
   if (!obj) return;
   const existingFrame = valueAnimationFrames.get(obj);
@@ -161,11 +158,11 @@ let lastWallet = 1000;
 let lastTotalBet = 0;
 
 function updateUI() {
-  animateValue(els.wallet, lastWallet, Math.floor(wallet), 500);
+  animateValue(els.wallet, lastWallet, Math.floor(wallet), 480);
   lastWallet = Math.floor(wallet);
 
   const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 300);
+  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 280);
   lastTotalBet = Math.floor(totalBet);
 
   els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
@@ -173,23 +170,23 @@ function updateUI() {
   els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
   els.btnSplit.disabled = !canSplit();
   els.btnSurrender.style.display = canSurrender() ? '' : 'none';
-  
+
   if (loan > 0) {
     els.loanBox.style.display = '';
     els.loanVal.textContent = '$' + Math.floor(loan);
   } else {
     els.loanBox.style.display = 'none';
   }
-  
+
   const totalBetNow = currentBets.reduce((a, b) => a + b, 0) || currentBet;
   const showTakeLoan = gameState === 'BETTING' && wallet <= 0 && totalBetNow <= 0;
   els.takeLoanStrip.style.display = showTakeLoan ? 'flex' : 'none';
-  
+
   const showPayback = gameState === 'BETTING' && loan > 0 && wallet > 0;
   els.btnPayback.style.display = showPayback ? '' : 'none';
   els.btnPayall.style.display = showPayback ? '' : 'none';
   els.btnPayback.textContent = 'Pay $' + Math.min(100, Math.floor(wallet), Math.floor(loan));
-  
+
   const canPlay = gameState === 'PLAYING';
   setControlsEnabled(canPlay);
   updateStatsUI();
@@ -207,15 +204,15 @@ function hideMsg() {
 
 function clearTable() {
   const cards = document.querySelectorAll('.card');
-  const dur = perfLite ? 260 : 350;
+  const dur = perfLite ? 240 : 320;
   cards.forEach((c, i) => {
     c.animate(
       [
         { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 },
-        { transform: 'translate3d(0, -14px, 0) scale(0.93)', opacity: 0.5, offset: 0.45 },
-        { transform: 'translate3d(0, -22px, 0) scale(0.86) rotate(2deg)', opacity: 0 }
+        { transform: 'translate3d(0,-12px,0) scale(0.94)', opacity: 0.45, offset: 0.45 },
+        { transform: 'translate3d(0,-20px,0) scale(0.86) rotate(2deg)', opacity: 0 }
       ],
-      { duration: dur, easing: EASE_FLUID, delay: i * 22, fill: 'forwards' }
+      { duration: dur, easing: EASE_FLUID, delay: i * 20, fill: 'forwards' }
     ).onfinish = () => c.remove();
   });
 }
@@ -238,7 +235,7 @@ function highlightWinner(container) {
   const timeout = window.setTimeout(() => {
     container.classList.remove('winner-pulse');
     winnerPulseTimers.delete(container);
-  }, perfLite ? 850 : 1100);
+  }, perfLite ? 800 : 1050);
   winnerPulseTimers.set(container, timeout);
 }
 
@@ -248,20 +245,20 @@ function animateChip(x, y) {
   chip.style.left = x + 'px';
   chip.style.top = y + 'px';
   document.body.appendChild(chip);
-  
+
   const tx = window.innerWidth / 2 - 22;
-  const ty = window.innerHeight - 230;
+  const ty = window.innerHeight - 200;
   const dx = tx - x;
   const dy = ty - y;
-  const arc = perfLite ? 28 : 50;
-  const dur = perfLite ? 400 : 520;
-  
+  const arc = perfLite ? 24 : 44;
+  const dur = perfLite ? 380 : 480;
+
   chip.animate(
     [
       { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
-      { transform: `translate(${dx * 0.38}px, ${dy * 0.2 - arc}px) scale(0.88) rotate(240deg)`, opacity: 0.95, offset: 0.42 },
-      { transform: `translate(${dx * 0.72}px, ${dy * 0.6 - arc * 0.3}px) scale(0.68) rotate(500deg)`, opacity: 0.82, offset: 0.76 },
-      { transform: `translate(${dx}px, ${dy}px) scale(0.42) rotate(680deg)`, opacity: 0.55 }
+      { transform: `translate(${dx * 0.36}px, ${dy * 0.18 - arc}px) scale(0.86) rotate(220deg)`, opacity: 0.92, offset: 0.4 },
+      { transform: `translate(${dx * 0.7}px, ${dy * 0.58 - arc * 0.3}px) scale(0.66) rotate(460deg)`, opacity: 0.78, offset: 0.74 },
+      { transform: `translate(${dx}px, ${dy}px) scale(0.4) rotate(640deg)`, opacity: 0.5 }
     ],
     { duration: dur, easing: EASE_FLUID }
   ).onfinish = () => chip.remove();
@@ -270,18 +267,18 @@ function animateChip(x, y) {
 function triggerConfetti() {
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  const count = perfLite ? 22 : 50;
+  const count = perfLite ? 20 : 45;
   for (let i = 0; i < count; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = (perfLite ? 75 : 100) + Math.random() * (perfLite ? 185 : 300);
+    const dist = (perfLite ? 70 : 95) + Math.random() * (perfLite ? 170 : 280);
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
-    c.style.setProperty('--rot', (Math.random() * 540 + 120) + 'deg');
-    c.style.setProperty('--dur', ((perfLite ? 480 : 700) + Math.random() * (perfLite ? 380 : 600)) + 'ms');
-    const size = 5 + Math.random() * 5;
+    c.style.setProperty('--rot', (Math.random() * 500 + 100) + 'deg');
+    c.style.setProperty('--dur', ((perfLite ? 450 : 650) + Math.random() * (perfLite ? 350 : 550)) + 'ms');
+    const size = 4 + Math.random() * 5;
     c.style.width = size + 'px';
     c.style.height = size + 'px';
     c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
@@ -296,27 +293,27 @@ function spawnCard(handArr, container, faceUp, delay) {
   handArr.push(cardData);
   setTimeout(() => {
     playSound('card');
-    
+
     const cardEl = makeCardDOM(cardData, faceUp);
-    const dealDuration = perfLite ? 400 : 580;
-    const flipDuration = perfLite ? 360 : 540;
+    const dealDuration = perfLite ? 380 : 560;
+    const flipDuration = perfLite ? 340 : 520;
     cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
     cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
-    
+
     if (faceUp) {
-        cardEl.classList.add('face-down');
+      cardEl.classList.add('face-down');
     }
-    
+
     container.appendChild(cardEl);
     window.requestAnimationFrame(() => {
       cardEl.classList.add('dealt');
     });
-    
+
     if (faceUp) {
-        const revealDelay = Math.max(60, Math.round(dealDuration * 0.28));
-        setTimeout(() => {
-            cardEl.classList.remove('face-down');
-        }, revealDelay);
+      const revealDelay = Math.max(55, Math.round(dealDuration * 0.26));
+      setTimeout(() => {
+        cardEl.classList.remove('face-down');
+      }, revealDelay);
     }
   }, delay);
 }
