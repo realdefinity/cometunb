@@ -97,16 +97,9 @@ function makeCardDOM(cardData, faceUp = true) {
   inner.appendChild(back);
   card.appendChild(inner);
 
-  // If we want it face up, we start with the back showing (flipped), then unflip.
-  // The 'is-flipping' class rotates Y 180.
-  // Face is at 0. Back is at 180.
-  // So adding 'is-flipping' shows the Back.
-  
-  if (faceUp) {
-      card.classList.add('is-flipping');
-  } else {
-      card.classList.add('is-flipping'); // Initially show back for hole card too
-  }
+  // New Logic: Default is Back Visible (no class).
+  // If we want it Face Up eventually, spawnCard will add 'flipped' class.
+  // If we want it Hole Card (Face Down), we never add 'flipped'.
   
   return card;
 }
@@ -257,27 +250,21 @@ function spawnCard(handArr, container, faceUp, delay) {
   setTimeout(() => {
     playSound('card');
     
-    // Create card (initially showing BACK via is-flipping)
+    // Create card (Default is Face Down/Back Visible)
     const cardEl = makeCardDOM(cardData, faceUp);
     container.appendChild(cardEl);
     
-    // Force reflow to ensure the initial transform (offscreen) is registered
+    // Force reflow
     void cardEl.offsetWidth;
     
     // Fly in
     cardEl.classList.add('dealt');
     
-    // If it should be Face Up, remove 'is-flipping' to show Face
+    // If it should be Face Up, flip it after a short delay
     if (faceUp) {
         setTimeout(() => {
-            cardEl.classList.remove('is-flipping');
-        }, 150); // Flip mid-flight
-    } else {
-        // If it's a hole card (face down), we KEEP 'is-flipping'.
-        // This means we are showing the BACK.
-        // Wait... is-flipping rotates Inner by 180Y.
-        // Face is at 0. Back is at 180.
-        // If Inner is 180, Back is at 360 (Front). So 'is-flipping' shows Back. Correct.
+            cardEl.classList.add('flipped');
+        }, 150); 
     }
   }, delay);
 }

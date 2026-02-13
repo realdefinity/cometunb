@@ -323,34 +323,34 @@ function stand(revealInstant = false) {
   if (gameState !== 'PLAYING') return;
 
   const holeCardEl = els.dCards.children[1];
-  const doReveal = () => {
-    if (playerHands.length === 1) {
-      if (holeCardEl) holeCardEl.classList.remove('is-flipping');
-      gameState = 'DEALER_TURN';
-      els.gameControls.classList.remove('active');
-      setTimeout(() => {
-        updateAllPlayerScores(true);
-        setTimeout(() => dealerAI(revealInstant), revealInstant ? 180 : 400);
-      }, revealInstant ? 160 : 280);
-      return;
-    }
-    activeHandIndex++;
-    if (activeHandIndex < playerHands.length) {
-      els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
-        slot.classList.toggle('active', i === activeHandIndex);
-        slot.classList.toggle('inactive', i !== activeHandIndex);
-      });
-      updateUI();
-      return;
-    }
-    if (holeCardEl) holeCardEl.classList.remove('is-flipping');
-    gameState = 'DEALER_TURN';
-    els.gameControls.classList.remove('active');
-    setTimeout(() => {
-      updateAllPlayerScores(true);
-      setTimeout(() => dealerAI(false), 400);
-    }, 280);
-  };
+      const doReveal = () => {
+        if (playerHands.length === 1) {
+          if (holeCardEl) holeCardEl.classList.add('flipped');
+          gameState = 'DEALER_TURN';
+          els.gameControls.classList.remove('active');
+          setTimeout(() => {
+            updateAllPlayerScores(true);
+            setTimeout(() => dealerAI(revealInstant), revealInstant ? 180 : 400);
+          }, revealInstant ? 160 : 280);
+          return;
+        }
+        activeHandIndex++;
+        if (activeHandIndex < playerHands.length) {
+          els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
+            slot.classList.toggle('active', i === activeHandIndex);
+            slot.classList.toggle('inactive', i !== activeHandIndex);
+          });
+          updateUI();
+          return;
+        }
+        if (holeCardEl) holeCardEl.classList.add('flipped');
+        gameState = 'DEALER_TURN';
+        els.gameControls.classList.remove('active');
+        setTimeout(() => {
+          updateAllPlayerScores(true);
+          setTimeout(() => dealerAI(false), 400);
+        }, 280);
+      };
 
   const goingToDealer = playerHands.length === 1 || activeHandIndex + 1 >= playerHands.length;
   const showPeek = !revealInstant && goingToDealer && holeCardEl && dealerUpcardIsAceOr10();
@@ -378,16 +378,16 @@ function advanceToNextHandOrDealer() {
     });
     els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
     updateUI();
-  } else {
-    gameState = 'DEALER_TURN';
-    els.gameControls.classList.remove('active');
-    const holeCardEl = els.dCards.children[1];
-    if (holeCardEl) holeCardEl.classList.remove('is-flipping');
-    setTimeout(() => {
-      updateAllPlayerScores(true);
-      dealerAI(false);
-    }, 320);
-  }
+      } else {
+        gameState = 'DEALER_TURN';
+        els.gameControls.classList.remove('active');
+        const holeCardEl = els.dCards.children[1];
+        if (holeCardEl) holeCardEl.classList.add('flipped');
+        setTimeout(() => {
+          updateAllPlayerScores(true);
+          dealerAI(false);
+        }, 320);
+      }
 }
 
 function doubleDown() {
