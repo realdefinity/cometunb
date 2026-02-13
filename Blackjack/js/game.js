@@ -325,7 +325,7 @@ function stand(revealInstant = false) {
   const holeCardEl = els.dCards.children[1];
       const doReveal = () => {
         if (playerHands.length === 1) {
-          if (holeCardEl) holeCardEl.classList.add('flipped');
+          if (holeCardEl) holeCardEl.classList.remove('face-down');
           gameState = 'DEALER_TURN';
           els.gameControls.classList.remove('active');
           setTimeout(() => {
@@ -343,7 +343,7 @@ function stand(revealInstant = false) {
           updateUI();
           return;
         }
-        if (holeCardEl) holeCardEl.classList.add('flipped');
+        if (holeCardEl) holeCardEl.classList.remove('face-down');
         gameState = 'DEALER_TURN';
         els.gameControls.classList.remove('active');
         setTimeout(() => {
@@ -382,7 +382,7 @@ function advanceToNextHandOrDealer() {
         gameState = 'DEALER_TURN';
         els.gameControls.classList.remove('active');
         const holeCardEl = els.dCards.children[1];
-        if (holeCardEl) holeCardEl.classList.add('flipped');
+        if (holeCardEl) holeCardEl.classList.remove('face-down');
         setTimeout(() => {
           updateAllPlayerScores(true);
           dealerAI(false);

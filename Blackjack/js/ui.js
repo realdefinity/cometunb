@@ -29,43 +29,47 @@ function makeCardDOM(cardData, faceUp = true) {
   const inner = document.createElement('div');
   inner.className = 'inner';
 
-  // Front (Face)
   const face = document.createElement('div');
   face.className = 'card-face';
   
-  // Back
   const back = document.createElement('div');
   back.className = 'card-back';
   
-  // Design Logic
   const colorCls = suitClass(cardData.s);
   
-  // Top Left
+  // ——— Corners ———
+  const cornerContent = `<span class="rank">${cardData.v}</span><span class="suit">${cardData.s}</span>`;
   const cornerTL = document.createElement('div');
   cornerTL.className = `corner ${colorCls}`;
-  cornerTL.innerHTML = `<span class="rank">${cardData.v}</span><span class="suit">${cardData.s}</span>`;
+  cornerTL.innerHTML = cornerContent;
   
-  // Bottom Right
   const cornerBR = document.createElement('div');
   cornerBR.className = `corner bottom ${colorCls}`;
-  cornerBR.innerHTML = `<span class="rank">${cardData.v}</span><span class="suit">${cardData.s}</span>`;
+  cornerBR.innerHTML = cornerContent;
   
-  // Middle Grid
-  const grid = document.createElement('div');
-  grid.className = `pip-grid ${colorCls}`;
+  face.appendChild(cornerTL);
+  face.appendChild(cornerBR);
+
+  // ——— Center Content ———
+  const content = document.createElement('div');
+  content.className = 'card-content';
   
-  // Simple Pip Logic for now (can be expanded)
   if (['J','Q','K'].includes(cardData.v)) {
       const art = document.createElement('div');
-      art.className = 'face-card-art';
-      art.textContent = cardData.s; // Placeholder
-      face.appendChild(art);
+      art.className = `face-art ${colorCls}`;
+      art.textContent = cardData.v; 
+      content.appendChild(art);
+  } else if (cardData.v === 'A') {
+      const ace = document.createElement('div');
+      ace.className = `pip ace ${colorCls}`;
+      ace.textContent = cardData.s;
+      content.appendChild(ace);
   } else {
-      // Basic Pips (reuse existing if logic)
-      if (!isNaN(parseInt(cardData.v, 10))) {
-        const n = parseInt(cardData.v, 10);
-        const layout = PIP_LAYOUTS[n] || [];
-        for (const [c, r] of layout) {
+      const grid = document.createElement('div');
+      grid.className = `pip-grid ${colorCls}`;
+      const n = parseInt(cardData.v, 10);
+      const layout = PIP_LAYOUTS[n] || [];
+      for (const [c, r] of layout) {
           const pip = document.createElement('div');
           pip.className = 'pip';
           pip.textContent = cardData.s;
@@ -73,34 +77,29 @@ function makeCardDOM(cardData, faceUp = true) {
           pip.style.gridRow = String(r);
           if (r > 3) pip.style.transform = 'rotate(180deg)';
           grid.appendChild(pip);
-        }
-      } else if (cardData.v === 'A') {
-         const pip = document.createElement('div');
-         pip.className = 'pip big';
-         pip.textContent = cardData.s;
-         pip.style.gridColumn = '2';
-         pip.style.gridRow = '3';
-         grid.appendChild(pip);
       }
-      face.appendChild(grid);
+      content.appendChild(grid);
   }
-  
+  face.appendChild(content);
+
+  // Bust Stamp
   const stamp = document.createElement('div');
   stamp.className = 'bust-stamp';
   stamp.textContent = 'BUSTED';
-
-  face.appendChild(cornerTL);
-  face.appendChild(cornerBR);
   face.appendChild(stamp);
 
+  // Assemble
+  inner.appendChild(back); // Back first in DOM, covered by Face in 3D usually, but we manage via transforms
   inner.appendChild(face);
-  inner.appendChild(back);
   card.appendChild(inner);
 
-  // New Logic: Default is Back Visible (no class).
-  // If we want it Face Up eventually, spawnCard will add 'flipped' class.
-  // If we want it Hole Card (Face Down), we never add 'flipped'.
-  
+  // LOGIC INVERSION:
+  // If card is NOT Face Up (i.e. Hole Card), we add .face-down.
+  // Otherwise default is Face Up.
+  if (!faceUp) {
+      card.classList.add('face-down');
+  }
+
   return card;
 }
 
@@ -250,8 +249,15 @@ function spawnCard(handArr, container, faceUp, delay) {
   setTimeout(() => {
     playSound('card');
     
-    // Create card (Default is Face Down/Back Visible)
+    // Default is Face Up. If !faceUp, it has .face-down class.
     const cardEl = makeCardDOM(cardData, faceUp);
+    
+    // Animation Hack: If it is supposed to be Face Up, start with .face-down 
+    // so it flips open upon landing.
+    if (faceUp) {
+        cardEl.classList.add('face-down');
+    }
+    
     container.appendChild(cardEl);
     
     // Force reflow
@@ -260,11 +266,11 @@ function spawnCard(handArr, container, faceUp, delay) {
     // Fly in
     cardEl.classList.add('dealt');
     
-    // If it should be Face Up, flip it after a short delay
+    // Flip open if needed
     if (faceUp) {
         setTimeout(() => {
-            cardEl.classList.add('flipped');
-        }, 150); 
+            cardEl.classList.remove('face-down');
+        }, 100); 
     }
   }, delay);
 }
