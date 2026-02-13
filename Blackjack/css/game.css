@@ -77,7 +77,7 @@
 .stat-box:hover {
   border-color: var(--glass-border-hover);
   box-shadow: var(--shadow-2), var(--glow-soft), inset 0 1px 0 var(--glass-shine), inset 0 -1px 0 var(--glass-edge);
-  transform: translateZ(0) scale(1.02);
+  transform: translateZ(0) scale(1.05);
 }
 
 .stat-label {
@@ -93,6 +93,11 @@
   font-weight: 700;
   color: var(--gold);
   text-shadow: 0 0 24px rgba(232, 197, 71, 0.25);
+  transition: color 0.2s, transform 0.2s;
+}
+.stat-value.bump {
+  color: #fff;
+  transform: scale(1.2);
 }
 
 .stats-row {
@@ -229,10 +234,11 @@
   border-radius: 10px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.06);
   opacity: 0;
-  transform: translate(520px, -380px) rotate(38deg) scale(0.86);
-  transition: transform 0.88s var(--ease-out-expo), opacity 0.5s var(--ease-spring), filter 0.45s var(--ease), box-shadow 0.4s var(--ease);
+  /* Start further away and bigger for more impact */
+  transform: translate(600px, -500px) rotate(45deg) scale(1.1);
+  transition: transform 0.6s var(--ease-out-expo), opacity 0.4s var(--ease), filter 0.45s var(--ease), box-shadow 0.4s var(--ease);
   will-change: transform;
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,0.3));
 }
 .card:first-child { margin-left: 0; }
 .card.dealt {
@@ -246,8 +252,16 @@
   inset: 0;
   border-radius: 10px;
   transform-style: preserve-3d;
-  transition: transform 0.68s var(--ease-spring);
+  transition: transform 0.6s var(--ease-spring);
 }
+/* When dealing face up, we start flipped (back visible) then flip to front */
+.card.deal-flip .inner {
+  transform: rotateY(180deg);
+}
+/* When dealing face down (hole card), we start front visible (hidden) then flip to back? 
+   Actually, standard is: back is 180deg. Front is 0deg.
+   If we want to show back, we rotateY(180deg).
+*/
 .card.is-flipping .inner { transform: rotateY(180deg); }
 
 .card-face, .card-back {
@@ -261,6 +275,7 @@
   background: linear-gradient(165deg, #fefefe 0%, #f8f7f5 35%, #f2f0ec 100%);
   border: 1px solid rgba(0,0,0,0.12);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.04), inset 2px 2px 4px rgba(0,0,0,0.03);
+  /* Face is at 0deg */
 }
 .card-back {
   transform: rotateY(180deg);
@@ -406,7 +421,7 @@
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--shadow-1), inset 0 1px 0 var(--glass-shine), inset 0 -1px 0 var(--glass-edge);
-  transition: transform 0.3s var(--ease-bounce), box-shadow 0.35s var(--ease), border-color 0.3s ease, background 0.3s ease;
+  transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s var(--ease), border-color 0.2s ease, background 0.2s ease;
   overflow: hidden;
   transform: translateZ(0);
 }
@@ -424,14 +439,14 @@
   filter: grayscale(0.3);
 }
 .btn:hover:not(:disabled) {
-  transform: translateY(-4px) translateZ(0);
+  transform: translateY(-6px) scale(1.02) translateZ(0);
   border-color: var(--glass-border-hover);
   background: linear-gradient(160deg, var(--glass-bg-strong) 0%, rgba(255,255,255,0.04) 100%);
   box-shadow: var(--shadow-2), var(--glow-soft), inset 0 1px 0 var(--glass-shine);
 }
 .btn:active:not(:disabled) {
-  transform: translateY(-1px) scale(0.98) translateZ(0);
-  transition-duration: 0.12s;
+  transform: translateY(2px) scale(0.95) translateZ(0);
+  transition-duration: 0.08s;
 }
 
 .btn-hit { color: #fff; background: linear-gradient(135deg, rgba(61, 216, 138, 0.35), rgba(46, 180, 110, 0.3)); border-color: rgba(61, 216, 138, 0.4); min-width: 100px; }
@@ -520,7 +535,7 @@
   transition: transform 0.2s var(--ease), opacity 0.2s;
   pointer-events: auto;
 }
-.btn-icon:hover { opacity: 0.9; transform: scale(1.05); }
+.btn-icon:hover { opacity: 0.9; transform: scale(1.1); }
 .streak-badge {
   margin-left: 8px;
   padding: 2px 8px;
@@ -582,15 +597,15 @@
   font-size: 1rem;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.28s var(--ease-bounce), box-shadow 0.28s var(--ease);
+  transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s var(--ease);
 }
 .chip:hover {
-  transform: translateY(-10px) scale(1.08);
+  transform: translateY(-12px) scale(1.15);
   box-shadow: 0 16px 0 rgba(0,0,0,0.35), 0 24px 40px rgba(0,0,0,0.38);
 }
 .chip:active {
-  transform: translateY(1px) scale(0.96);
-  transition-duration: 0.1s;
+  transform: translateY(2px) scale(0.9);
+  transition-duration: 0.08s;
   box-shadow: 0 2px 0 rgba(0,0,0,0.35);
 }
 
@@ -693,6 +708,16 @@
 @keyframes confetti-fly {
   from { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
   to { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)); opacity: 0; }
+}
+
+@keyframes winnerPulse {
+  0% { filter: drop-shadow(0 0 0 rgba(232, 197, 71, 0)); }
+  50% { filter: drop-shadow(0 0 25px rgba(232, 197, 71, 0.8)); transform: scale(1.02); }
+  100% { filter: drop-shadow(0 0 0 rgba(232, 197, 71, 0)); }
+}
+
+.winner-pulse .card {
+  animation: winnerPulse 1.5s infinite;
 }
 
 @media (max-width: 640px) {

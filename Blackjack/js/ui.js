@@ -24,22 +24,30 @@ function suitClass(s) { return (s === '♥' || s === '♦') ? 'pip-red' : 'pip-b
 function makeCardDOM(cardData, faceUp = true) {
   const card = document.createElement('div');
   card.className = 'card';
+  // Random slight rotation for realism
   card.style.setProperty('--rot', (Math.random() - 0.5) * 6 + 'deg');
+  
   const inner = document.createElement('div');
   inner.className = 'inner';
+  
   const face = document.createElement('div');
   face.className = 'card-face';
+  
   const back = document.createElement('div');
   back.className = 'card-back';
+  
   const colorCls = suitClass(cardData.s);
   const cornerTL = document.createElement('div');
   cornerTL.className = `corner ${colorCls}`;
   cornerTL.innerHTML = `<div class="rank">${cardData.v}</div><div class="suit">${cardData.s}</div>`;
+  
   const cornerBR = document.createElement('div');
   cornerBR.className = `corner bottom ${colorCls}`;
   cornerBR.innerHTML = `<div class="rank">${cardData.v}</div><div class="suit">${cardData.s}</div>`;
+  
   const grid = document.createElement('div');
   grid.className = `pip-grid ${colorCls}`;
+  
   if (!isNaN(parseInt(cardData.v, 10))) {
     const n = parseInt(cardData.v, 10);
     const layout = PIP_LAYOUTS[n] || [];
@@ -75,17 +83,23 @@ function makeCardDOM(cardData, faceUp = true) {
       grid.appendChild(pip3);
     }
   }
+  
   const stamp = document.createElement('div');
   stamp.className = 'bust-stamp';
   stamp.textContent = 'BUSTED';
+  
   face.appendChild(cornerTL);
   face.appendChild(grid);
   face.appendChild(cornerBR);
   face.appendChild(stamp);
+  
   inner.appendChild(face);
   inner.appendChild(back);
   card.appendChild(inner);
-  if (!faceUp) card.classList.add('is-flipping');
+  
+  // Start flipped (showing back) for animation
+  card.classList.add('is-flipping');
+  
   return card;
 }
 
@@ -94,28 +108,62 @@ function setControlsEnabled(enabled) {
   els.btnStand.disabled = !enabled;
 }
 
+// Helper for number animation
+function animateValue(obj, start, end, duration) {
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const val = Math.floor(progress * (end - start) + start);
+    obj.textContent = '$' + val;
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+        obj.classList.remove('bump');
+    }
+  };
+  if(start !== end) {
+      obj.classList.add('bump');
+      window.requestAnimationFrame(step);
+  } else {
+      obj.textContent = '$' + end;
+  }
+}
+
+let lastWallet = 1000;
+let lastTotalBet = 0;
+
 function updateUI() {
-  els.wallet.textContent = '$' + Math.floor(wallet);
+  // Animate Wallet
+  animateValue(els.wallet, lastWallet, Math.floor(wallet), 500);
+  lastWallet = Math.floor(wallet);
+
   const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-  els.bet.textContent = '$' + Math.floor(totalBet);
+  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 300);
+  lastTotalBet = Math.floor(totalBet);
+
   els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
   els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet >= lastBet);
   els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
   els.btnSplit.disabled = !canSplit();
   els.btnSurrender.style.display = canSurrender() ? '' : 'none';
+  
   if (loan > 0) {
     els.loanBox.style.display = '';
     els.loanVal.textContent = '$' + Math.floor(loan);
   } else {
     els.loanBox.style.display = 'none';
   }
+  
   const totalBetNow = currentBets.reduce((a, b) => a + b, 0) || currentBet;
   const showTakeLoan = gameState === 'BETTING' && wallet <= 0 && totalBetNow <= 0;
   els.takeLoanStrip.style.display = showTakeLoan ? 'flex' : 'none';
+  
   const showPayback = gameState === 'BETTING' && loan > 0 && wallet > 0;
   els.btnPayback.style.display = showPayback ? '' : 'none';
   els.btnPayall.style.display = showPayback ? '' : 'none';
   els.btnPayback.textContent = 'Pay $' + Math.min(100, Math.floor(wallet), Math.floor(loan));
+  
   const canPlay = gameState === 'PLAYING';
   setControlsEnabled(canPlay);
   updateStatsUI();
@@ -153,9 +201,7 @@ function markBusted(container) {
 
 function highlightWinner(container) {
   if (!container) return;
-  container.querySelectorAll('.card').forEach(c => {
-    c.style.filter = 'drop-shadow(0 0 20px rgba(232, 197, 71, 0.5))';
-  });
+  container.classList.add('winner-pulse');
 }
 
 function animateChip(x, y) {
@@ -164,29 +210,57 @@ function animateChip(x, y) {
   chip.style.left = x + 'px';
   chip.style.top = y + 'px';
   document.body.appendChild(chip);
+  
   const tx = window.innerWidth / 2 - 22;
   const ty = window.innerHeight - 230;
+  
+  // More dynamic curve
   chip.animate(
-    [{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${tx - x}px, ${ty - y}px) scale(0.55)`, opacity: 0.6 }],
-    { duration: 620, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+    [
+        { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 }, 
+        { transform: `translate(${tx - x}px, ${ty - y}px) scale(0.6) rotate(720deg)`, opacity: 0.8 }
+    ],
+    { duration: 500, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
   ).onfinish = () => chip.remove();
 }
 
 function triggerConfetti() {
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a'];
   const fragment = document.createDocumentFragment();
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 80; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = 100 + Math.random() * 320;
+    const dist = 150 + Math.random() * 400;
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
     c.style.setProperty('--rot', Math.random() * 720 + 'deg');
-    c.style.setProperty('--dur', (1000 + Math.random() * 600) + 'ms');
+    c.style.setProperty('--dur', (800 + Math.random() * 800) + 'ms');
     c.addEventListener('animationend', () => c.remove(), { once: true });
     fragment.appendChild(c);
   }
   document.body.appendChild(fragment);
+}
+
+function spawnCard(handArr, container, faceUp, delay) {
+  const cardData = deck.pop();
+  handArr.push(cardData);
+  setTimeout(() => {
+    playSound('card');
+    const cardEl = makeCardDOM(cardData, faceUp);
+    container.appendChild(cardEl);
+    
+    // Force reflow
+    void cardEl.offsetWidth;
+    
+    cardEl.classList.add('dealt');
+    
+    // If it should be face up, flip it after it lands
+    if (faceUp) {
+        setTimeout(() => {
+            cardEl.classList.remove('is-flipping');
+        }, 300); // Start flip mid-flight or just after landing
+    }
+  }, delay);
 }
