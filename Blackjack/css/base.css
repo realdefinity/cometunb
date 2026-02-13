@@ -16,63 +16,53 @@
   --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-fluid: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* ——— Liquid Glass v2 ——— */
-  --glass-blur: 28px;
-  --glass-saturate: 1.6;
-  --glass-tint: rgba(255, 255, 255, 0.04);
-  --glass-bg: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.09) 0%,
-    rgba(255, 255, 255, 0.025) 40%,
-    rgba(255, 255, 255, 0.055) 100%
-  );
-  --glass-bg-hover: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.05) 40%,
-    rgba(255, 255, 255, 0.09) 100%
-  );
+  /* ——— Liquid Glass v3 ——— */
+  --glass-blur: 24px;
+  --glass-saturate: 1.5;
+
+  /* Glass tint: solid rgba so the browser never re-interpolates a gradient per-frame */
+  --glass-tint: rgba(255, 255, 255, 0.055);
+  --glass-tint-hover: rgba(255, 255, 255, 0.09);
+  --glass-tint-strong: rgba(255, 255, 255, 0.08);
 
   /* Borders */
-  --glass-border: 1px solid rgba(255, 255, 255, 0.13);
-  --glass-border-hover: 1px solid rgba(255, 255, 255, 0.3);
-  --glass-border-color: rgba(255, 255, 255, 0.13);
-  --glass-border-color-hover: rgba(255, 255, 255, 0.3);
+  --glass-border-color: rgba(255, 255, 255, 0.12);
+  --glass-border-color-hover: rgba(255, 255, 255, 0.28);
 
-  /* Specular highlights */
-  --glass-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
-  --glass-specular-soft: inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
-  --glass-edge-bottom: inset 0 -1px 0 0 rgba(255, 255, 255, 0.06);
-  --glass-inner-light: inset 0 0 30px rgba(255, 255, 255, 0.035);
-  --glass-chromatic: inset 0 0 0 0.5px rgba(180, 220, 255, 0.08);
-
-  /* Shadows */
+  /* Consolidated shadows (fewer layers = fewer compositing glitches) */
   --glass-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.3),
-    0 1px 3px rgba(0, 0, 0, 0.18);
+    0 4px 20px rgba(0, 0, 0, 0.28),
+    0 1px 3px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.05);
   --glass-shadow-lg:
-    0 16px 48px rgba(0, 0, 0, 0.38),
-    0 4px 12px rgba(0, 0, 0, 0.22);
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    0 3px 10px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.06);
   --glass-shadow-xl:
-    0 24px 64px rgba(0, 0, 0, 0.45),
-    0 8px 20px rgba(0, 0, 0, 0.25);
+    0 20px 56px rgba(0, 0, 0, 0.42),
+    0 6px 16px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.07);
 
   /* Glows */
-  --glass-glow: 0 0 32px rgba(255, 255, 255, 0.04);
-  --glass-glow-gold: 0 0 28px rgba(232, 197, 71, 0.1);
-  --glass-glow-green: 0 0 28px rgba(61, 216, 138, 0.1);
-  --glass-glow-red: 0 0 28px rgba(255, 90, 90, 0.1);
-  --glass-glow-blue: 0 0 28px rgba(100, 160, 255, 0.1);
+  --glass-glow: 0 0 28px rgba(255, 255, 255, 0.035);
+  --glass-glow-gold: 0 0 24px rgba(232, 197, 71, 0.1);
+  --glass-glow-green: 0 0 24px rgba(61, 216, 138, 0.1);
+  --glass-glow-red: 0 0 24px rgba(255, 90, 90, 0.1);
+  --glass-glow-blue: 0 0 24px rgba(100, 160, 255, 0.1);
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
-    --glass-bg: rgba(10, 40, 30, 0.85);
-    --glass-bg-hover: rgba(10, 40, 30, 0.9);
+    --glass-tint: rgba(10, 40, 30, 0.82);
+    --glass-tint-hover: rgba(10, 40, 30, 0.88);
+    --glass-tint-strong: rgba(10, 40, 30, 0.85);
   }
 }
 
@@ -99,23 +89,27 @@ body {
 }
 
 body.perf-lite {
-  --glass-blur: 14px;
+  --glass-blur: 12px;
   --glass-saturate: 1.1;
   --glass-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.28),
-    0 1px 3px rgba(0, 0, 0, 0.16);
+    0 3px 14px rgba(0, 0, 0, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.04);
   --glass-shadow-lg:
-    0 8px 24px rgba(0, 0, 0, 0.3),
-    0 2px 6px rgba(0, 0, 0, 0.18);
+    0 8px 22px rgba(0, 0, 0, 0.28),
+    0 2px 5px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.05);
   --glass-shadow-xl: var(--glass-shadow-lg);
-  --glass-glow: 0 0 16px rgba(255, 255, 255, 0.02);
-  --glass-glow-gold: 0 0 12px rgba(232, 197, 71, 0.06);
-  --glass-glow-green: 0 0 12px rgba(61, 216, 138, 0.06);
-  --glass-glow-red: 0 0 12px rgba(255, 90, 90, 0.06);
-  --glass-glow-blue: 0 0 12px rgba(100, 160, 255, 0.06);
+  --glass-glow: 0 0 14px rgba(255, 255, 255, 0.02);
+  --glass-glow-gold: 0 0 10px rgba(232, 197, 71, 0.06);
+  --glass-glow-green: 0 0 10px rgba(61, 216, 138, 0.06);
+  --glass-glow-red: 0 0 10px rgba(255, 90, 90, 0.06);
+  --glass-glow-blue: 0 0 10px rgba(100, 160, 255, 0.06);
 }
 
-/* ——— Shimmer keyframe (shared) ——— */
+/* ——— Shimmer keyframe ——— */
 @keyframes glassShimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }

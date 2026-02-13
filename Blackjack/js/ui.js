@@ -13,8 +13,9 @@ const perfLite = hasPerfLiteClass
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
 
-/* shared fluid easing for Web Animations API */
+/* Shared easing for Web Animations API */
 const EASE_FLUID = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const EASE_SPRING = 'cubic-bezier(0.175, 0.885, 0.32, 1.1)';
 
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
@@ -116,7 +117,7 @@ function setControlsEnabled(enabled) {
   els.btnStand.disabled = !enabled;
 }
 
-/* Smooth number animation with easeOutQuart */
+/* Smooth number animation */
 function animateValue(obj, start, end, duration) {
   if (!obj) return;
   const existingFrame = valueAnimationFrames.get(obj);
@@ -160,11 +161,11 @@ let lastWallet = 1000;
 let lastTotalBet = 0;
 
 function updateUI() {
-  animateValue(els.wallet, lastWallet, Math.floor(wallet), 550);
+  animateValue(els.wallet, lastWallet, Math.floor(wallet), 500);
   lastWallet = Math.floor(wallet);
 
   const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 320);
+  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 300);
   lastTotalBet = Math.floor(totalBet);
 
   els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
@@ -206,14 +207,15 @@ function hideMsg() {
 
 function clearTable() {
   const cards = document.querySelectorAll('.card');
+  const dur = perfLite ? 260 : 350;
   cards.forEach((c, i) => {
     c.animate(
       [
-        { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 }, 
-        { transform: 'translate3d(0,-16px,0) scale(0.92)', opacity: 0.6, offset: 0.4 },
-        { transform: 'translate3d(0,-24px,0) scale(0.85) rotate(3deg)', opacity: 0 }
+        { transform: 'translate3d(0,0,0) scale(1)', opacity: 1 },
+        { transform: 'translate3d(0, -14px, 0) scale(0.93)', opacity: 0.5, offset: 0.45 },
+        { transform: 'translate3d(0, -22px, 0) scale(0.86) rotate(2deg)', opacity: 0 }
       ],
-      { duration: perfLite ? 280 : 380, easing: EASE_FLUID, delay: i * 25, fill: 'forwards' }
+      { duration: dur, easing: EASE_FLUID, delay: i * 22, fill: 'forwards' }
     ).onfinish = () => c.remove();
   });
 }
@@ -236,7 +238,7 @@ function highlightWinner(container) {
   const timeout = window.setTimeout(() => {
     container.classList.remove('winner-pulse');
     winnerPulseTimers.delete(container);
-  }, perfLite ? 900 : 1200);
+  }, perfLite ? 850 : 1100);
   winnerPulseTimers.set(container, timeout);
 }
 
@@ -251,34 +253,35 @@ function animateChip(x, y) {
   const ty = window.innerHeight - 230;
   const dx = tx - x;
   const dy = ty - y;
-  const arcHeight = perfLite ? 30 : 55;
+  const arc = perfLite ? 28 : 50;
+  const dur = perfLite ? 400 : 520;
   
   chip.animate(
     [
-        { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
-        { transform: `translate(${dx * 0.35}px, ${dy * 0.2 - arcHeight}px) scale(0.88) rotate(270deg)`, opacity: 0.95, offset: 0.4 },
-        { transform: `translate(${dx * 0.7}px, ${dy * 0.65 - arcHeight * 0.3}px) scale(0.7) rotate(540deg)`, opacity: 0.85, offset: 0.75 },
-        { transform: `translate(${dx}px, ${dy}px) scale(0.45) rotate(720deg)`, opacity: 0.6 }
+      { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
+      { transform: `translate(${dx * 0.38}px, ${dy * 0.2 - arc}px) scale(0.88) rotate(240deg)`, opacity: 0.95, offset: 0.42 },
+      { transform: `translate(${dx * 0.72}px, ${dy * 0.6 - arc * 0.3}px) scale(0.68) rotate(500deg)`, opacity: 0.82, offset: 0.76 },
+      { transform: `translate(${dx}px, ${dy}px) scale(0.42) rotate(680deg)`, opacity: 0.55 }
     ],
-    { duration: perfLite ? 420 : 560, easing: EASE_FLUID }
+    { duration: dur, easing: EASE_FLUID }
   ).onfinish = () => chip.remove();
 }
 
 function triggerConfetti() {
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  const count = perfLite ? 24 : 55;
+  const count = perfLite ? 22 : 50;
   for (let i = 0; i < count; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = (perfLite ? 80 : 110) + Math.random() * (perfLite ? 200 : 320);
+    const dist = (perfLite ? 75 : 100) + Math.random() * (perfLite ? 185 : 300);
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
-    c.style.setProperty('--rot', (Math.random() * 600 + 120) + 'deg');
-    c.style.setProperty('--dur', ((perfLite ? 500 : 750) + Math.random() * (perfLite ? 400 : 650)) + 'ms');
-    const size = 5 + Math.random() * 6;
+    c.style.setProperty('--rot', (Math.random() * 540 + 120) + 'deg');
+    c.style.setProperty('--dur', ((perfLite ? 480 : 700) + Math.random() * (perfLite ? 380 : 600)) + 'ms');
+    const size = 5 + Math.random() * 5;
     c.style.width = size + 'px';
     c.style.height = size + 'px';
     c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
@@ -295,8 +298,8 @@ function spawnCard(handArr, container, faceUp, delay) {
     playSound('card');
     
     const cardEl = makeCardDOM(cardData, faceUp);
-    const dealDuration = perfLite ? 420 : 600;
-    const flipDuration = perfLite ? 380 : 560;
+    const dealDuration = perfLite ? 400 : 580;
+    const flipDuration = perfLite ? 360 : 540;
     cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
     cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
     
@@ -310,7 +313,7 @@ function spawnCard(handArr, container, faceUp, delay) {
     });
     
     if (faceUp) {
-        const revealDelay = Math.max(70, Math.round(dealDuration * 0.3));
+        const revealDelay = Math.max(60, Math.round(dealDuration * 0.28));
         setTimeout(() => {
             cardEl.classList.remove('face-down');
         }, revealDelay);
