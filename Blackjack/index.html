@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Liquid Glass Blackjack</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+  <div id="table">
+    <div class="deck-shoe" aria-hidden="true"></div>
+
+    <div id="hud">
+      <div class="stat-box">
+        <span class="stat-label">Wallet</span>
+        <span class="stat-value" id="wallet-val">$1000</span>
+      </div>
+      <div class="stat-box stat-loan" id="loan-box" style="display: none;">
+        <span class="stat-label">Loan</span>
+        <span class="stat-value stat-loan-val" id="loan-val">$0</span>
+      </div>
+      <div class="stats-row">
+        <span id="stat-wins">0</span> W /
+        <span id="stat-losses">0</span> L /
+        <span id="stat-pushes">0</span> P
+        <span class="streak-badge" id="streak-display" style="display: none;">🔥 <span id="streak-num">0</span></span>
+      </div>
+      <button class="btn-icon" id="btn-sound" onclick="toggleSound()" title="Sound">🔊</button>
+      <div class="rules">
+        <div>Pays <span style="color:var(--gold)">3:2</span></div>
+        <small>Split • Double on first 2 • Dealer stands 17</small>
+      </div>
+    </div>
+
+    <div class="hand-container dealer-area" id="dealer-area">
+      <div class="hand-label">Dealer</div>
+      <div class="cards-wrapper" id="dealer-cards"></div>
+      <div class="score-badge" id="dealer-score">0</div>
+    </div>
+
+    <div class="hand-container" id="player-area">
+      <div class="hand-label">Player</div>
+      <div class="player-hands-row single" id="player-hands-row">
+        <div class="hand-slot active" data-hand="0">
+          <span class="hand-slot-label">Hand 1</span>
+          <div class="cards-wrapper" id="player-cards-0"></div>
+          <div class="score-badge" id="player-score-0">0</div>
+        </div>
+        <div class="hand-slot inactive" data-hand="1">
+          <span class="hand-slot-label">Hand 2</span>
+          <div class="cards-wrapper" id="player-cards-1"></div>
+          <div class="score-badge" id="player-score-1">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div></div>
+  </div>
+
+  <div id="insurance-strip" class="insurance-strip" style="display: none;">
+    <p class="insurance-msg">Dealer has Ace. Insurance pays 2:1 if dealer has blackjack.</p>
+    <div class="insurance-btns">
+      <button class="btn btn-util" onclick="takeInsurance()">Take insurance ($<span id="insurance-amt">0</span>)</button>
+      <button class="btn btn-stand" onclick="declineInsurance()">No thanks</button>
+    </div>
+  </div>
+  <div id="gameplay-controls">
+    <button class="btn btn-hit" id="btn-hit" onclick="hit()">Hit</button>
+    <button class="btn btn-stand" id="btn-stand" onclick="stand()">Stand</button>
+    <button class="btn btn-double" id="btn-double" onclick="doubleDown()">Double</button>
+    <button class="btn btn-split" id="btn-split" onclick="split()">Split</button>
+    <button class="btn btn-util btn-surrender" id="btn-surrender" onclick="surrender()" style="display: none;">Surrender</button>
+  </div>
+  <div id="peek-msg" class="peek-msg" style="display: none;">Dealer checks for blackjack…</div>
+
+  <div id="betting-overlay">
+    <div class="bet-info">
+      <span>BET</span>
+      <span id="bet-val" style="color:rgba(255,255,255,0.95);">$0</span>
+    </div>
+    <div class="chips-rack">
+      <div class="chip chip-10" onclick="placeBet(10, event)">10</div>
+      <div class="chip chip-50" onclick="placeBet(50, event)">50</div>
+      <div class="chip chip-100" onclick="placeBet(100, event)">100</div>
+      <div class="chip chip-500" onclick="placeBet(500, event)">500</div>
+    </div>
+    <div class="take-loan-strip" id="take-loan-strip" style="display: none;">
+      <p class="take-loan-msg">No cash and no bet on the table. Borrow to keep playing (10% fee).</p>
+      <div class="loan-buttons">
+        <button class="btn btn-util" onclick="takeLoan(200)">$200 → owe $220</button>
+        <button class="btn btn-util" onclick="takeLoan(500)">$500 → owe $550</button>
+        <button class="btn btn-deal" onclick="takeLoan(1000)">$1000 → owe $1100</button>
+      </div>
+    </div>
+    <div class="bet-controls">
+      <button class="btn btn-util" onclick="clearBet()">Clear</button>
+      <button class="btn btn-util" onclick="bet2x()">2×</button>
+      <button class="btn btn-util btn-rebet" id="btn-rebet" onclick="rebet()">Rebet</button>
+      <button class="btn btn-util" id="btn-payback" onclick="payBack(100)" style="display: none;">Pay $100</button>
+      <button class="btn btn-util" id="btn-payall" onclick="payBack(-1)" style="display: none;">Pay all</button>
+      <button class="btn btn-util" onclick="allIn()">All In</button>
+      <button class="btn btn-deal" id="btn-deal" onclick="deal()">DEAL</button>
+    </div>
+  </div>
+
+  <div id="msg-overlay">
+    <div id="msg-text">BLACKJACK</div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
