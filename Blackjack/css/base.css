@@ -11,6 +11,17 @@
   --card-w: 128px;
   --card-h: 180px;
   --chip-size: 64px;
+  --glass-cx: 50%;
+  --glass-cy: 36%;
+  --glass-shift-x: 0%;
+  --glass-shift-y: 0%;
+  --motion-fast: 180ms;
+  --motion-medium: 340ms;
+  --motion-slow: 560ms;
+  --motion-deal: 620ms;
+  --motion-flip: 520ms;
+  --winner-pulse-duration: 560ms;
+  --ambient-flow-speed: 22s;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -98,6 +109,8 @@ body {
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
+  position: relative;
+  isolation: isolate;
   contain: strict;
   background:
     radial-gradient(ellipse 110% 85% at 50% -5%, rgba(13, 51, 40, 0.55) 0%, transparent 58%),
@@ -148,6 +161,12 @@ body.perf-lite *::after {
 
 body.perf-lite .glass-shimmer-overlay {
   display: none !important;
+}
+
+body.perf-lite::before,
+body.perf-lite::after {
+  opacity: 0;
+  animation: none;
 }
 
 @keyframes glassShimmer {

@@ -138,6 +138,8 @@ function allIn() {
 function deal() {
   initAudio();
   if (gameState !== 'BETTING' || currentBet <= 0) return;
+  const profile = motionProfile();
+  const gap = profile.dealGap;
 
   const lite = isPerfLite();
   lastBet = currentBet;
@@ -189,6 +191,7 @@ function deal() {
 }
 
 function takeInsurance() {
+  const profile = motionProfile();
   const insAmt = Math.floor(currentBet / 2);
   if (wallet < insAmt) return;
   initAudio();
@@ -202,6 +205,7 @@ function takeInsurance() {
 }
 
 function declineInsurance() {
+  const profile = motionProfile();
   els.insuranceStrip.style.display = 'none';
   const lite = isPerfLite();
   if (isBlackjack(playerHands[0])) stand(true);
@@ -210,6 +214,7 @@ function declineInsurance() {
 
 function surrender() {
   if (!canSurrender()) return;
+  const profile = motionProfile();
   const bet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
   wallet += Math.floor(bet / 2);
   surrenderedHands[activeHandIndex] = true;
@@ -229,7 +234,7 @@ function surrender() {
       els.betUI.classList.remove('hidden');
       dimHands(true);
       updateUI();
-    }, 2000);
+    }, Math.round(profile.roundResetDelay * 0.82));
     return;
   }
   stand(false);
@@ -286,6 +291,8 @@ function updateAllPlayerScores(showDealer) {
 
 function split() {
   if (!canSplit()) return;
+  const profile = motionProfile();
+  const gap = Math.round(profile.dealGap * 0.92);
   initAudio();
   playSound('chip');
   wallet -= currentBet;
@@ -341,6 +348,7 @@ function split() {
 
 function hit() {
   if (gameState !== 'PLAYING') return;
+  const profile = motionProfile();
   els.btnDouble.disabled = true;
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
@@ -361,6 +369,7 @@ function hit() {
 
 function stand(revealInstant = false) {
   if (gameState !== 'PLAYING') return;
+  const profile = motionProfile();
 
   const lite = isPerfLite();
   const holeCardEl = els.dCards.children[1];
@@ -414,6 +423,7 @@ function advanceToNextHandOrDealer() {
     endRoundMulti([{ result: 'BUST', handIndex: 0 }]);
     return;
   }
+  const profile = motionProfile();
   activeHandIndex++;
   if (activeHandIndex < playerHands.length) {
     els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
@@ -436,6 +446,7 @@ function advanceToNextHandOrDealer() {
 
 function doubleDown() {
   if (!canDoubleDown(activeHandIndex)) return;
+  const profile = motionProfile();
   initAudio();
   playSound('chip');
   const addBet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
@@ -516,6 +527,7 @@ function getMultiResults() {
 }
 
 function endRoundMulti(results) {
+  const profile = motionProfile();
   gameState = 'END';
 
   if (isBlackjack(dealerHand) && insuranceBet > 0) {
@@ -580,5 +592,5 @@ function endRoundMulti(results) {
     els.insuranceStrip.style.display = 'none';
     dimHands(true);
     updateUI();
-  }, 2600);
+  }, profile.roundResetDelay);
 }

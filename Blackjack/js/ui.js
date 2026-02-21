@@ -45,6 +45,10 @@ const winnerPulseTimers = new WeakMap();
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const EASE_SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
+function motion() {
+  return getMotionProfile();
+}
+
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
   els.statLosses.textContent = stats.losses;
@@ -147,10 +151,20 @@ function setControlsEnabled(enabled) {
 
 function animateValue(obj, start, end, duration) {
   if (!obj) return;
+  if (duration <= 0) {
+    obj.textContent = '$' + end;
+    return;
+  }
   const existingFrame = valueAnimationFrames.get(obj);
   if (existingFrame) {
     window.cancelAnimationFrame(existingFrame);
     valueAnimationFrames.delete(obj);
+  }
+
+  if (prefersReducedMotion || isPerfLite()) {
+    obj.textContent = '$' + end;
+    obj.classList.remove('bump');
+    return;
   }
 
   if (start === end) {
@@ -193,6 +207,7 @@ let updateUIRafId = null;
 function updateUI() {
   if (updateUIRafId != null) return;
   updateUIRafId = requestAnimationFrame(() => {
+    const profile = motion();
     updateUIRafId = null;
     const lite = isPerfLite();
 
@@ -285,6 +300,7 @@ function markBusted(container) {
 
 function highlightWinner(container) {
   if (!container) return;
+  const profile = motion();
   const existing = winnerPulseTimers.get(container);
   if (existing) window.clearTimeout(existing);
   container.classList.add('winner-pulse');
@@ -365,6 +381,7 @@ function triggerConfetti() {
 }
 
 function spawnCard(handArr, container, faceUp, delay) {
+  const profile = motion();
   const cardData = deck.pop();
   handArr.push(cardData);
   const lite = isPerfLite();

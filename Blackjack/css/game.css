@@ -8,6 +8,7 @@
   position: relative;
   padding-bottom: env(safe-area-inset-bottom, 0);
   contain: layout style;
+  z-index: 1;
 }
 
 #table::before {
@@ -17,6 +18,19 @@
   background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,0.42) 100%);
   pointer-events: none;
   z-index: 1;
+}
+
+:where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .btn-icon, .bet-info, .insurance-strip, .peek-msg, #msg-text) {
+  background-size: 170% 170%, 165% 165%, auto;
+  background-position:
+    calc(16% + var(--glass-shift-x)) calc(12% + var(--glass-shift-y)),
+    calc(88% - var(--glass-shift-x)) calc(85% - var(--glass-shift-y)),
+    center;
+}
+
+body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .btn-icon, .bet-info, .insurance-strip, .peek-msg, #msg-text) {
+  background-size: auto;
+  background-position: center;
 }
 
 /* ——— Deck shoe ——— */
@@ -29,7 +43,7 @@
   border-radius: 20px;
   transform: rotate(-6deg) translateZ(0);
   z-index: 5;
-  background: var(--glass-tint);
+  background: var(--glass-surface-strong);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -94,7 +108,7 @@
   pointer-events: auto;
   padding: 10px 18px;
   border-radius: 14px;
-  background: var(--glass-tint);
+  background: var(--glass-surface);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -118,7 +132,7 @@
 .stat-box:hover {
   border-color: var(--glass-border-hover);
   box-shadow: var(--glass-shadow-lg), var(--glass-glow);
-  transform: translateZ(0) scale(1.02);
+  transform: scale(1.02) translateZ(0);
 }
 
 .stat-label {
@@ -154,7 +168,7 @@
   pointer-events: auto;
   padding: 8px 14px;
   border-radius: 12px;
-  background: var(--glass-tint);
+  background: var(--glass-surface);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -272,7 +286,7 @@
   transform: translateY(-50%) translateX(14px) translateZ(0) scale(0.88);
   padding: 8px 18px;
   border-radius: 999px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-surface-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -320,8 +334,8 @@
 /* ——— Gameplay controls ——— */
 #gameplay-controls {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
+  right: auto;
   bottom: 24px;
   display: flex;
   justify-content: center;
@@ -337,7 +351,7 @@
 }
 #gameplay-controls.active {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateX(-50%) translateY(0) scale(1);
   pointer-events: auto;
 }
 #gameplay-controls.active .btn {
@@ -380,7 +394,7 @@ body.perf-lite #gameplay-controls.active .btn {
   font-size: 0.82rem;
   letter-spacing: 1px;
   cursor: pointer;
-  background: var(--glass-tint);
+  background: var(--glass-surface);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
@@ -429,12 +443,11 @@ body.perf-lite #gameplay-controls.active .btn {
 .btn:disabled {
   opacity: 0.28;
   cursor: not-allowed;
-  filter: grayscale(0.35);
 }
 .btn:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.015) translateZ(0);
   border-color: var(--glass-border-hover);
-  background: var(--glass-tint-hover);
+  background: var(--glass-surface-strong);
   box-shadow: var(--glass-shadow-lg), var(--glass-glow);
 }
 .btn:active:not(:disabled) {
@@ -514,7 +527,7 @@ body.perf-lite .btn::after { display: none; }
 .bet-info {
   padding: 10px 24px;
   border-radius: 999px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-surface-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -559,10 +572,8 @@ body.perf-lite .btn::after { display: none; }
   height: 36px;
   padding: 0;
   border-radius: 11px;
-  background: var(--glass-tint);
+  background: var(--glass-surface);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
   font-size: 1.05rem;
   cursor: pointer;
@@ -614,7 +625,7 @@ body.perf-lite .btn::after { display: none; }
   gap: 10px;
   padding: 14px 22px;
   border-radius: 16px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-surface-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -654,7 +665,7 @@ body.perf-lite .btn::after { display: none; }
   z-index: 85;
   padding: 10px 20px;
   border-radius: 12px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-surface-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -738,12 +749,12 @@ body.perf-lite .btn::after { display: none; }
   justify-content: center;
 }
 .btn-util {
-  background: var(--glass-tint);
+  background: var(--glass-surface);
   color: rgba(255,255,255,0.82);
   border: 1px solid var(--glass-border);
 }
 .btn-rebet {
-  background: var(--glass-tint);
+  background: var(--glass-surface);
   color: var(--gold);
   border-color: rgba(232, 197, 71, 0.22);
 }
@@ -828,7 +839,7 @@ body.perf-lite .btn::after { display: none; }
   display: inline-block;
   padding: 24px 48px;
   border-radius: 22px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-surface-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(calc(var(--glass-saturate) + 0.1));
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(calc(var(--glass-saturate) + 0.1));
@@ -894,6 +905,7 @@ body.perf-lite #msg-text::after { display: none; }
   z-index: 220;
   border: 3px dashed rgba(255,255,255,0.75);
   box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+  will-change: transform, opacity;
   contain: strict;
 }
 
@@ -909,6 +921,7 @@ body.perf-lite #msg-text::after { display: none; }
   contain: strict;
 }
 .confetti-fly {
+  will-change: transform, opacity;
   animation: confetti-fly var(--dur, 900ms) var(--ease) forwards;
 }
 @keyframes confetti-fly {
@@ -975,6 +988,7 @@ body.perf-lite .score-badge.visible.pop-in {
   #hud { padding: 8px 12px 4px; flex-wrap: wrap; gap: 4px; }
   .stat-box { padding: 6px 12px; border-radius: 10px; }
   .stat-value { font-size: 1.15rem; }
+  .btn-perf { min-width: 56px; padding: 0 7px; font-size: 0.55rem; }
   .deck-shoe { display: none; }
   .chips-rack { gap: 6px; }
   .chip { font-size: 0.78rem; }
