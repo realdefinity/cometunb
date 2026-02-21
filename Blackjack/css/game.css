@@ -29,12 +29,12 @@
   border-radius: 20px;
   transform: rotate(-6deg) translateZ(0);
   z-index: 5;
-  background: var(--glass-tint);
+  background: var(--glass-fill);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  transition: transform 0.4s var(--ease), box-shadow 0.3s var(--ease);
+  transition: transform calc(var(--dur-md) * var(--motion)) var(--ease), box-shadow calc(var(--dur-sm) * var(--motion)) var(--ease);
   overflow: hidden;
   contain: layout paint;
 }
@@ -43,7 +43,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  background: var(--glass-specular-weak);
   border-radius: 20px 20px 0 0;
   pointer-events: none;
 }
@@ -79,13 +79,12 @@
   pointer-events: auto;
   padding: 10px 18px;
   border-radius: 14px;
-  background: var(--glass-tint);
+  background: var(--glass-fill);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
-  transition: border-color 0.25s var(--ease), box-shadow 0.28s var(--ease), transform 0.28s var(--ease);
-  transform: translateZ(0);
+  transition: border-color calc(var(--dur-xs) * var(--motion)) var(--ease), box-shadow calc(var(--dur-sm) * var(--motion)) var(--ease), transform calc(var(--dur-sm) * var(--motion)) var(--ease);
   position: relative;
   contain: layout paint;
 }
@@ -94,14 +93,14 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 14px 14px 0 0;
   pointer-events: none;
 }
 .stat-box:hover {
   border-color: var(--glass-border-hover);
   box-shadow: var(--glass-shadow-lg), var(--glass-glow);
-  transform: translateZ(0) scale(1.02);
+  transform: scale(1.02) translateZ(0);
 }
 
 .stat-label {
@@ -119,7 +118,7 @@
   font-weight: 700;
   color: var(--gold);
   text-shadow: 0 0 14px rgba(232, 197, 71, 0.15);
-  transition: color 0.28s var(--ease), transform 0.28s var(--ease-spring);
+  transition: color calc(var(--dur-sm) * var(--motion)) var(--ease), transform calc(var(--dur-sm) * var(--motion)) var(--ease-spring);
   position: relative;
   z-index: 2;
 }
@@ -134,15 +133,14 @@
   pointer-events: auto;
   padding: 8px 14px;
   border-radius: 12px;
-  background: var(--glass-tint);
+  background: var(--glass-fill);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
   font-size: 0.78rem;
   color: rgba(255,255,255,0.62);
-  transform: translateZ(0);
-  transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  transition: border-color calc(var(--dur-xs) * var(--motion)) var(--ease), box-shadow calc(var(--dur-xs) * var(--motion)) var(--ease);
   position: relative;
   contain: layout paint;
 }
@@ -151,7 +149,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+  background: var(--glass-specular-weak);
   border-radius: 12px 12px 0 0;
   pointer-events: none;
 }
@@ -207,11 +205,10 @@
   justify-content: center;
   align-items: center;
   min-height: var(--card-h);
-  transition: opacity 0.4s var(--ease), filter 0.4s var(--ease);
+  transition: opacity calc(var(--dur-md) * var(--motion)) var(--ease);
 }
 .hand-slot.inactive {
   opacity: 0.38;
-  filter: saturate(0.72);
 }
 .hand-slot.active { opacity: 1; }
 .hand-slot .hand-slot-label {
@@ -241,7 +238,7 @@
   transform: translateY(-50%) translateX(14px) translateZ(0) scale(0.88);
   padding: 8px 18px;
   border-radius: 999px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-fill-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -250,7 +247,7 @@
   font-weight: 800;
   font-size: 0.95rem;
   opacity: 0;
-  transition: opacity 0.35s var(--ease), transform 0.45s var(--ease);
+  transition: opacity calc(var(--dur-sm) * var(--motion)) var(--ease), transform calc(var(--dur-md) * var(--motion)) var(--ease);
   z-index: 15;
   position: relative;
   contain: layout paint;
@@ -260,7 +257,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 999px 999px 0 0;
   pointer-events: none;
 }
@@ -273,8 +270,7 @@
 
 .dimmed {
   opacity: 0.32;
-  filter: saturate(0.72);
-  transition: opacity 0.4s var(--ease), filter 0.4s var(--ease);
+  transition: opacity 0.4s var(--ease);
 }
 
 /* ——— Controls zone ——— */
@@ -288,8 +284,8 @@
 /* ——— Gameplay controls ——— */
 #gameplay-controls {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
+  right: auto;
   bottom: 24px;
   display: flex;
   justify-content: center;
@@ -298,17 +294,25 @@
   flex-wrap: wrap;
   z-index: 92;
   opacity: 0;
-  transform: translateY(14px) scale(0.98);
+  transform: translateX(-50%) translateY(14px) scale(0.98);
   pointer-events: none;
-  transition: opacity 0.32s var(--ease), transform 0.38s var(--ease);
+  transition: opacity calc(var(--dur-sm) * var(--motion)) var(--ease), transform calc(var(--dur-md) * var(--motion)) var(--ease);
+  padding: 10px 10px;
+  border-radius: 18px;
+  background: var(--glass-fill-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg), var(--glass-glow);
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.85)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.85)) saturate(var(--glass-saturate));
+  max-width: min(720px, calc(100vw - 24px));
 }
 #gameplay-controls.active {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateX(-50%) translateY(0) scale(1);
   pointer-events: auto;
 }
 #gameplay-controls.active .btn {
-  animation: controlBtnIn 0.32s var(--ease) backwards;
+  animation: controlBtnIn calc(var(--dur-sm) * var(--motion)) var(--ease) backwards;
 }
 #gameplay-controls.active .btn:nth-child(1) { animation-delay: 0.02s; }
 #gameplay-controls.active .btn:nth-child(2) { animation-delay: 0.05s; }
@@ -331,12 +335,14 @@
   font-size: 0.82rem;
   letter-spacing: 1px;
   cursor: pointer;
-  background: var(--glass-tint);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  background: var(--glass-fill);
   box-shadow: var(--glass-shadow);
-  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.22s var(--ease), background 0.22s var(--ease), opacity 0.18s var(--ease);
-  transform: translateZ(0);
+  transition:
+    transform calc(var(--dur-xs) * var(--motion)) var(--ease),
+    border-color calc(var(--dur-xs) * var(--motion)) var(--ease),
+    box-shadow calc(var(--dur-sm) * var(--motion)) var(--ease),
+    background calc(var(--dur-sm) * var(--motion)) var(--ease),
+    opacity calc(var(--dur-xs) * var(--motion)) var(--ease);
   color: #fff;
 }
 .btn::before {
@@ -344,7 +350,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.09) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 14px 14px 0 0;
   pointer-events: none;
   z-index: 1;
@@ -352,12 +358,11 @@
 .btn:disabled {
   opacity: 0.28;
   cursor: not-allowed;
-  filter: grayscale(0.35);
 }
 .btn:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.01) translateZ(0);
   border-color: var(--glass-border-hover);
-  background: var(--glass-tint-hover);
+  background: var(--glass-fill-hover);
   box-shadow: var(--glass-shadow-lg), var(--glass-glow);
 }
 .btn:active:not(:disabled) {
@@ -417,7 +422,7 @@
   background: linear-gradient(to top, rgba(6, 26, 20, 0.88) 0%, rgba(6, 26, 20, 0.3) 58%, transparent 100%);
   backdrop-filter: blur(calc(var(--glass-blur) * 0.35)) saturate(calc(var(--glass-saturate) * 0.8));
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.35)) saturate(calc(var(--glass-saturate) * 0.8));
-  transition: opacity 0.4s var(--ease), transform 0.45s var(--ease);
+  transition: opacity calc(var(--dur-md) * var(--motion)) var(--ease), transform calc(var(--dur-lg) * var(--motion)) var(--ease);
   contain: layout paint;
 }
 #betting-overlay.hidden {
@@ -429,7 +434,7 @@
 .bet-info {
   padding: 10px 24px;
   border-radius: 999px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-fill-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -441,8 +446,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  transition: border-color 0.25s var(--ease), box-shadow 0.28s var(--ease), transform 0.28s var(--ease);
-  transform: translateZ(0);
+  transition: border-color calc(var(--dur-xs) * var(--motion)) var(--ease), box-shadow calc(var(--dur-sm) * var(--motion)) var(--ease), transform calc(var(--dur-sm) * var(--motion)) var(--ease);
   position: relative;
   contain: layout paint;
 }
@@ -451,14 +455,14 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 999px 999px 0 0;
   pointer-events: none;
 }
 .bet-info:hover {
   border-color: var(--glass-border-hover);
   box-shadow: var(--glass-shadow-lg), var(--glass-glow-gold);
-  transform: translateZ(0) scale(1.015);
+  transform: scale(1.015) translateZ(0);
 }
 
 .take-loan-strip { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -471,14 +475,12 @@
   height: 36px;
   padding: 0;
   border-radius: 11px;
-  background: var(--glass-tint);
+  background: var(--glass-fill);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
   font-size: 1.05rem;
   cursor: pointer;
-  transition: transform 0.18s var(--ease), border-color 0.18s var(--ease), box-shadow 0.2s var(--ease);
+  transition: transform calc(var(--dur-xs) * var(--motion)) var(--ease), border-color calc(var(--dur-xs) * var(--motion)) var(--ease), box-shadow calc(var(--dur-sm) * var(--motion)) var(--ease);
   pointer-events: auto;
   position: relative;
   contain: layout paint;
@@ -487,6 +489,10 @@
   transform: scale(1.05);
   border-color: var(--glass-border-hover);
   box-shadow: var(--glass-shadow-lg), var(--glass-glow);
+}
+.btn-icon.active {
+  border-color: rgba(232, 197, 71, 0.42);
+  box-shadow: var(--glass-shadow-lg), var(--glass-glow-gold);
 }
 .streak-badge {
   margin-left: 6px;
@@ -510,7 +516,7 @@
   gap: 10px;
   padding: 14px 22px;
   border-radius: 16px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-fill-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -523,7 +529,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+  background: var(--glass-specular-weak);
   border-radius: 16px 16px 0 0;
   pointer-events: none;
 }
@@ -538,14 +544,14 @@
   z-index: 85;
   padding: 10px 20px;
   border-radius: 12px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-fill-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
   font-size: 0.86rem;
   color: rgba(255,255,255,0.82);
-  transition: opacity 0.28s var(--ease);
+  transition: opacity calc(var(--dur-xs) * var(--motion)) var(--ease);
   contain: layout paint;
 }
 .btn-surrender { min-width: 80px; }
@@ -589,12 +595,12 @@
   justify-content: center;
 }
 .btn-util {
-  background: var(--glass-tint);
+  background: var(--glass-fill);
   color: rgba(255,255,255,0.82);
   border: 1px solid var(--glass-border);
 }
 .btn-rebet {
-  background: var(--glass-tint);
+  background: var(--glass-fill);
   color: var(--gold);
   border-color: rgba(232, 197, 71, 0.22);
 }
@@ -631,7 +637,7 @@
   display: inline-block;
   padding: 24px 48px;
   border-radius: 22px;
-  background: var(--glass-tint-strong);
+  background: var(--glass-fill-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(calc(var(--glass-blur) + 4px)) saturate(calc(var(--glass-saturate) + 0.08));
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px)) saturate(calc(var(--glass-saturate) + 0.08));
@@ -642,7 +648,7 @@
   color: #fff;
   opacity: 0;
   transform: translateY(18px) scale(0.92) translateZ(0);
-  transition: opacity 0.32s var(--ease), transform 0.48s var(--ease);
+  transition: opacity calc(var(--dur-sm) * var(--motion)) var(--ease), transform calc(var(--dur-lg) * var(--motion)) var(--ease);
   position: relative;
   contain: layout paint;
 }
@@ -651,7 +657,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 45%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 22px 22px 0 0;
   pointer-events: none;
 }
@@ -685,6 +691,7 @@
   z-index: 220;
   border: 3px dashed rgba(255,255,255,0.75);
   box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+  will-change: transform, opacity;
   contain: strict;
 }
 
@@ -700,20 +707,40 @@
   contain: strict;
 }
 .confetti-fly {
+  will-change: transform, opacity;
   animation: confetti-fly var(--dur, 900ms) var(--ease) forwards;
 }
 @keyframes confetti-fly {
-  0%   { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
+  0%   { transform: translate3d(-50%, -50%, 0) rotate(0deg) scale(1); opacity: 1; }
   50%  { opacity: 0.9; }
-  100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4); opacity: 0; }
+  100% { transform: translate3d(calc(-50% + var(--tx)), calc(-50% + var(--ty)), 0) rotate(var(--rot)) scale(0.4); opacity: 0; }
 }
 
 @keyframes winnerPulse {
-  0%, 100% { filter: drop-shadow(0 0 0 rgba(232, 197, 71, 0)); transform: translateY(0) scale(1); }
-  50% { filter: drop-shadow(0 0 10px rgba(232, 197, 71, 0.5)); transform: translateY(-1px) scale(1.008); }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1px) scale(1.012); }
 }
 .winner-pulse .card {
   animation: winnerPulse 0.85s var(--ease) 2;
+}
+.winner-pulse .card .inner {
+  box-shadow: 0 0 0 2px rgba(232, 197, 71, 0.28), 0 0 22px rgba(232, 197, 71, 0.22);
+}
+
+/* Perf-lite: remove expensive backdrop filters + shimmer */
+:root.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .btn-icon, #gameplay-controls, #betting-overlay, .bet-info, .insurance-strip, .peek-msg, #msg-text),
+body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .btn-icon, #gameplay-controls, #betting-overlay, .bet-info, .insurance-strip, .peek-msg, #msg-text) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root.perf-lite #msg-text.visible::after,
+body.perf-lite #msg-text.visible::after {
+  opacity: 0;
+  animation: none;
+}
+:root.perf-lite #table::before,
+body.perf-lite #table::before {
+  display: none;
 }
 
 @media (max-width: 640px) {
