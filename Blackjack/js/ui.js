@@ -6,13 +6,43 @@ const prefersReducedMotion = typeof window.matchMedia === 'function'
 
 function isPerfLite() {
   if (window.__bjPerf && typeof window.__bjPerf.isLite === 'boolean') return window.__bjPerf.isLite;
-  return !!(document.body && document.body.classList.contains('perf-lite'));
+  return document.documentElement.classList.contains('perf-lite')
+    || !!(document.body && document.body.classList.contains('perf-lite'));
 }
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
 
 /** Matches CSS --ease for WAAPI and inline animations */
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+function getMotionSpec() {
+  const lite = prefersReducedMotion || isPerfLite();
+  return lite
+    ? {
+      lite: true,
+      staggerMs: 200,
+      dealMs: 380,
+      flipMs: 340,
+      scoreDelayMs: 240,
+      clearTableMs: 220,
+      chipArcPx: 20,
+      chipMs: 320,
+      confettiCount: 12,
+      winnerPulseMs: 800,
+    }
+    : {
+      lite: false,
+      staggerMs: 240,
+      dealMs: 620,
+      flipMs: 520,
+      scoreDelayMs: 320,
+      clearTableMs: 320,
+      chipArcPx: 46,
+      chipMs: 480,
+      confettiCount: 44,
+      winnerPulseMs: 1050,
+    };
+}
 
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
@@ -214,7 +244,11 @@ function hideMsg() {
 
 function clearTable() {
   const cards = document.querySelectorAll('.card');
-  const dur = isPerfLite() ? 240 : 320;
+  if (prefersReducedMotion) {
+    cards.forEach((c) => c.remove());
+    return;
+  }
+  const dur = getMotionSpec().clearTableMs;
   cards.forEach((c, i) => {
     c.animate(
       [
@@ -245,11 +279,12 @@ function highlightWinner(container) {
   const timeout = window.setTimeout(() => {
     container.classList.remove('winner-pulse');
     winnerPulseTimers.delete(container);
-  }, isPerfLite() ? 800 : 1050);
+  }, getMotionSpec().winnerPulseMs);
   winnerPulseTimers.set(container, timeout);
 }
 
 function animateChip(x, y) {
+  if (prefersReducedMotion) return;
   const chip = document.createElement('div');
   chip.className = 'flying-chip';
   chip.style.left = x + 'px';
@@ -260,36 +295,37 @@ function animateChip(x, y) {
   const ty = window.innerHeight - 200;
   const dx = tx - x;
   const dy = ty - y;
-  const lite = isPerfLite();
-  const arc = lite ? 20 : 44;
-  const dur = lite ? 320 : 480;
+  const m = getMotionSpec();
+  const arc = m.chipArcPx;
+  const dur = m.chipMs;
 
   chip.animate(
     [
-      { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
-      { transform: `translate(${dx * 0.36}px, ${dy * 0.18 - arc}px) scale(0.86) rotate(220deg)`, opacity: 0.92, offset: 0.4 },
-      { transform: `translate(${dx * 0.7}px, ${dy * 0.58 - arc * 0.3}px) scale(0.66) rotate(460deg)`, opacity: 0.78, offset: 0.74 },
-      { transform: `translate(${dx}px, ${dy}px) scale(0.4) rotate(640deg)`, opacity: 0.5 }
+      { transform: 'translate3d(0,0,0) scale(1) rotate(0deg)', opacity: 1 },
+      { transform: `translate3d(${dx * 0.36}px, ${dy * 0.18 - arc}px, 0) scale(0.86) rotate(220deg)`, opacity: 0.92, offset: 0.4 },
+      { transform: `translate3d(${dx * 0.7}px, ${dy * 0.58 - arc * 0.3}px, 0) scale(0.66) rotate(460deg)`, opacity: 0.78, offset: 0.74 },
+      { transform: `translate3d(${dx}px, ${dy}px, 0) scale(0.4) rotate(640deg)`, opacity: 0.5 }
     ],
     { duration: dur, easing: EASE }
   ).onfinish = () => chip.remove();
 }
 
 function triggerConfetti() {
+  if (prefersReducedMotion) return;
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  const lite = isPerfLite();
-  const count = lite ? 16 : 45;
+  const m = getMotionSpec();
+  const count = m.confettiCount;
   for (let i = 0; i < count; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = (lite ? 60 : 95) + Math.random() * (lite ? 140 : 280);
+    const dist = (m.lite ? 60 : 95) + Math.random() * (m.lite ? 140 : 280);
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
     c.style.setProperty('--rot', (Math.random() * 500 + 100) + 'deg');
-    c.style.setProperty('--dur', ((lite ? 380 : 650) + Math.random() * (lite ? 280 : 550)) + 'ms');
+    c.style.setProperty('--dur', ((m.lite ? 380 : 650) + Math.random() * (m.lite ? 280 : 550)) + 'ms');
     const size = 4 + Math.random() * 5;
     c.style.width = size + 'px';
     c.style.height = size + 'px';
@@ -307,9 +343,9 @@ function spawnCard(handArr, container, faceUp, delay) {
     playSound('card');
 
     const cardEl = makeCardDOM(cardData, faceUp);
-    const lite = isPerfLite();
-    const dealDuration = lite ? 380 : 560;
-    const flipDuration = lite ? 340 : 520;
+    const m = getMotionSpec();
+    const dealDuration = m.dealMs;
+    const flipDuration = m.flipMs;
     cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
     cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
 

@@ -28,6 +28,7 @@ function writePerfMode(mode) {
 function applyPerfMode(mode) {
   const autoLite = detectAutoPerfLite();
   const isLite = mode === 'lite' ? true : mode === 'full' ? false : autoLite;
+  document.documentElement.classList.toggle('perf-lite', isLite);
   document.body.classList.toggle('perf-lite', isLite);
   document.body.dataset.perfMode = mode;
   window.__bjPerf = { mode, isLite, autoLite };
