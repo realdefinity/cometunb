@@ -6,6 +6,10 @@ function cryptoRandInt(max) {
   return arr[0] % max;
 }
 
+function motionProfile() {
+  return getMotionProfile();
+}
+
 /* 6-deck shoe with Fisher-Yates using crypto random */
 function createDeck() {
   deck = [];
@@ -141,6 +145,8 @@ function allIn() {
 function deal() {
   initAudio();
   if (gameState !== 'BETTING' || currentBet <= 0) return;
+  const profile = motionProfile();
+  const gap = profile.dealGap;
 
   lastBet = currentBet;
   gameState = 'PLAYING';
@@ -168,9 +174,9 @@ function deal() {
   els.betUI.classList.add('hidden');
 
   spawnCard(playerHands[0], els.pCards0, true, 0);
-  spawnCard(dealerHand, els.dCards, true, 220);
-  spawnCard(playerHands[0], els.pCards0, true, 440);
-  spawnCard(dealerHand, els.dCards, false, 660);
+  spawnCard(dealerHand, els.dCards, true, gap);
+  spawnCard(playerHands[0], els.pCards0, true, gap * 2);
+  spawnCard(dealerHand, els.dCards, false, gap * 3);
 
   setTimeout(() => {
     updateAllPlayerScores(false);
@@ -183,12 +189,13 @@ function deal() {
     }
     if (dealerAce && isBlackjack(playerHands[0])) stand(true);
     else {
-      setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100);
+      setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, profile.controlsInDelay);
     }
-  }, 880);
+  }, gap * 3 + Math.round(profile.dealDuration * 0.72));
 }
 
 function takeInsurance() {
+  const profile = motionProfile();
   const insAmt = Math.floor(currentBet / 2);
   if (wallet < insAmt) return;
   initAudio();
@@ -197,17 +204,19 @@ function takeInsurance() {
   insuranceBet = insAmt;
   els.insuranceStrip.style.display = 'none';
   if (isBlackjack(playerHands[0])) stand(true);
-  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100); }
+  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, profile.controlsInDelay); }
 }
 
 function declineInsurance() {
+  const profile = motionProfile();
   els.insuranceStrip.style.display = 'none';
   if (isBlackjack(playerHands[0])) stand(true);
-  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100); }
+  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, profile.controlsInDelay); }
 }
 
 function surrender() {
   if (!canSurrender()) return;
+  const profile = motionProfile();
   const bet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
   wallet += Math.floor(bet / 2);
   surrenderedHands[activeHandIndex] = true;
@@ -227,7 +236,7 @@ function surrender() {
       els.betUI.classList.remove('hidden');
       dimHands(true);
       updateUI();
-    }, 2000);
+    }, Math.round(profile.roundResetDelay * 0.82));
     return;
   }
   stand(false);
@@ -262,6 +271,8 @@ function updateAllPlayerScores(showDealer) {
 
 function split() {
   if (!canSplit()) return;
+  const profile = motionProfile();
+  const gap = Math.round(profile.dealGap * 0.92);
   initAudio();
   playSound('chip');
   wallet -= currentBet;
@@ -283,12 +294,12 @@ function split() {
 
   const buildHandDOM = (hand, container, delayStart) => {
     hand.forEach((cardData, idx) => {
-      const d = delayStart + idx * 220;
+      const d = delayStart + idx * gap;
       setTimeout(() => {
         playSound('card');
         const el = makeCardDOM(cardData, true);
-        el.style.setProperty('--deal-duration', (perfLite ? 400 : 560) + 'ms');
-        el.style.setProperty('--flip-duration', (perfLite ? 360 : 520) + 'ms');
+        el.style.setProperty('--deal-duration', profile.dealDuration + 'ms');
+        el.style.setProperty('--flip-duration', profile.flipDuration + 'ms');
         container.appendChild(el);
         window.requestAnimationFrame(() => { el.classList.add('dealt'); });
       }, d);
@@ -296,7 +307,7 @@ function split() {
   };
 
   buildHandDOM(hand0, els.pCards0, 0);
-  buildHandDOM(hand1, els.pCards1, 440);
+  buildHandDOM(hand1, els.pCards1, gap * 2);
 
   setTimeout(() => {
     activeHandIndex = 0;
@@ -306,11 +317,12 @@ function split() {
     });
     updateAllPlayerScores(false);
     updateUI();
-  }, 700);
+  }, Math.max(profile.handSwitchDelay, gap * 2 + Math.round(profile.dealDuration * 0.55)));
 }
 
 function hit() {
   if (gameState !== 'PLAYING') return;
+  const profile = motionProfile();
   els.btnDouble.disabled = true;
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
@@ -324,11 +336,12 @@ function hit() {
       advanceToNextHandOrDealer();
     }
     updateUI();
-  }, 280);
+  }, profile.actionResolveDelay);
 }
 
 function stand(revealInstant = false) {
   if (gameState !== 'PLAYING') return;
+  const profile = motionProfile();
 
   const holeCardEl = els.dCards.children[1];
   const doReveal = () => {
@@ -338,8 +351,8 @@ function stand(revealInstant = false) {
       els.gameControls.classList.remove('active');
       setTimeout(() => {
         updateAllPlayerScores(true);
-        setTimeout(() => dealerAI(revealInstant), revealInstant ? 180 : 400);
-      }, revealInstant ? 160 : 280);
+        setTimeout(() => dealerAI(revealInstant), revealInstant ? profile.dealerStepFastDelay : profile.dealerStepDelay);
+      }, revealInstant ? Math.round(profile.revealPause * 0.55) : profile.revealPause);
       return;
     }
     activeHandIndex++;
@@ -356,8 +369,8 @@ function stand(revealInstant = false) {
     els.gameControls.classList.remove('active');
     setTimeout(() => {
       updateAllPlayerScores(true);
-      setTimeout(() => dealerAI(false), 400);
-    }, 280);
+      setTimeout(() => dealerAI(false), profile.dealerStepDelay);
+    }, profile.revealPause);
   };
 
   const goingToDealer = playerHands.length === 1 || activeHandIndex + 1 >= playerHands.length;
@@ -367,7 +380,7 @@ function stand(revealInstant = false) {
     setTimeout(() => {
       els.peekMsg.style.display = 'none';
       doReveal();
-    }, 700);
+    }, Math.round(profile.revealPause * 2.1));
   } else {
     doReveal();
   }
@@ -378,6 +391,7 @@ function advanceToNextHandOrDealer() {
     endRoundMulti([{ result: 'BUST', handIndex: 0 }]);
     return;
   }
+  const profile = motionProfile();
   activeHandIndex++;
   if (activeHandIndex < playerHands.length) {
     els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
@@ -394,12 +408,13 @@ function advanceToNextHandOrDealer() {
     setTimeout(() => {
       updateAllPlayerScores(true);
       dealerAI(false);
-    }, 320);
+    }, profile.revealPause);
   }
 }
 
 function doubleDown() {
   if (!canDoubleDown(activeHandIndex)) return;
+  const profile = motionProfile();
   initAudio();
   playSound('chip');
   const addBet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
@@ -421,17 +436,18 @@ function doubleDown() {
       return;
     }
     stand(false);
-  }, 280);
+  }, profile.actionResolveDelay);
 }
 
 function dealerAI(isFast) {
+  const profile = motionProfile();
   const d = getScore(dealerHand);
   if (d < 17) {
     spawnCard(dealerHand, els.dCards, true, 0);
     setTimeout(() => {
       updateAllPlayerScores(true);
       dealerAI(isFast);
-    }, isFast ? 260 : 480);
+    }, isFast ? profile.dealerStepFastDelay : profile.dealerStepDelay);
   } else {
     if (playerHands.length === 1) {
       const res = determineSingleResult();
@@ -476,6 +492,7 @@ function getMultiResults() {
 }
 
 function endRoundMulti(results) {
+  const profile = motionProfile();
   gameState = 'END';
 
   if (isBlackjack(dealerHand) && insuranceBet > 0) {
@@ -540,5 +557,5 @@ function endRoundMulti(results) {
     els.insuranceStrip.style.display = 'none';
     dimHands(true);
     updateUI();
-  }, 2600);
+  }, profile.roundResetDelay);
 }

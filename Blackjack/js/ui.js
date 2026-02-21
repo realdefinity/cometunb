@@ -1,20 +1,15 @@
 function getPlayerCardsContainer(i) { return i === 0 ? els.pCards0 : els.pCards1; }
 function getPlayerScoreEl(i) { return i === 0 ? els.pScore0 : els.pScore1; }
 
-const prefersReducedMotion = typeof window.matchMedia === 'function'
-  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const cpuCores = Number(navigator.hardwareConcurrency || 0);
-const memoryGb = Number(navigator.deviceMemory || 0);
-const hasPerfLiteClass = !!(document.body && document.body.classList.contains('perf-lite'));
-const perfLite = hasPerfLiteClass
-  || prefersReducedMotion
-  || (cpuCores > 0 && cpuCores <= 4)
-  || (memoryGb > 0 && memoryGb <= 4);
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
 
 /** Matches CSS --ease for WAAPI and inline animations */
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+function motion() {
+  return getMotionProfile();
+}
 
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
@@ -118,6 +113,10 @@ function setControlsEnabled(enabled) {
 
 function animateValue(obj, start, end, duration) {
   if (!obj) return;
+  if (duration <= 0) {
+    obj.textContent = '$' + end;
+    return;
+  }
   const existingFrame = valueAnimationFrames.get(obj);
   if (existingFrame) {
     window.cancelAnimationFrame(existingFrame);
@@ -162,12 +161,13 @@ let updateUIRafId = null;
 function updateUI() {
   if (updateUIRafId != null) return;
   updateUIRafId = requestAnimationFrame(() => {
+    const profile = motion();
     updateUIRafId = null;
-    animateValue(els.wallet, lastWallet, Math.floor(wallet), 480);
+    animateValue(els.wallet, lastWallet, Math.floor(wallet), profile.walletValueDuration);
     lastWallet = Math.floor(wallet);
 
     const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-    animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 280);
+    animateValue(els.bet, lastTotalBet, Math.floor(totalBet), profile.betValueDuration);
     lastTotalBet = Math.floor(totalBet);
 
     els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
@@ -210,7 +210,13 @@ function hideMsg() {
 
 function clearTable() {
   const cards = document.querySelectorAll('.card');
-  const dur = perfLite ? 240 : 320;
+  const profile = motion();
+  const dur = profile.clearDuration;
+  if (perfLite && cards.length > 8) {
+    cards.forEach((c) => c.remove());
+    return;
+  }
+
   cards.forEach((c, i) => {
     c.animate(
       [
@@ -218,7 +224,7 @@ function clearTable() {
         { transform: 'translate3d(0,-12px,0) scale(0.94)', opacity: 0.45, offset: 0.45 },
         { transform: 'translate3d(0,-20px,0) scale(0.86) rotate(2deg)', opacity: 0 }
       ],
-      { duration: dur, easing: EASE, delay: i * 20, fill: 'forwards' }
+      { duration: dur, easing: EASE, delay: i * profile.clearStagger, fill: 'forwards' }
     ).onfinish = () => c.remove();
   });
 }
@@ -235,17 +241,19 @@ function markBusted(container) {
 
 function highlightWinner(container) {
   if (!container) return;
+  const profile = motion();
   const existing = winnerPulseTimers.get(container);
   if (existing) window.clearTimeout(existing);
   container.classList.add('winner-pulse');
   const timeout = window.setTimeout(() => {
     container.classList.remove('winner-pulse');
     winnerPulseTimers.delete(container);
-  }, perfLite ? 800 : 1050);
+  }, profile.winnerPulseDuration);
   winnerPulseTimers.set(container, timeout);
 }
 
 function animateChip(x, y) {
+  const profile = motion();
   const chip = document.createElement('div');
   chip.className = 'flying-chip';
   chip.style.left = x + 'px';
@@ -256,8 +264,8 @@ function animateChip(x, y) {
   const ty = window.innerHeight - 200;
   const dx = tx - x;
   const dy = ty - y;
-  const arc = perfLite ? 20 : 44;
-  const dur = perfLite ? 320 : 480;
+  const arc = profile.chipArc;
+  const dur = profile.chipDuration;
 
   chip.animate(
     [
@@ -271,19 +279,20 @@ function animateChip(x, y) {
 }
 
 function triggerConfetti() {
+  const profile = motion();
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  const count = perfLite ? 16 : 45;
+  const count = profile.confettiCount;
   for (let i = 0; i < count; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = (perfLite ? 60 : 95) + Math.random() * (perfLite ? 140 : 280);
+    const dist = profile.confettiMinDist + Math.random() * profile.confettiRandDist;
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
     c.style.setProperty('--rot', (Math.random() * 500 + 100) + 'deg');
-    c.style.setProperty('--dur', ((perfLite ? 380 : 650) + Math.random() * (perfLite ? 280 : 550)) + 'ms');
+    c.style.setProperty('--dur', (profile.confettiBaseDuration + Math.random() * profile.confettiRandDuration) + 'ms');
     const size = 4 + Math.random() * 5;
     c.style.width = size + 'px';
     c.style.height = size + 'px';
@@ -295,14 +304,15 @@ function triggerConfetti() {
 }
 
 function spawnCard(handArr, container, faceUp, delay) {
+  const profile = motion();
   const cardData = deck.pop();
   handArr.push(cardData);
   setTimeout(() => {
     playSound('card');
 
     const cardEl = makeCardDOM(cardData, faceUp);
-    const dealDuration = perfLite ? 380 : 560;
-    const flipDuration = perfLite ? 340 : 520;
+    const dealDuration = profile.dealDuration;
+    const flipDuration = profile.flipDuration;
     cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
     cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
 
@@ -316,7 +326,7 @@ function spawnCard(handArr, container, faceUp, delay) {
     });
 
     if (faceUp) {
-      const revealDelay = Math.max(55, Math.round(dealDuration * 0.26));
+      const revealDelay = Math.max(55, Math.round(dealDuration * profile.revealRatio));
       setTimeout(() => {
         cardEl.classList.remove('face-down');
       }, revealDelay);
