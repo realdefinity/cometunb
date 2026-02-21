@@ -123,6 +123,12 @@ function animateValue(obj, start, end, duration) {
     valueAnimationFrames.delete(obj);
   }
 
+  if (prefersReducedMotion || isPerfLite()) {
+    obj.textContent = '$' + end;
+    obj.classList.remove('bump');
+    return;
+  }
+
   if (start === end) {
     obj.textContent = '$' + end;
     obj.classList.remove('bump');
@@ -269,10 +275,10 @@ function animateChip(x, y) {
 
   chip.animate(
     [
-      { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
-      { transform: `translate(${dx * 0.36}px, ${dy * 0.18 - arc}px) scale(0.86) rotate(220deg)`, opacity: 0.92, offset: 0.4 },
-      { transform: `translate(${dx * 0.7}px, ${dy * 0.58 - arc * 0.3}px) scale(0.66) rotate(460deg)`, opacity: 0.78, offset: 0.74 },
-      { transform: `translate(${dx}px, ${dy}px) scale(0.4) rotate(640deg)`, opacity: 0.5 }
+      { transform: 'translate3d(0,0,0) scale(1) rotate(0deg)', opacity: 1 },
+      { transform: `translate3d(${dx * 0.36}px, ${dy * 0.18 - arc}px, 0) scale(0.86) rotate(220deg)`, opacity: 0.92, offset: 0.4 },
+      { transform: `translate3d(${dx * 0.7}px, ${dy * 0.58 - arc * 0.3}px, 0) scale(0.66) rotate(460deg)`, opacity: 0.78, offset: 0.74 },
+      { transform: `translate3d(${dx}px, ${dy}px, 0) scale(0.4) rotate(640deg)`, opacity: 0.5 }
     ],
     { duration: dur, easing: EASE }
   ).onfinish = () => chip.remove();

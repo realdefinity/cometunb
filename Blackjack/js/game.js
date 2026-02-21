@@ -173,11 +173,15 @@ function deal() {
   els.dScore.classList.remove('visible');
   els.betUI.classList.add('hidden');
 
+  const m = (typeof getMotionSpec === 'function')
+    ? getMotionSpec()
+    : { staggerMs: 220, dealMs: 560 };
   spawnCard(playerHands[0], els.pCards0, true, 0);
   spawnCard(dealerHand, els.dCards, true, gap);
   spawnCard(playerHands[0], els.pCards0, true, gap * 2);
   spawnCard(dealerHand, els.dCards, false, gap * 3);
 
+  const afterInitialDealMs = m.staggerMs * 3 + Math.round(m.dealMs * 0.45);
   setTimeout(() => {
     updateAllPlayerScores(false);
     const dealerAce = dealerHand.length > 0 && dealerHand[0].v === 'A';
@@ -292,6 +296,9 @@ function split() {
   els.pScore0.classList.remove('visible');
   els.pScore1.classList.remove('visible');
 
+  const m = (typeof getMotionSpec === 'function')
+    ? getMotionSpec()
+    : { staggerMs: 220, dealMs: 560, flipMs: 520, scoreDelayMs: 280 };
   const buildHandDOM = (hand, container, delayStart) => {
     hand.forEach((cardData, idx) => {
       const d = delayStart + idx * gap;
@@ -309,6 +316,7 @@ function split() {
   buildHandDOM(hand0, els.pCards0, 0);
   buildHandDOM(hand1, els.pCards1, gap * 2);
 
+  const afterSplitMs = m.staggerMs * 3 + Math.round(m.dealMs * 0.2);
   setTimeout(() => {
     activeHandIndex = 0;
     els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
@@ -327,6 +335,9 @@ function hit() {
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
   spawnCard(hand, container, true, 0);
+  const scoreDelay = (typeof getMotionSpec === 'function')
+    ? getMotionSpec().scoreDelayMs
+    : 280;
   setTimeout(() => {
     updateAllPlayerScores(false);
     const score = getScore(hand);
@@ -426,6 +437,9 @@ function doubleDown() {
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
   spawnCard(hand, container, true, 0);
+  const scoreDelay = (typeof getMotionSpec === 'function')
+    ? getMotionSpec().scoreDelayMs
+    : 280;
   setTimeout(() => {
     updateAllPlayerScores(false);
     const score = getScore(hand);

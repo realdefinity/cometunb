@@ -11,7 +11,8 @@
   will-change: auto;
   transition: none;
   transform-style: preserve-3d;
-  contain: layout style;
+  contain: layout paint style;
+  transform-origin: 52% 70%;
 }
 
 .card:not(.dealt) {
@@ -91,6 +92,24 @@
     opacity: 1;
     transform: translate3d(0, 0, 0) rotate(var(--rot)) scale(1);
   }
+}
+
+@keyframes cardDealInLite {
+  from { opacity: 0; transform: translate3d(28vw, -36vh, 0) rotate(55deg) scale(0.92); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) rotate(var(--rot)) scale(1); }
+}
+
+:root.perf-lite .card.dealt,
+body.perf-lite .card.dealt {
+  animation-name: cardDealInLite;
+}
+:root.perf-lite .card:not(.dealt),
+body.perf-lite .card:not(.dealt) {
+  transform: translate3d(28vw, -36vh, 0) rotate(55deg) scale(0.92);
+}
+:root.perf-lite .card .inner,
+body.perf-lite .card .inner {
+  box-shadow: 0 3px 12px rgba(0,0,0,0.14);
 }
 
 .card.face-down .inner { transform: rotateY(180deg); }

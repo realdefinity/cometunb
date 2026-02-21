@@ -57,7 +57,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  background: var(--glass-specular-weak);
   border-radius: 20px 20px 0 0;
   pointer-events: none;
 }
@@ -108,14 +108,14 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 14px 14px 0 0;
   pointer-events: none;
 }
 .stat-box:hover {
   border-color: var(--glass-border-hover);
   box-shadow: var(--glass-shadow-lg), var(--glass-glow);
-  transform: translateZ(0) scale(1.02);
+  transform: scale(1.02) translateZ(0);
 }
 
 .stat-label {
@@ -165,7 +165,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+  background: var(--glass-specular-weak);
   border-radius: 12px 12px 0 0;
   pointer-events: none;
 }
@@ -225,7 +225,6 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
 }
 .hand-slot.inactive {
   opacity: 0.38;
-  filter: saturate(0.72);
 }
 .hand-slot.active { opacity: 1; }
 .hand-slot .hand-slot-label {
@@ -274,7 +273,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 999px 999px 0 0;
   pointer-events: none;
 }
@@ -302,8 +301,8 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
 /* ——— Gameplay controls ——— */
 #gameplay-controls {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
+  right: auto;
   bottom: 24px;
   display: flex;
   justify-content: center;
@@ -312,13 +311,13 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   flex-wrap: wrap;
   z-index: 92;
   opacity: 0;
-  transform: translateY(14px) scale(0.98);
+  transform: translateX(-50%) translateY(14px) scale(0.98);
   pointer-events: none;
   transition: opacity var(--motion-medium) var(--ease), transform var(--motion-slow) var(--ease);
 }
 #gameplay-controls.active {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateX(-50%) translateY(0) scale(1);
   pointer-events: auto;
 }
 #gameplay-controls.active .btn {
@@ -358,7 +357,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.09) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 14px 14px 0 0;
   pointer-events: none;
   z-index: 1;
@@ -366,7 +365,6 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
 .btn:disabled {
   opacity: 0.28;
   cursor: not-allowed;
-  filter: grayscale(0.35);
 }
 .btn:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.01) translateZ(0);
@@ -473,14 +471,14 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 999px 999px 0 0;
   pointer-events: none;
 }
 .bet-info:hover {
   border-color: var(--glass-border-hover);
   box-shadow: var(--glass-shadow-lg), var(--glass-glow-gold);
-  transform: translateZ(0) scale(1.015);
+  transform: scale(1.015) translateZ(0);
 }
 
 .take-loan-strip { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -495,8 +493,6 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   border-radius: 11px;
   background: var(--glass-surface);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
   font-size: 1.05rem;
   cursor: pointer;
@@ -553,7 +549,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+  background: var(--glass-specular-weak);
   border-radius: 16px 16px 0 0;
   pointer-events: none;
 }
@@ -683,7 +679,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 45%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  background: var(--glass-specular);
   border-radius: 22px 22px 0 0;
   pointer-events: none;
 }
@@ -717,6 +713,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   z-index: 220;
   border: 3px dashed rgba(255,255,255,0.75);
   box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+  will-change: transform, opacity;
   contain: strict;
 }
 
@@ -732,17 +729,18 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   contain: strict;
 }
 .confetti-fly {
+  will-change: transform, opacity;
   animation: confetti-fly var(--dur, 900ms) var(--ease) forwards;
 }
 @keyframes confetti-fly {
-  0%   { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
+  0%   { transform: translate3d(-50%, -50%, 0) rotate(0deg) scale(1); opacity: 1; }
   50%  { opacity: 0.9; }
-  100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4); opacity: 0; }
+  100% { transform: translate3d(calc(-50% + var(--tx)), calc(-50% + var(--ty)), 0) rotate(var(--rot)) scale(0.4); opacity: 0; }
 }
 
 @keyframes winnerPulse {
-  0%, 100% { filter: drop-shadow(0 0 0 rgba(232, 197, 71, 0)); transform: translateY(0) scale(1); }
-  50% { filter: drop-shadow(0 0 10px rgba(232, 197, 71, 0.5)); transform: translateY(-1px) scale(1.008); }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1px) scale(1.012); }
 }
 .winner-pulse .card {
   animation: winnerPulse var(--winner-pulse-duration, 560ms) var(--ease) 2;
@@ -764,6 +762,25 @@ body.perf-lite .btn-icon:hover {
 body.perf-lite #msg-text.visible::after {
   animation: none;
   opacity: 0.25;
+}
+.winner-pulse .card .inner {
+  box-shadow: 0 0 0 2px rgba(232, 197, 71, 0.28), 0 0 22px rgba(232, 197, 71, 0.22);
+}
+
+/* Perf-lite: remove expensive backdrop filters + shimmer */
+:root.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .btn-icon, #gameplay-controls, #betting-overlay, .bet-info, .insurance-strip, .peek-msg, #msg-text),
+body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .btn-icon, #gameplay-controls, #betting-overlay, .bet-info, .insurance-strip, .peek-msg, #msg-text) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root.perf-lite #msg-text.visible::after,
+body.perf-lite #msg-text.visible::after {
+  opacity: 0;
+  animation: none;
+}
+:root.perf-lite #table::before,
+body.perf-lite #table::before {
+  display: none;
 }
 
 @media (max-width: 640px) {

@@ -28,13 +28,37 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.08);
 
-  /* ——— Liquid Glass (premium) ——— */
-  --glass-blur: 20px;
-  --glass-saturate: 1.4;
+  /* Motion scale + shared timings */
+  --motion: 1;
+  --dur-xs: 140ms;
+  --dur-sm: 220ms;
+  --dur-md: 360ms;
+  --dur-lg: 520ms;
 
-  --glass-tint: rgba(255, 255, 255, 0.048);
-  --glass-tint-hover: rgba(255, 255, 255, 0.078);
-  --glass-tint-strong: rgba(255, 255, 255, 0.065);
+  /* ——— Liquid Glass (premium) ——— */
+  --glass-blur: 18px;
+  --glass-saturate: 1.35;
+
+  --glass-tint: rgba(255, 255, 255, 0.052);
+  --glass-tint-hover: rgba(255, 255, 255, 0.082);
+  --glass-tint-strong: rgba(255, 255, 255, 0.072);
+
+  /* Multi-layer fill gives a “liquid” refraction feel without animating */
+  --glass-fill:
+    radial-gradient(140% 180% at 18% 0%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 42%, transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 55%, rgba(0,0,0,0.02) 100%),
+    var(--glass-tint);
+  --glass-fill-hover:
+    radial-gradient(140% 180% at 18% 0%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 42%, transparent 72%),
+    linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 55%, rgba(0,0,0,0.025) 100%),
+    var(--glass-tint-hover);
+  --glass-fill-strong:
+    radial-gradient(140% 180% at 18% 0%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 42%, transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.035) 55%, rgba(0,0,0,0.03) 100%),
+    var(--glass-tint-strong);
+
+  --glass-specular: linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.035) 55%, transparent 100%);
+  --glass-specular-weak: linear-gradient(180deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.02) 55%, transparent 100%);
 
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-border-hover: rgba(255, 255, 255, 0.24);

@@ -4,6 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Liquid Glass Blackjack</title>
+  <script>
+    (() => {
+      try {
+        const saved = localStorage.getItem('bj_perf_mode');
+        const mode = (saved === 'lite' || saved === 'full') ? saved : 'auto';
+        if (mode === 'lite') { document.documentElement.classList.add('perf-lite'); return; }
+        if (mode === 'full') return;
+        const prefersReducedMotion = typeof window.matchMedia === 'function'
+          && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const cpuCores = Number(navigator.hardwareConcurrency || 0);
+        const memoryGb = Number(navigator.deviceMemory || 0);
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const slowConnection = conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g');
+        const saveData = !!(conn && conn.saveData);
+        const lowPowerDevice = (cpuCores > 0 && cpuCores <= 4) || (memoryGb > 0 && memoryGb <= 4);
+        if (prefersReducedMotion || lowPowerDevice || slowConnection || saveData) {
+          document.documentElement.classList.add('perf-lite');
+        }
+      } catch {}
+    })();
+  </script>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/cards.css">
@@ -29,6 +50,7 @@
       </div>
       <button class="btn-icon btn-perf" id="btn-perf" onclick="togglePerformanceMode()" title="Performance mode">AUTO↑</button>
       <button class="btn-icon" id="btn-sound" onclick="toggleSound()" title="Sound">🔊</button>
+      <button class="btn-icon" id="btn-perf" onclick="togglePerfMode()" title="Performance mode" aria-pressed="false">⚡</button>
       <div class="rules">
         <div>Pays <span style="color:var(--gold)">3:2</span></div>
         <small>6-Deck Shoe • Split • Double • Dealer stands 17</small>
