@@ -3,13 +3,11 @@ function getPlayerScoreEl(i) { return i === 0 ? els.pScore0 : els.pScore1; }
 
 const prefersReducedMotion = typeof window.matchMedia === 'function'
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const cpuCores = Number(navigator.hardwareConcurrency || 0);
-const memoryGb = Number(navigator.deviceMemory || 0);
-const hasPerfLiteClass = !!(document.body && document.body.classList.contains('perf-lite'));
-const perfLite = hasPerfLiteClass
-  || prefersReducedMotion
-  || (cpuCores > 0 && cpuCores <= 4)
-  || (memoryGb > 0 && memoryGb <= 4);
+
+function isPerfLite() {
+  if (window.__bjPerf && typeof window.__bjPerf.isLite === 'boolean') return window.__bjPerf.isLite;
+  return !!(document.body && document.body.classList.contains('perf-lite'));
+}
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
 
@@ -124,6 +122,12 @@ function animateValue(obj, start, end, duration) {
     valueAnimationFrames.delete(obj);
   }
 
+  if (prefersReducedMotion || isPerfLite()) {
+    obj.textContent = '$' + end;
+    obj.classList.remove('bump');
+    return;
+  }
+
   if (start === end) {
     obj.textContent = '$' + end;
     obj.classList.remove('bump');
@@ -210,7 +214,7 @@ function hideMsg() {
 
 function clearTable() {
   const cards = document.querySelectorAll('.card');
-  const dur = perfLite ? 240 : 320;
+  const dur = isPerfLite() ? 240 : 320;
   cards.forEach((c, i) => {
     c.animate(
       [
@@ -241,7 +245,7 @@ function highlightWinner(container) {
   const timeout = window.setTimeout(() => {
     container.classList.remove('winner-pulse');
     winnerPulseTimers.delete(container);
-  }, perfLite ? 800 : 1050);
+  }, isPerfLite() ? 800 : 1050);
   winnerPulseTimers.set(container, timeout);
 }
 
@@ -256,8 +260,9 @@ function animateChip(x, y) {
   const ty = window.innerHeight - 200;
   const dx = tx - x;
   const dy = ty - y;
-  const arc = perfLite ? 20 : 44;
-  const dur = perfLite ? 320 : 480;
+  const lite = isPerfLite();
+  const arc = lite ? 20 : 44;
+  const dur = lite ? 320 : 480;
 
   chip.animate(
     [
@@ -273,17 +278,18 @@ function animateChip(x, y) {
 function triggerConfetti() {
   const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
   const fragment = document.createDocumentFragment();
-  const count = perfLite ? 16 : 45;
+  const lite = isPerfLite();
+  const count = lite ? 16 : 45;
   for (let i = 0; i < count; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = (perfLite ? 60 : 95) + Math.random() * (perfLite ? 140 : 280);
+    const dist = (lite ? 60 : 95) + Math.random() * (lite ? 140 : 280);
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
     c.style.setProperty('--rot', (Math.random() * 500 + 100) + 'deg');
-    c.style.setProperty('--dur', ((perfLite ? 380 : 650) + Math.random() * (perfLite ? 280 : 550)) + 'ms');
+    c.style.setProperty('--dur', ((lite ? 380 : 650) + Math.random() * (lite ? 280 : 550)) + 'ms');
     const size = 4 + Math.random() * 5;
     c.style.width = size + 'px';
     c.style.height = size + 'px';
@@ -301,8 +307,9 @@ function spawnCard(handArr, container, faceUp, delay) {
     playSound('card');
 
     const cardEl = makeCardDOM(cardData, faceUp);
-    const dealDuration = perfLite ? 380 : 560;
-    const flipDuration = perfLite ? 340 : 520;
+    const lite = isPerfLite();
+    const dealDuration = lite ? 380 : 560;
+    const flipDuration = lite ? 340 : 520;
     cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
     cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
 

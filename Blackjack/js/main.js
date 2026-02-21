@@ -1,12 +1,57 @@
-const initGame = () => {
+const PERF_STORAGE_KEY = 'bj_perf_mode';
+
+function detectAutoPerfLite() {
   const prefersReducedMotion = typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cpuCores = Number(navigator.hardwareConcurrency || 0);
   const memoryGb = Number(navigator.deviceMemory || 0);
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   const slowConnection = conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g');
+  const saveData = !!(conn && conn.saveData);
   const lowPowerDevice = (cpuCores > 0 && cpuCores <= 4) || (memoryGb > 0 && memoryGb <= 4);
-  document.body.classList.toggle('perf-lite', prefersReducedMotion || lowPowerDevice || slowConnection);
+  return prefersReducedMotion || lowPowerDevice || slowConnection || saveData;
+}
+
+function readPerfMode() {
+  try {
+    const v = localStorage.getItem(PERF_STORAGE_KEY);
+    return (v === 'lite' || v === 'full' || v === 'auto') ? v : 'auto';
+  } catch {
+    return 'auto';
+  }
+}
+
+function writePerfMode(mode) {
+  try { localStorage.setItem(PERF_STORAGE_KEY, mode); } catch {}
+}
+
+function applyPerfMode(mode) {
+  const autoLite = detectAutoPerfLite();
+  const isLite = mode === 'lite' ? true : mode === 'full' ? false : autoLite;
+  document.body.classList.toggle('perf-lite', isLite);
+  document.body.dataset.perfMode = mode;
+  window.__bjPerf = { mode, isLite, autoLite };
+  updatePerfButton();
+}
+
+function updatePerfButton() {
+  if (!els || !els.btnPerf) return;
+  const isLite = !!(window.__bjPerf ? window.__bjPerf.isLite : document.body.classList.contains('perf-lite'));
+  els.btnPerf.textContent = isLite ? '⚡' : '✨';
+  els.btnPerf.classList.toggle('active', isLite);
+  els.btnPerf.setAttribute('aria-pressed', isLite ? 'true' : 'false');
+  els.btnPerf.title = isLite ? 'Performance mode (effects reduced)' : 'Quality mode (full effects)';
+}
+
+function togglePerfMode() {
+  const currentLite = !!(window.__bjPerf ? window.__bjPerf.isLite : document.body.classList.contains('perf-lite'));
+  const nextMode = currentLite ? 'full' : 'lite';
+  writePerfMode(nextMode);
+  applyPerfMode(nextMode);
+}
+
+const initGame = () => {
+  applyPerfMode(readPerfMode());
 
   els = {
     wallet: document.getElementById('wallet-val'),
@@ -42,8 +87,10 @@ const initGame = () => {
     streakNum: document.getElementById('streak-num'),
     peekMsg: document.getElementById('peek-msg'),
     btnSound: document.getElementById('btn-sound'),
+    btnPerf: document.getElementById('btn-perf'),
   };
 
+  updatePerfButton();
   updateUI();
   if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);

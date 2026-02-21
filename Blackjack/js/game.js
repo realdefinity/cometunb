@@ -287,8 +287,11 @@ function split() {
       setTimeout(() => {
         playSound('card');
         const el = makeCardDOM(cardData, true);
-        el.style.setProperty('--deal-duration', (perfLite ? 400 : 560) + 'ms');
-        el.style.setProperty('--flip-duration', (perfLite ? 360 : 520) + 'ms');
+        const lite = !!(window.__bjPerf && typeof window.__bjPerf.isLite === 'boolean')
+          ? window.__bjPerf.isLite
+          : !!(document.body && document.body.classList.contains('perf-lite'));
+        el.style.setProperty('--deal-duration', (lite ? 400 : 560) + 'ms');
+        el.style.setProperty('--flip-duration', (lite ? 360 : 520) + 'ms');
         container.appendChild(el);
         window.requestAnimationFrame(() => { el.classList.add('dealt'); });
       }, d);
