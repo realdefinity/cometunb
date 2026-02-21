@@ -1,3 +1,4 @@
+/* Cryptographically random integer in [0, max) */
 function cryptoRandInt(max) {
   if (max <= 0) return 0;
   const arr = new Uint32Array(1);
@@ -5,6 +6,7 @@ function cryptoRandInt(max) {
   return arr[0] % max;
 }
 
+/* 6-deck shoe with Fisher-Yates using crypto random */
 function createDeck() {
   deck = [];
   const NUM_DECKS = 6;
@@ -15,6 +17,7 @@ function createDeck() {
       }
     }
   }
+  /* Fisher-Yates with crypto.getRandomValues */
   for (let i = deck.length - 1; i > 0; i--) {
     const j = cryptoRandInt(i + 1);
     [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -138,10 +141,7 @@ function allIn() {
 function deal() {
   initAudio();
   if (gameState !== 'BETTING' || currentBet <= 0) return;
-  const profile = motionProfile();
-  const gap = profile.dealGap;
 
-  const lite = isPerfLite();
   lastBet = currentBet;
   gameState = 'PLAYING';
   playerHands = [[]];
@@ -167,13 +167,11 @@ function deal() {
   els.dScore.classList.remove('visible');
   els.betUI.classList.add('hidden');
 
-  const cardDelay = lite ? 180 : 240;
   spawnCard(playerHands[0], els.pCards0, true, 0);
-  spawnCard(dealerHand, els.dCards, true, cardDelay);
-  spawnCard(playerHands[0], els.pCards0, true, cardDelay * 2);
-  spawnCard(dealerHand, els.dCards, false, cardDelay * 3);
+  spawnCard(dealerHand, els.dCards, true, 220);
+  spawnCard(playerHands[0], els.pCards0, true, 440);
+  spawnCard(dealerHand, els.dCards, false, 660);
 
-  const totalDealTime = cardDelay * 3 + (lite ? 380 : 600);
   setTimeout(() => {
     updateAllPlayerScores(false);
     const dealerAce = dealerHand.length > 0 && dealerHand[0].v === 'A';
@@ -185,13 +183,12 @@ function deal() {
     }
     if (dealerAce && isBlackjack(playerHands[0])) stand(true);
     else {
-      setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, lite ? 60 : 120);
+      setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100);
     }
-  }, totalDealTime);
+  }, 880);
 }
 
 function takeInsurance() {
-  const profile = motionProfile();
   const insAmt = Math.floor(currentBet / 2);
   if (wallet < insAmt) return;
   initAudio();
@@ -199,22 +196,18 @@ function takeInsurance() {
   wallet -= insAmt;
   insuranceBet = insAmt;
   els.insuranceStrip.style.display = 'none';
-  const lite = isPerfLite();
   if (isBlackjack(playerHands[0])) stand(true);
-  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, lite ? 60 : 120); }
+  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100); }
 }
 
 function declineInsurance() {
-  const profile = motionProfile();
   els.insuranceStrip.style.display = 'none';
-  const lite = isPerfLite();
   if (isBlackjack(playerHands[0])) stand(true);
-  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, lite ? 60 : 120); }
+  else { setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100); }
 }
 
 function surrender() {
   if (!canSurrender()) return;
-  const profile = motionProfile();
   const bet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
   wallet += Math.floor(bet / 2);
   surrenderedHands[activeHandIndex] = true;
@@ -234,7 +227,7 @@ function surrender() {
       els.betUI.classList.remove('hidden');
       dimHands(true);
       updateUI();
-    }, Math.round(profile.roundResetDelay * 0.82));
+    }, 2000);
     return;
   }
   stand(false);
@@ -254,45 +247,21 @@ function updateAllPlayerScores(showDealer) {
   for (let i = 0; i < playerHands.length; i++) {
     const hand = playerHands[i];
     if (hand && hand.length) {
-      const scoreEl = getPlayerScoreEl(i);
-      const newScore = String(getScore(hand));
-      const changed = scoreEl.textContent !== newScore;
-      scoreEl.textContent = newScore;
-      if (!scoreEl.classList.contains('visible')) {
-        scoreEl.classList.add('visible');
-        animateScoreBadge(scoreEl);
-      } else if (changed) {
-        animateScoreBadge(scoreEl);
-      }
+      getPlayerScoreEl(i).textContent = String(getScore(hand));
+      getPlayerScoreEl(i).classList.add('visible');
     }
   }
   if (showDealer) {
-    const newDScore = String(getScore(dealerHand));
-    const dChanged = els.dScore.textContent !== newDScore;
-    els.dScore.textContent = newDScore;
-    if (!els.dScore.classList.contains('visible')) {
-      els.dScore.classList.add('visible');
-      animateScoreBadge(els.dScore);
-    } else if (dChanged) {
-      animateScoreBadge(els.dScore);
-    }
+    els.dScore.textContent = String(getScore(dealerHand));
+    els.dScore.classList.add('visible');
   } else if (dealerHand.length > 0) {
-    const upVal = String(getVal(dealerHand[0]));
-    const dChanged = els.dScore.textContent !== upVal;
-    els.dScore.textContent = upVal;
-    if (!els.dScore.classList.contains('visible')) {
-      els.dScore.classList.add('visible');
-      animateScoreBadge(els.dScore);
-    } else if (dChanged) {
-      animateScoreBadge(els.dScore);
-    }
+    els.dScore.textContent = String(getVal(dealerHand[0]));
+    els.dScore.classList.add('visible');
   }
 }
 
 function split() {
   if (!canSplit()) return;
-  const profile = motionProfile();
-  const gap = Math.round(profile.dealGap * 0.92);
   initAudio();
   playSound('chip');
   wallet -= currentBet;
@@ -312,29 +281,23 @@ function split() {
   els.pScore0.classList.remove('visible');
   els.pScore1.classList.remove('visible');
 
-  const lite = isPerfLite();
-  const cardInterval = lite ? 180 : 240;
-
   const buildHandDOM = (hand, container, delayStart) => {
     hand.forEach((cardData, idx) => {
-      const d = delayStart + idx * cardInterval;
+      const d = delayStart + idx * 220;
       setTimeout(() => {
         playSound('card');
         const el = makeCardDOM(cardData, true);
-        el.style.setProperty('--deal-duration', (lite ? 340 : 600) + 'ms');
-        el.style.setProperty('--flip-duration', (lite ? 300 : 560) + 'ms');
+        el.style.setProperty('--deal-duration', (perfLite ? 400 : 560) + 'ms');
+        el.style.setProperty('--flip-duration', (perfLite ? 360 : 520) + 'ms');
         container.appendChild(el);
-        window.requestAnimationFrame(() => {
-          window.requestAnimationFrame(() => { el.classList.add('dealt'); });
-        });
+        window.requestAnimationFrame(() => { el.classList.add('dealt'); });
       }, d);
     });
   };
 
   buildHandDOM(hand0, els.pCards0, 0);
-  buildHandDOM(hand1, els.pCards1, cardInterval * 2.5);
+  buildHandDOM(hand1, els.pCards1, 440);
 
-  const totalSplitTime = cardInterval * 2.5 + cardInterval + (lite ? 200 : 340);
   setTimeout(() => {
     activeHandIndex = 0;
     els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
@@ -343,18 +306,15 @@ function split() {
     });
     updateAllPlayerScores(false);
     updateUI();
-  }, totalSplitTime);
+  }, 700);
 }
 
 function hit() {
   if (gameState !== 'PLAYING') return;
-  const profile = motionProfile();
   els.btnDouble.disabled = true;
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
-  const lite = isPerfLite();
   spawnCard(hand, container, true, 0);
-  const checkDelay = lite ? 220 : 320;
   setTimeout(() => {
     updateAllPlayerScores(false);
     const score = getScore(hand);
@@ -364,25 +324,22 @@ function hit() {
       advanceToNextHandOrDealer();
     }
     updateUI();
-  }, checkDelay);
+  }, 280);
 }
 
 function stand(revealInstant = false) {
   if (gameState !== 'PLAYING') return;
-  const profile = motionProfile();
 
-  const lite = isPerfLite();
   const holeCardEl = els.dCards.children[1];
   const doReveal = () => {
     if (playerHands.length === 1) {
       if (holeCardEl) holeCardEl.classList.remove('face-down');
       gameState = 'DEALER_TURN';
       els.gameControls.classList.remove('active');
-      const flipDelay = revealInstant ? (lite ? 120 : 180) : (lite ? 220 : 320);
       setTimeout(() => {
         updateAllPlayerScores(true);
-        setTimeout(() => dealerAI(revealInstant), revealInstant ? (lite ? 140 : 220) : (lite ? 300 : 440));
-      }, flipDelay);
+        setTimeout(() => dealerAI(revealInstant), revealInstant ? 180 : 400);
+      }, revealInstant ? 160 : 280);
       return;
     }
     activeHandIndex++;
@@ -397,11 +354,10 @@ function stand(revealInstant = false) {
     if (holeCardEl) holeCardEl.classList.remove('face-down');
     gameState = 'DEALER_TURN';
     els.gameControls.classList.remove('active');
-    const flipDelay = lite ? 220 : 320;
     setTimeout(() => {
       updateAllPlayerScores(true);
-      setTimeout(() => dealerAI(false), lite ? 300 : 440);
-    }, flipDelay);
+      setTimeout(() => dealerAI(false), 400);
+    }, 280);
   };
 
   const goingToDealer = playerHands.length === 1 || activeHandIndex + 1 >= playerHands.length;
@@ -411,19 +367,17 @@ function stand(revealInstant = false) {
     setTimeout(() => {
       els.peekMsg.style.display = 'none';
       doReveal();
-    }, lite ? 500 : 750);
+    }, 700);
   } else {
     doReveal();
   }
 }
 
 function advanceToNextHandOrDealer() {
-  const lite = isPerfLite();
   if (playerHands.length === 1) {
     endRoundMulti([{ result: 'BUST', handIndex: 0 }]);
     return;
   }
-  const profile = motionProfile();
   activeHandIndex++;
   if (activeHandIndex < playerHands.length) {
     els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
@@ -440,13 +394,12 @@ function advanceToNextHandOrDealer() {
     setTimeout(() => {
       updateAllPlayerScores(true);
       dealerAI(false);
-    }, lite ? 260 : 360);
+    }, 320);
   }
 }
 
 function doubleDown() {
   if (!canDoubleDown(activeHandIndex)) return;
-  const profile = motionProfile();
   initAudio();
   playSound('chip');
   const addBet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
@@ -457,9 +410,7 @@ function doubleDown() {
 
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
-  const lite = isPerfLite();
   spawnCard(hand, container, true, 0);
-  const checkDelay = lite ? 220 : 320;
   setTimeout(() => {
     updateAllPlayerScores(false);
     const score = getScore(hand);
@@ -470,19 +421,17 @@ function doubleDown() {
       return;
     }
     stand(false);
-  }, checkDelay);
+  }, 280);
 }
 
 function dealerAI(isFast) {
-  const lite = isPerfLite();
   const d = getScore(dealerHand);
   if (d < 17) {
     spawnCard(dealerHand, els.dCards, true, 0);
-    const hitDelay = isFast ? (lite ? 200 : 280) : (lite ? 360 : 520);
     setTimeout(() => {
       updateAllPlayerScores(true);
       dealerAI(isFast);
-    }, hitDelay);
+    }, isFast ? 260 : 480);
   } else {
     if (playerHands.length === 1) {
       const res = determineSingleResult();
@@ -527,7 +476,6 @@ function getMultiResults() {
 }
 
 function endRoundMulti(results) {
-  const profile = motionProfile();
   gameState = 'END';
 
   if (isBlackjack(dealerHand) && insuranceBet > 0) {
@@ -592,5 +540,5 @@ function endRoundMulti(results) {
     els.insuranceStrip.style.display = 'none';
     dimHands(true);
     updateUI();
-  }, profile.roundResetDelay);
+  }, 2600);
 }
