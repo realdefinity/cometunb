@@ -84,7 +84,7 @@ function handlePerfModeChanged(event) {
 }
 
 const initGame = () => {
-  applyPerformanceMode(perfMode, false);
+  applyPerfMode();
 
   els = {
     wallet: document.getElementById('wallet-val'),
@@ -120,7 +120,7 @@ const initGame = () => {
     streakNum: document.getElementById('streak-num'),
     peekMsg: document.getElementById('peek-msg'),
     btnSound: document.getElementById('btn-sound'),
-    btnPerf: document.getElementById('btn-perf')
+    btnPerf: document.getElementById('btn-perf'),
   };
 
   window.addEventListener('blackjack:perfmodechange', handlePerfModeChanged);
@@ -128,6 +128,7 @@ const initGame = () => {
   applyPerformanceUi(getPerformanceSummary());
   if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);
+  updatePerfToggleUI();
 };
 
 if (document.readyState === 'loading') {
