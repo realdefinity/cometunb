@@ -17,13 +17,37 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.08);
 
-  /* ——— Liquid Glass (premium) ——— */
-  --glass-blur: 20px;
-  --glass-saturate: 1.4;
+  /* Motion scale + shared timings */
+  --motion: 1;
+  --dur-xs: 140ms;
+  --dur-sm: 220ms;
+  --dur-md: 360ms;
+  --dur-lg: 520ms;
 
-  --glass-tint: rgba(255, 255, 255, 0.048);
-  --glass-tint-hover: rgba(255, 255, 255, 0.078);
-  --glass-tint-strong: rgba(255, 255, 255, 0.065);
+  /* ——— Liquid Glass (premium) ——— */
+  --glass-blur: 18px;
+  --glass-saturate: 1.35;
+
+  --glass-tint: rgba(255, 255, 255, 0.052);
+  --glass-tint-hover: rgba(255, 255, 255, 0.082);
+  --glass-tint-strong: rgba(255, 255, 255, 0.072);
+
+  /* Multi-layer fill gives a “liquid” refraction feel without animating */
+  --glass-fill:
+    radial-gradient(140% 180% at 18% 0%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 42%, transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 55%, rgba(0,0,0,0.02) 100%),
+    var(--glass-tint);
+  --glass-fill-hover:
+    radial-gradient(140% 180% at 18% 0%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 42%, transparent 72%),
+    linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 55%, rgba(0,0,0,0.025) 100%),
+    var(--glass-tint-hover);
+  --glass-fill-strong:
+    radial-gradient(140% 180% at 18% 0%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 42%, transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.035) 55%, rgba(0,0,0,0.03) 100%),
+    var(--glass-tint-strong);
+
+  --glass-specular: linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.035) 55%, transparent 100%);
+  --glass-specular-weak: linear-gradient(180deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.02) 55%, transparent 100%);
 
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-border-hover: rgba(255, 255, 255, 0.24);
@@ -84,11 +108,19 @@ body {
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
 }
 
-body.perf-lite {
+body.perf-lite,
+:root.perf-lite body {
   background:
     radial-gradient(ellipse 120% 100% at 50% 50%, var(--felt-highlight) 0%, var(--felt-base) 55%, var(--felt-shadow) 100%);
-  --glass-blur: 8px;
-  --glass-saturate: 1.05;
+  --motion: 0.8;
+  --glass-blur: 0px;
+  --glass-saturate: 1;
+  --glass-tint: rgba(10, 38, 28, 0.72);
+  --glass-tint-hover: rgba(10, 38, 28, 0.82);
+  --glass-tint-strong: rgba(10, 38, 28, 0.78);
+  --glass-fill: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), var(--glass-tint);
+  --glass-fill-hover: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%), var(--glass-tint-hover);
+  --glass-fill-strong: linear-gradient(180deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.02) 100%), var(--glass-tint-strong);
   --glass-shadow:
     0 2px 10px rgba(0, 0, 0, 0.2),
     0 1px 2px rgba(0, 0, 0, 0.1),

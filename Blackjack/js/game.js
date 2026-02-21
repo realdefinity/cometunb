@@ -167,11 +167,15 @@ function deal() {
   els.dScore.classList.remove('visible');
   els.betUI.classList.add('hidden');
 
+  const m = (typeof getMotionSpec === 'function')
+    ? getMotionSpec()
+    : { staggerMs: 220, dealMs: 560 };
   spawnCard(playerHands[0], els.pCards0, true, 0);
-  spawnCard(dealerHand, els.dCards, true, 220);
-  spawnCard(playerHands[0], els.pCards0, true, 440);
-  spawnCard(dealerHand, els.dCards, false, 660);
+  spawnCard(dealerHand, els.dCards, true, m.staggerMs);
+  spawnCard(playerHands[0], els.pCards0, true, m.staggerMs * 2);
+  spawnCard(dealerHand, els.dCards, false, m.staggerMs * 3);
 
+  const afterInitialDealMs = m.staggerMs * 3 + Math.round(m.dealMs * 0.45);
   setTimeout(() => {
     updateAllPlayerScores(false);
     const dealerAce = dealerHand.length > 0 && dealerHand[0].v === 'A';
@@ -185,7 +189,7 @@ function deal() {
     else {
       setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 100);
     }
-  }, 880);
+  }, afterInitialDealMs);
 }
 
 function takeInsurance() {
@@ -281,14 +285,17 @@ function split() {
   els.pScore0.classList.remove('visible');
   els.pScore1.classList.remove('visible');
 
+  const m = (typeof getMotionSpec === 'function')
+    ? getMotionSpec()
+    : { staggerMs: 220, dealMs: 560, flipMs: 520, scoreDelayMs: 280 };
   const buildHandDOM = (hand, container, delayStart) => {
     hand.forEach((cardData, idx) => {
-      const d = delayStart + idx * 220;
+      const d = delayStart + idx * m.staggerMs;
       setTimeout(() => {
         playSound('card');
         const el = makeCardDOM(cardData, true);
-        el.style.setProperty('--deal-duration', (perfLite ? 400 : 560) + 'ms');
-        el.style.setProperty('--flip-duration', (perfLite ? 360 : 520) + 'ms');
+        el.style.setProperty('--deal-duration', m.dealMs + 'ms');
+        el.style.setProperty('--flip-duration', m.flipMs + 'ms');
         container.appendChild(el);
         window.requestAnimationFrame(() => { el.classList.add('dealt'); });
       }, d);
@@ -296,8 +303,9 @@ function split() {
   };
 
   buildHandDOM(hand0, els.pCards0, 0);
-  buildHandDOM(hand1, els.pCards1, 440);
+  buildHandDOM(hand1, els.pCards1, m.staggerMs * 2);
 
+  const afterSplitMs = m.staggerMs * 3 + Math.round(m.dealMs * 0.2);
   setTimeout(() => {
     activeHandIndex = 0;
     els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
@@ -306,7 +314,7 @@ function split() {
     });
     updateAllPlayerScores(false);
     updateUI();
-  }, 700);
+  }, afterSplitMs);
 }
 
 function hit() {
@@ -315,6 +323,9 @@ function hit() {
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
   spawnCard(hand, container, true, 0);
+  const scoreDelay = (typeof getMotionSpec === 'function')
+    ? getMotionSpec().scoreDelayMs
+    : 280;
   setTimeout(() => {
     updateAllPlayerScores(false);
     const score = getScore(hand);
@@ -324,7 +335,7 @@ function hit() {
       advanceToNextHandOrDealer();
     }
     updateUI();
-  }, 280);
+  }, scoreDelay);
 }
 
 function stand(revealInstant = false) {
@@ -411,6 +422,9 @@ function doubleDown() {
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
   spawnCard(hand, container, true, 0);
+  const scoreDelay = (typeof getMotionSpec === 'function')
+    ? getMotionSpec().scoreDelayMs
+    : 280;
   setTimeout(() => {
     updateAllPlayerScores(false);
     const score = getScore(hand);
@@ -421,7 +435,7 @@ function doubleDown() {
       return;
     }
     stand(false);
-  }, 280);
+  }, scoreDelay);
 }
 
 function dealerAI(isFast) {
