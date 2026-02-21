@@ -161,7 +161,7 @@ function animateValue(obj, start, end, duration) {
     valueAnimationFrames.delete(obj);
   }
 
-  if (prefersReducedMotion || isPerfLite()) {
+  if (_prefersReducedMotion || isPerfLite()) {
     obj.textContent = '$' + end;
     obj.classList.remove('bump');
     return;

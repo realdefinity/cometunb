@@ -134,6 +134,8 @@ function getMotionProfile() {
   return perfLite ? MOTION_PROFILES.low : MOTION_PROFILES.high;
 }
 
+const motionProfile = getMotionProfile;
+
 function getPerformanceSummary() {
   return {
     mode: perfMode,
