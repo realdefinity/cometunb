@@ -1,12 +1,12 @@
-function openShop() {
+window.openShop = function() {
   const overlay = document.getElementById('shop-overlay');
   if (!overlay) return;
   overlay.style.display = 'flex';
   overlay.classList.add('visible');
   renderShop();
-}
+};
 
-function closeShop() {
+window.closeShop = function() {
   const overlay = document.getElementById('shop-overlay');
   if (!overlay) return;
   overlay.classList.remove('visible');
