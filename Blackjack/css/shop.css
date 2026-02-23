@@ -1,11 +1,14 @@
 #shop-overlay {
   display: none;
-}
-
-.overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
   z-index: 99999;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
@@ -14,7 +17,15 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
-.overlay.visible {}
+#shop-overlay[data-open="true"] {
+  display: flex !important;
+}
+
+#shop-overlay[data-open="true"] .shop-panel {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
 
 .death-panel {
   background: var(--glass-tint-strong);
@@ -83,13 +94,9 @@
   flex-direction: column;
   transform: scale(0.92) translateY(30px);
   opacity: 0;
+  pointer-events: none;
   transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
               opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.overlay.visible .shop-panel {
-  transform: scale(1) translateY(0);
-  opacity: 1;
 }
 
 .shop-panel::before {

@@ -60,20 +60,12 @@ const initGame = () => {
   const openShop = () => {
     if (!shopOverlay) return;
     document.body.appendChild(shopOverlay);
-    shopOverlay.style.setProperty('display', 'flex');
-    shopOverlay.style.setProperty('opacity', '1');
-    shopOverlay.style.setProperty('visibility', 'visible');
-    shopOverlay.style.setProperty('pointer-events', 'auto');
-    shopOverlay.style.setProperty('position', 'fixed');
-    shopOverlay.style.setProperty('inset', '0');
-    shopOverlay.style.setProperty('z-index', '99999');
+    shopOverlay.setAttribute('data-open', 'true');
     if (typeof renderShop === 'function') renderShop();
   };
   const closeShop = () => {
     if (!shopOverlay) return;
-    shopOverlay.style.setProperty('display', 'none');
-    shopOverlay.style.setProperty('opacity', '0');
-    shopOverlay.style.setProperty('visibility', 'hidden');
+    shopOverlay.removeAttribute('data-open');
   };
   const btnShop = document.getElementById('btn-shop');
   const coinsBox = document.getElementById('coins-box');
