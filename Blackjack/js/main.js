@@ -59,19 +59,33 @@ const initGame = () => {
   const shopOverlay = document.getElementById('shop-overlay');
   const openShop = () => {
     if (!shopOverlay) return;
-    shopOverlay.style.display = 'flex';
-    shopOverlay.classList.add('visible');
+    document.body.appendChild(shopOverlay);
+    shopOverlay.style.setProperty('display', 'flex');
+    shopOverlay.style.setProperty('opacity', '1');
+    shopOverlay.style.setProperty('visibility', 'visible');
+    shopOverlay.style.setProperty('pointer-events', 'auto');
+    shopOverlay.style.setProperty('position', 'fixed');
+    shopOverlay.style.setProperty('inset', '0');
+    shopOverlay.style.setProperty('z-index', '99999');
     if (typeof renderShop === 'function') renderShop();
   };
   const closeShop = () => {
     if (!shopOverlay) return;
-    shopOverlay.classList.remove('visible');
-    setTimeout(() => { shopOverlay.style.display = 'none'; }, 500);
+    shopOverlay.style.setProperty('display', 'none');
+    shopOverlay.style.setProperty('opacity', '0');
+    shopOverlay.style.setProperty('visibility', 'hidden');
   };
   const btnShop = document.getElementById('btn-shop');
   const coinsBox = document.getElementById('coins-box');
-  if (btnShop) btnShop.addEventListener('click', openShop);
-  if (coinsBox) coinsBox.addEventListener('click', openShop);
+  const handleShopClick = (e) => {
+    const t = e.target;
+    if ((btnShop && (t === btnShop || btnShop.contains(t))) || (coinsBox && (t === coinsBox || coinsBox.contains(t)))) {
+      e.preventDefault();
+      e.stopPropagation();
+      openShop();
+    }
+  };
+  document.body.addEventListener('click', handleShopClick, true);
   shopOverlay && shopOverlay.addEventListener('click', (e) => {
     if (e.target === shopOverlay) closeShop();
   });
