@@ -55,6 +55,28 @@ const initGame = () => {
   updateCoinsUI();
   if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);
+
+  const shopOverlay = document.getElementById('shop-overlay');
+  const openShop = () => {
+    if (!shopOverlay) return;
+    shopOverlay.style.display = 'flex';
+    shopOverlay.classList.add('visible');
+    if (typeof renderShop === 'function') renderShop();
+  };
+  const closeShop = () => {
+    if (!shopOverlay) return;
+    shopOverlay.classList.remove('visible');
+    setTimeout(() => { shopOverlay.style.display = 'none'; }, 500);
+  };
+  const btnShop = document.getElementById('btn-shop');
+  const coinsBox = document.getElementById('coins-box');
+  if (btnShop) btnShop.addEventListener('click', openShop);
+  if (coinsBox) coinsBox.addEventListener('click', openShop);
+  shopOverlay && shopOverlay.addEventListener('click', (e) => {
+    if (e.target === shopOverlay) closeShop();
+  });
+  const closeBtn = shopOverlay && shopOverlay.querySelector('.shop-close');
+  if (closeBtn) closeBtn.addEventListener('click', closeShop);
 };
 
 if (document.readyState === 'loading') {

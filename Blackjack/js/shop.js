@@ -1,17 +1,3 @@
-window.openShop = function() {
-  const overlay = document.getElementById('shop-overlay');
-  if (!overlay) return;
-  overlay.style.display = 'flex';
-  overlay.classList.add('visible');
-  renderShop();
-};
-
-window.closeShop = function() {
-  const overlay = document.getElementById('shop-overlay');
-  if (!overlay) return;
-  overlay.classList.remove('visible');
-  setTimeout(() => { overlay.style.display = 'none'; }, 500);
-}
 
 function renderShop() {
   const grid = document.getElementById('shop-grid');

@@ -28,11 +28,11 @@
         <span id="stat-pushes">0</span> P
         <span class="streak-badge" id="streak-display" style="display: none;">🔥 <span id="streak-num">0</span></span>
       </div>
-      <div class="stat-box stat-coins" id="coins-box" onclick="openShop()">
+      <div class="stat-box stat-coins" id="coins-box">
         <span class="stat-label">Coins</span>
         <span class="stat-value" id="coins-val">0</span>
       </div>
-      <button class="btn-icon" id="btn-shop" onclick="openShop()" title="Shop">🛒</button>
+      <button class="btn-icon" id="btn-shop" title="Shop">🛒</button>
       <button class="btn-icon" id="btn-sound" onclick="toggleSound()" title="Sound">🔊</button>
       <div class="rules">
         <div>Pays <span style="color:var(--gold)">3:2</span></div>
@@ -126,12 +126,12 @@
     </div>
   </div>
 
-  <div id="shop-overlay" class="overlay" style="display: none;" onclick="if(event.target===this)closeShop()">
-    <div class="shop-panel" onclick="event.stopPropagation()">
+  <div id="shop-overlay" class="overlay" style="display: none;">
+    <div class="shop-panel">
       <div class="shop-header">
         <h2 class="shop-title">VIP Lounge</h2>
         <div class="shop-coins"><span id="shop-coins-val">0</span> ⭐</div>
-        <button class="btn-icon shop-close" onclick="closeShop()">✕</button>
+        <button class="btn-icon shop-close">✕</button>
       </div>
       <div class="shop-grid" id="shop-grid"></div>
     </div>
