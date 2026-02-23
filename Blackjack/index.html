@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/shop.css">
 </head>
 <body>
   <div id="table">
@@ -27,6 +28,11 @@
         <span id="stat-pushes">0</span> P
         <span class="streak-badge" id="streak-display" style="display: none;">🔥 <span id="streak-num">0</span></span>
       </div>
+      <div class="stat-box stat-coins" id="coins-box" onclick="openShop()">
+        <span class="stat-label">Coins</span>
+        <span class="stat-value" id="coins-val">0</span>
+      </div>
+      <button class="btn-icon" id="btn-shop" onclick="openShop()" title="Shop">🛒</button>
       <button class="btn-icon" id="btn-sound" onclick="toggleSound()" title="Sound">🔊</button>
       <div class="rules">
         <div>Pays <span style="color:var(--gold)">3:2</span></div>
@@ -111,11 +117,36 @@
     <div id="msg-text">BLACKJACK</div>
   </div>
 
+  <div id="death-overlay" class="overlay" style="display: none;" onclick="if(event.target===this)restartAfterDeath()">
+    <div class="death-panel">
+      <div class="death-icon">💀</div>
+      <h1 class="death-title">COLLECTED</h1>
+      <p class="death-msg">You didn't pay your debts in time.</p>
+      <button class="btn btn-deal death-restart" onclick="restartAfterDeath()">Try Again</button>
+    </div>
+  </div>
+
+  <div id="shop-overlay" class="overlay" style="display: none;" onclick="if(event.target===this)closeShop()">
+    <div class="shop-panel" onclick="event.stopPropagation()">
+      <div class="shop-header">
+        <h2 class="shop-title">VIP Lounge</h2>
+        <div class="shop-coins"><span id="shop-coins-val">0</span> ⭐</div>
+        <button class="btn-icon shop-close" onclick="closeShop()">✕</button>
+      </div>
+      <div class="shop-grid" id="shop-grid"></div>
+    </div>
+  </div>
+
+  <div id="loan-warning" class="loan-warning" style="display: none;">
+    <span id="loan-warning-text">Pay your loan! 2 hands left</span>
+  </div>
+
   <script src="js/data.js"></script>
   <script src="js/state.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/shop.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

@@ -14,6 +14,32 @@ const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
+function updateCoinsUI() {
+  if (els.coinsVal) els.coinsVal.textContent = coins;
+  if (els.shopCoinsVal) els.shopCoinsVal.textContent = coins;
+}
+
+function updateLoanWarning() {
+  if (!els.loanWarning || !els.loanWarningText || loan <= 0) return;
+  const grace = (inventory['grace-period'] || 0) * 3;
+  const totalHands = LOAN_DEATH_HANDS + grace;
+  const left = totalHands - handsWithUnpaidLoan;
+  if (left <= 2 && left > 0) {
+    els.loanWarningText.textContent = `Pay your loan! ${left} hand${left === 1 ? '' : 's'} left`;
+    els.loanWarning.classList.add('visible');
+    els.loanWarning.style.display = 'block';
+  } else {
+    els.loanWarning.classList.remove('visible');
+  }
+}
+
+function hideLoanWarning() {
+  if (els.loanWarning) {
+    els.loanWarning.classList.remove('visible');
+    els.loanWarning.style.display = 'none';
+  }
+}
+
 function updateStatsUI() {
   els.statWins.textContent = stats.wins;
   els.statLosses.textContent = stats.losses;
@@ -154,7 +180,7 @@ function updateUI() {
     const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
     animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 280);
     lastTotalBet = Math.floor(totalBet);
-    els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
+    els.btnDeal.disabled = gameState !== 'BETTING' || currentBet <= 0;
     els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet >= lastBet);
     els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
     els.btnSplit.disabled = !canSplit();
@@ -174,6 +200,8 @@ function updateUI() {
     els.btnPayback.textContent = 'Pay $' + Math.min(100, Math.floor(wallet), Math.floor(loan));
     setControlsEnabled(gameState === 'PLAYING');
     updateStatsUI();
+    updateCoinsUI();
+    updateLoanWarning();
   });
 }
 
@@ -234,32 +262,33 @@ function animateChip(x, y) {
   const dx = tx - x;
   const dy = ty - y;
   const arc = perfLite ? 20 : 44;
-  const dur = perfLite ? 320 : 520;
+  const dur = perfLite ? 360 : 580;
+  const easeOut = 'cubic-bezier(0.22, 1, 0.36, 1)';
   chip.animate(
     [
       { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
-      { transform: `translate(${dx * 0.36}px, ${dy * 0.18 - arc}px) scale(0.86) rotate(220deg)`, opacity: 0.92, offset: 0.4 },
-      { transform: `translate(${dx * 0.7}px, ${dy * 0.58 - arc * 0.3}px) scale(0.66) rotate(460deg)`, opacity: 0.78, offset: 0.74 },
-      { transform: `translate(${dx}px, ${dy}px) scale(0.4) rotate(640deg)`, opacity: 0.5 }
+      { transform: `translate(${dx * 0.28}px, ${dy * 0.12 - arc}px) scale(0.9) rotate(180deg)`, opacity: 0.95, offset: 0.35 },
+      { transform: `translate(${dx * 0.62}px, ${dy * 0.45 - arc * 0.4}px) scale(0.7) rotate(400deg)`, opacity: 0.85, offset: 0.68 },
+      { transform: `translate(${dx}px, ${dy}px) scale(0.45) rotate(720deg)`, opacity: 0.6 }
     ],
-    { duration: dur, easing: EASE }
+    { duration: dur, easing: easeOut }
   ).onfinish = () => chip.remove();
 }
 
 function triggerConfetti() {
-  const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7'];
+  const colors = ['#e8c547', '#e74c3c', '#3498db', '#fff', '#3dd88a', '#a855f7', '#f472b6'];
   const fragment = document.createDocumentFragment();
-  const count = perfLite ? 16 : 45;
+  const count = perfLite ? 20 : 55;
   for (let i = 0; i < count; i++) {
     const c = document.createElement('div');
     c.className = 'confetti confetti-fly';
     c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.random() * Math.PI * 2;
-    const dist = (perfLite ? 60 : 95) + Math.random() * (perfLite ? 140 : 280);
+    const dist = (perfLite ? 80 : 120) + Math.random() * (perfLite ? 160 : 320);
     c.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
     c.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
-    c.style.setProperty('--rot', (Math.random() * 500 + 100) + 'deg');
-    c.style.setProperty('--dur', ((perfLite ? 380 : 650) + Math.random() * (perfLite ? 280 : 550)) + 'ms');
+    c.style.setProperty('--rot', (Math.random() * 720 + 180) + 'deg');
+    c.style.setProperty('--dur', ((perfLite ? 450 : 800) + Math.random() * (perfLite ? 350 : 600)) + 'ms');
     const size = 4 + Math.random() * 5;
     c.style.width = size + 'px';
     c.style.height = size + 'px';

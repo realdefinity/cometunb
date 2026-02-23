@@ -10,6 +10,13 @@ const initGame = () => {
 
   els = {
     wallet: document.getElementById('wallet-val'),
+    coinsBox: document.getElementById('coins-box'),
+    coinsVal: document.getElementById('coins-val'),
+    shopOverlay: document.getElementById('shop-overlay'),
+    shopCoinsVal: document.getElementById('shop-coins-val'),
+    deathOverlay: document.getElementById('death-overlay'),
+    loanWarning: document.getElementById('loan-warning'),
+    loanWarningText: document.getElementById('loan-warning-text'),
     bet: document.getElementById('bet-val'),
     playerHandsRow: document.getElementById('player-hands-row'),
     pCards0: document.getElementById('player-cards-0'),
@@ -45,6 +52,7 @@ const initGame = () => {
   };
 
   updateUI();
+  updateCoinsUI();
   if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);
 };

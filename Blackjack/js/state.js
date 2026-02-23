@@ -17,3 +17,12 @@ let soundMuted = false;
 let insuranceBet = 0;
 let surrenderedHands = [];
 let els = {};
+let handsWithUnpaidLoan = 0;
+let coins = 10;
+let inventory = {};
+let perks = {
+  luckyStart: false,
+  insuranceDiscountRemaining: 0,
+  doubleAnywhereRemaining: 0,
+  rebetBoostRemaining: 0
+};

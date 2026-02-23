@@ -289,11 +289,11 @@
   font-weight: 800;
   font-size: 0.95rem;
   opacity: 0;
-  transition: opacity var(--anim-med) var(--ease), transform var(--anim-slow) var(--ease);
+  transition: opacity 0.45s var(--ease), transform 0.6s var(--ease-spring);
   z-index: 5;
   position: relative;
   contain: layout paint;
-  transform: translateY(6px) scale(0.92);
+  transform: translateY(8px) scale(0.88);
 }
 
 .score-badge::before {
@@ -338,9 +338,9 @@
   flex-wrap: wrap;
   z-index: 92;
   opacity: 0;
-  transform: translateY(14px) scale(0.98);
+  transform: translateY(20px) scale(0.96);
   pointer-events: none;
-  transition: opacity 0.36s var(--ease), transform 0.42s var(--ease);
+  transition: opacity 0.48s var(--ease), transform 0.56s var(--ease-spring);
 }
 
 #gameplay-controls.active {
@@ -350,17 +350,18 @@
 }
 
 #gameplay-controls.active .btn {
-  animation: controlBtnIn 0.38s var(--ease) backwards;
+  animation: controlBtnIn 0.52s var(--ease-spring) backwards;
 }
 
-#gameplay-controls.active .btn:nth-child(1) { animation-delay: 0.02s; }
-#gameplay-controls.active .btn:nth-child(2) { animation-delay: 0.06s; }
-#gameplay-controls.active .btn:nth-child(3) { animation-delay: 0.1s; }
-#gameplay-controls.active .btn:nth-child(4) { animation-delay: 0.14s; }
-#gameplay-controls.active .btn:nth-child(5) { animation-delay: 0.18s; }
+#gameplay-controls.active .btn:nth-child(1) { animation-delay: 0.03s; }
+#gameplay-controls.active .btn:nth-child(2) { animation-delay: 0.08s; }
+#gameplay-controls.active .btn:nth-child(3) { animation-delay: 0.13s; }
+#gameplay-controls.active .btn:nth-child(4) { animation-delay: 0.18s; }
+#gameplay-controls.active .btn:nth-child(5) { animation-delay: 0.23s; }
 
 @keyframes controlBtnIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.96) translateZ(0); }
+  from { opacity: 0; transform: translateY(16px) scale(0.9) translateZ(0); }
+  60% { transform: translateY(-3px) scale(1.03) translateZ(0); }
   to { opacity: 1; transform: translateY(0) scale(1) translateZ(0); }
 }
 
@@ -471,13 +472,13 @@
   background: linear-gradient(to top, rgba(6, 26, 20, 0.88) 0%, rgba(6, 26, 20, 0.3) 58%, transparent 100%);
   backdrop-filter: blur(calc(var(--glass-blur) * 0.35)) saturate(calc(var(--glass-saturate) * 0.8));
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.35)) saturate(calc(var(--glass-saturate) * 0.8));
-  transition: opacity var(--anim-med) var(--ease), transform 0.48s var(--ease);
+  transition: opacity 0.5s var(--ease), transform 0.58s var(--ease-spring);
   contain: layout paint;
 }
 
 #betting-overlay.hidden {
   opacity: 0;
-  transform: translateY(36px) scale(0.98);
+  transform: translateY(48px) scale(0.96);
   pointer-events: none;
 }
 
@@ -632,12 +633,12 @@
   font-size: 0.9rem;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.32s var(--ease), box-shadow 0.3s var(--ease);
+  transition: transform 0.38s var(--ease-spring), box-shadow 0.35s var(--ease);
 }
 
 .chip:hover {
-  transform: translateY(-5px) scale(1.04);
-  box-shadow: 0 10px 0 rgba(0,0,0,0.3), 0 14px 26px rgba(0,0,0,0.28);
+  transform: translateY(-6px) scale(1.06);
+  box-shadow: 0 12px 0 rgba(0,0,0,0.3), 0 18px 32px rgba(0,0,0,0.28);
 }
 
 .chip:active {
@@ -715,8 +716,8 @@
   letter-spacing: 1.5px;
   color: #fff;
   opacity: 0;
-  transform: translateY(18px) scale(0.92) translateZ(0);
-  transition: opacity 0.38s var(--ease), transform 0.52s var(--ease);
+  transform: translateY(24px) scale(0.9) translateZ(0);
+  transition: opacity 0.48s var(--ease), transform 0.62s var(--ease-spring);
   position: relative;
   contain: layout paint;
 }
@@ -779,13 +780,13 @@
 }
 
 .confetti-fly {
-  animation: confetti-fly var(--dur, 900ms) var(--ease) forwards;
+  animation: confetti-fly var(--dur, 900ms) cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes confetti-fly {
   0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
-  50% { opacity: 0.9; }
-  100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.35); opacity: 0; }
 }
 
 @keyframes winnerPulse {

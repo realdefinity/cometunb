@@ -49,7 +49,9 @@ function canDoubleDown(handIndex) {
   const hand = playerHands[handIndex];
   const doubled = hasDoubled[handIndex];
   const betForHand = currentBets[handIndex] != null ? currentBets[handIndex] : currentBet;
-  return gameState === 'PLAYING' && hand && hand.length === 2 && !doubled && wallet >= betForHand && activeHandIndex === handIndex;
+  const canNormally = hand && hand.length === 2;
+  const canWithPerk = perks.doubleAnywhereRemaining > 0 && hand && hand.length >= 2;
+  return gameState === 'PLAYING' && (canNormally || canWithPerk) && !doubled && wallet >= betForHand && activeHandIndex === handIndex;
 }
 
 function canSplit() {
@@ -80,6 +82,7 @@ function takeLoan(amount) {
   const owe = Math.floor(amount * LOAN_INTEREST);
   wallet += amount;
   loan += owe;
+  handsWithUnpaidLoan = 0;
   initAudio();
   playSound('chip');
   updateUI();
@@ -91,9 +94,11 @@ function payBack(amount) {
   if (amt <= 0) return;
   wallet -= amt;
   loan -= amt;
+  if (loan <= 0) handsWithUnpaidLoan = 0;
   initAudio();
   playSound('chip');
   updateUI();
+  updateLoanWarning();
 }
 
 function placeBet(amt, e) {
@@ -116,10 +121,15 @@ function clearBet() {
 
 function rebet() {
   if (gameState !== 'BETTING' || lastBet <= 0) return;
-  if (wallet < lastBet) return;
+  let amt = lastBet;
+  if (perks.rebetBoostRemaining > 0) {
+    amt = Math.floor(lastBet * 1.5);
+    perks.rebetBoostRemaining--;
+  }
+  if (wallet < amt) amt = Math.min(amt, wallet);
+  if (amt <= 0) return;
   initAudio();
   playSound('chip');
-  const amt = Math.min(lastBet, wallet);
   wallet -= amt;
   currentBet = amt;
   updateUI();
@@ -133,6 +143,50 @@ function allIn() {
   currentBet += wallet;
   wallet = 0;
   updateUI();
+}
+
+function getStartingWallet() {
+  return perks.luckyStart ? 1500 : 1000;
+}
+
+function restartAfterDeath() {
+  if (els.deathOverlay) {
+    els.deathOverlay.classList.remove('visible');
+    els.deathOverlay.style.display = 'none';
+  }
+  wallet = getStartingWallet();
+  loan = 0;
+  handsWithUnpaidLoan = 0;
+  currentBet = 0;
+  currentBets = [0];
+  lastBet = 0;
+  gameState = 'BETTING';
+  playerHands = [[]];
+  hasDoubled = [false];
+  surrenderedHands = [];
+  hideMsg();
+  hideLoanWarning();
+  clearTable();
+  els.betUI.classList.remove('hidden');
+  dimHands(true);
+  updateUI();
+  updateCoinsUI();
+}
+
+function checkLoanDeath() {
+  if (loan <= 0) return false;
+  const grace = (inventory['grace-period'] || 0) * 3;
+  const totalHands = LOAN_DEATH_HANDS + grace;
+  if (handsWithUnpaidLoan >= totalHands) {
+    if ((inventory['extra-life'] || 0) > 0) {
+      inventory['extra-life']--;
+      handsWithUnpaidLoan = 0;
+      showMsg('Extra Life!', 'var(--ok)');
+      return false;
+    }
+    return true;
+  }
+  return false;
 }
 
 function deal() {
@@ -174,7 +228,9 @@ function deal() {
     updateAllPlayerScores(false);
     const dealerAce = dealerHand.length > 0 && dealerHand[0].v === 'A';
     if (dealerAce && !isBlackjack(playerHands[0])) {
-      els.insuranceAmt.textContent = Math.floor(currentBet / 2);
+      let insAmt = Math.floor(currentBet / 2);
+      if (perks.insuranceDiscountRemaining > 0) insAmt = Math.floor(insAmt / 2);
+      els.insuranceAmt.textContent = insAmt;
       els.insuranceStrip.style.display = 'flex';
       return;
     }
@@ -190,10 +246,13 @@ function deal() {
 }
 
 function takeInsurance() {
-  const insAmt = Math.floor(currentBet / 2);
+  let insAmt = Math.floor(currentBet / 2);
+  const usedDiscount = perks.insuranceDiscountRemaining > 0;
+  if (usedDiscount) insAmt = Math.floor(insAmt / 2);
   if (wallet < insAmt) return;
   initAudio();
   playSound('chip');
+  if (usedDiscount) perks.insuranceDiscountRemaining--;
   wallet -= insAmt;
   insuranceBet = insAmt;
   els.insuranceStrip.style.display = 'none';
@@ -404,6 +463,7 @@ function doubleDown() {
   if (!canDoubleDown(activeHandIndex)) return;
   initAudio();
   playSound('chip');
+  if (playerHands[activeHandIndex].length > 2 && perks.doubleAnywhereRemaining > 0) perks.doubleAnywhereRemaining--;
   const addBet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
   wallet -= addBet;
   if (currentBets[activeHandIndex] != null) currentBets[activeHandIndex] *= 2;
@@ -530,6 +590,36 @@ function endRoundMulti(results) {
   updateStatsUI();
   updateUI();
 
+  if (loan > 0) handsWithUnpaidLoan++;
+
+  let coinsEarned = 0;
+  for (const r of results) {
+    if (r.result === 'BLACKJACK') coinsEarned += 5;
+    else if (r.result === 'WIN') coinsEarned += 2;
+    else coinsEarned += 1;
+  }
+  coins += coinsEarned || 1;
+
+  if (checkLoanDeath()) {
+    setTimeout(() => {
+      gameState = 'DEAD';
+      els.betUI.classList.add('hidden');
+      els.insuranceStrip.style.display = 'none';
+      hideMsg();
+      els.deathOverlay.style.display = 'flex';
+      requestAnimationFrame(() => els.deathOverlay.classList.add('visible'));
+      updateUI();
+    }, 2400);
+    return;
+  }
+
+  const handCount = playerHands.reduce((n, h) => n + (h && h.length ? 1 : 0), 0) || 1;
+  coins += handCount;
+  let anyBlackjack = false;
+  for (const r of results) {
+    if (r.result === 'BLACKJACK') { coins += 4; anyBlackjack = true; }
+    else if (r.result === 'WIN') coins += 2;
+  }
   setTimeout(() => {
     gameState = 'BETTING';
     currentBet = 0;
@@ -543,5 +633,6 @@ function endRoundMulti(results) {
     els.insuranceStrip.style.display = 'none';
     dimHands(true);
     updateUI();
+    updateCoinsUI();
   }, 2600);
 }
