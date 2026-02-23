@@ -1,4 +1,3 @@
-/* ——— Cards (performance: will-change only when animating) ——— */
 .card {
   width: var(--card-w);
   height: var(--card-h);
@@ -28,7 +27,7 @@
   opacity: 1;
   transform: translate3d(0, 0, 0) rotate(var(--rot)) scale(1);
   z-index: auto;
-  animation: cardDealIn var(--deal-duration, 520ms) var(--ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
+  animation: cardDealIn var(--deal-duration, 520ms) var(--ease) both;
 }
 
 .card.dealt:not(.face-down):hover .inner {
@@ -46,8 +45,8 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform var(--flip-duration, 480ms) cubic-bezier(0.2, 0.88, 0.22, 1),
-              box-shadow 0.28s var(--ease);
+  transition: transform var(--flip-duration, 480ms) cubic-bezier(0.22, 0.9, 0.2, 1),
+              box-shadow 0.32s var(--ease);
   border-radius: 12px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
   transform: rotateY(0deg);
@@ -65,12 +64,12 @@
     opacity: 0;
     transform: translate3d(60vw, -60vh, 0) rotate(120deg) scale(0.42);
   }
-  52% {
+  48% {
     opacity: 1;
-    transform: translate3d(-4px, 4px, 0) rotate(calc(var(--rot) + 1.2deg)) scale(1.018);
+    transform: translate3d(-6px, 6px, 0) rotate(calc(var(--rot) + 1.4deg)) scale(1.022);
   }
-  78% {
-    transform: translate3d(1px, -1px, 0) rotate(calc(var(--rot) - 0.25deg)) scale(1.002);
+  72% {
+    transform: translate3d(2px, -2px, 0) rotate(calc(var(--rot) - 0.3deg)) scale(1.004);
   }
   100% {
     opacity: 1;
@@ -107,6 +106,7 @@
   border: 3.5px solid #f0efe8;
   box-shadow: inset 0 0 0 5px #180808, inset 0 0 0 7px rgba(255,255,255,0.22);
 }
+
 .card-back::before {
   content: '';
   position: absolute;
@@ -115,6 +115,7 @@
   background: repeating-linear-gradient(45deg, #8b0000 0 8px, #a52a2a 8px 16px);
   border: 1.5px solid rgba(255,255,255,0.5);
 }
+
 .card-back::after {
   content: '\2660';
   position: absolute;
@@ -138,6 +139,7 @@
   font-weight: 800;
   line-height: 1;
 }
+
 .corner.bottom {
   top: auto; bottom: 5px;
   left: auto; right: 6px;
@@ -177,6 +179,7 @@
   width: 100%; height: 100%;
   place-items: center;
 }
+
 .pip { font-size: 1.25rem; line-height: 1; }
 .pip.ace { font-size: 4.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
@@ -192,13 +195,14 @@
   padding: 5px 12px;
   border-radius: 8px;
   opacity: 0;
-  transition: transform 0.38s var(--ease-spring), opacity 0.28s var(--ease);
+  transition: transform 0.42s var(--ease-spring), opacity 0.32s var(--ease);
   pointer-events: none;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 3px 12px rgba(0,0,0,0.14);
   z-index: 10;
   letter-spacing: 0.5px;
 }
+
 .card.busted .bust-stamp {
   opacity: 1;
   transform: translate(-50%, -50%) rotate(-15deg) scale(1);

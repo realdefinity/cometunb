@@ -12,8 +12,6 @@ const perfLite = hasPerfLiteClass
   || (memoryGb > 0 && memoryGb <= 4);
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
-
-/** Matches CSS --ease for WAAPI and inline animations */
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 function updateStatsUI() {
@@ -51,7 +49,6 @@ function makeCardDOM(cardData, faceUp = true) {
   back.className = 'card-back';
 
   const colorCls = suitClass(cardData.s);
-
   const cornerContent = `<span class="rank">${cardData.v}</span><span class="suit">${cardData.s}</span>`;
   const cornerTL = document.createElement('div');
   cornerTL.className = `corner ${colorCls}`;
@@ -104,10 +101,7 @@ function makeCardDOM(cardData, faceUp = true) {
   inner.appendChild(face);
   card.appendChild(inner);
 
-  if (!faceUp) {
-    card.classList.add('face-down');
-  }
-
+  if (!faceUp) card.classList.add('face-down');
   return card;
 }
 
@@ -123,36 +117,28 @@ function animateValue(obj, start, end, duration) {
     window.cancelAnimationFrame(existingFrame);
     valueAnimationFrames.delete(obj);
   }
-
   if (start === end) {
     obj.textContent = '$' + end;
     obj.classList.remove('bump');
     return;
   }
-
   let startTimestamp = null;
   const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
   obj.classList.add('bump');
-
   const step = (timestamp) => {
     if (startTimestamp === null) startTimestamp = timestamp;
     const raw = Math.min((timestamp - startTimestamp) / duration, 1);
     const progress = easeOutQuart(raw);
     const val = Math.floor(progress * (end - start) + start);
     obj.textContent = '$' + val;
-
     if (raw < 1) {
-      const frameId = window.requestAnimationFrame(step);
-      valueAnimationFrames.set(obj, frameId);
+      valueAnimationFrames.set(obj, window.requestAnimationFrame(step));
       return;
     }
-
     obj.classList.remove('bump');
     valueAnimationFrames.delete(obj);
   };
-
-  const frameId = window.requestAnimationFrame(step);
-  valueAnimationFrames.set(obj, frameId);
+  valueAnimationFrames.set(obj, window.requestAnimationFrame(step));
 }
 
 let lastWallet = 1000;
@@ -165,35 +151,28 @@ function updateUI() {
     updateUIRafId = null;
     animateValue(els.wallet, lastWallet, Math.floor(wallet), 480);
     lastWallet = Math.floor(wallet);
-
     const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
     animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 280);
     lastTotalBet = Math.floor(totalBet);
-
     els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
     els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet >= lastBet);
     els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
     els.btnSplit.disabled = !canSplit();
     els.btnSurrender.style.display = canSurrender() ? '' : 'none';
-
     if (loan > 0) {
       els.loanBox.style.display = '';
       els.loanVal.textContent = '$' + Math.floor(loan);
     } else {
       els.loanBox.style.display = 'none';
     }
-
     const totalBetNow = currentBets.reduce((a, b) => a + b, 0) || currentBet;
     const showTakeLoan = gameState === 'BETTING' && wallet <= 0 && totalBetNow <= 0;
     els.takeLoanStrip.style.display = showTakeLoan ? 'flex' : 'none';
-
     const showPayback = gameState === 'BETTING' && loan > 0 && wallet > 0;
     els.btnPayback.style.display = showPayback ? '' : 'none';
     els.btnPayall.style.display = showPayback ? '' : 'none';
     els.btnPayback.textContent = 'Pay $' + Math.min(100, Math.floor(wallet), Math.floor(loan));
-
-    const canPlay = gameState === 'PLAYING';
-    setControlsEnabled(canPlay);
+    setControlsEnabled(gameState === 'PLAYING');
     updateStatsUI();
   });
 }
@@ -238,11 +217,10 @@ function highlightWinner(container) {
   const existing = winnerPulseTimers.get(container);
   if (existing) window.clearTimeout(existing);
   container.classList.add('winner-pulse');
-  const timeout = window.setTimeout(() => {
+  winnerPulseTimers.set(container, window.setTimeout(() => {
     container.classList.remove('winner-pulse');
     winnerPulseTimers.delete(container);
-  }, perfLite ? 800 : 1050);
-  winnerPulseTimers.set(container, timeout);
+  }, perfLite ? 800 : 1050));
 }
 
 function animateChip(x, y) {
@@ -251,14 +229,12 @@ function animateChip(x, y) {
   chip.style.left = x + 'px';
   chip.style.top = y + 'px';
   document.body.appendChild(chip);
-
   const tx = window.innerWidth / 2 - 22;
   const ty = window.innerHeight - 200;
   const dx = tx - x;
   const dy = ty - y;
   const arc = perfLite ? 20 : 44;
-  const dur = perfLite ? 320 : 480;
-
+  const dur = perfLite ? 320 : 520;
   chip.animate(
     [
       { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
@@ -299,27 +275,16 @@ function spawnCard(handArr, container, faceUp, delay) {
   handArr.push(cardData);
   setTimeout(() => {
     playSound('card');
-
     const cardEl = makeCardDOM(cardData, faceUp);
     const dealDuration = perfLite ? 380 : 560;
     const flipDuration = perfLite ? 340 : 520;
     cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
     cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
-
-    if (faceUp) {
-      cardEl.classList.add('face-down');
-    }
-
+    if (faceUp) cardEl.classList.add('face-down');
     container.appendChild(cardEl);
-    window.requestAnimationFrame(() => {
-      cardEl.classList.add('dealt');
-    });
-
+    requestAnimationFrame(() => cardEl.classList.add('dealt'));
     if (faceUp) {
-      const revealDelay = Math.max(55, Math.round(dealDuration * 0.26));
-      setTimeout(() => {
-        cardEl.classList.remove('face-down');
-      }, revealDelay);
+      setTimeout(() => cardEl.classList.remove('face-down'), Math.max(60, Math.round(dealDuration * 0.28)));
     }
   }, delay);
 }

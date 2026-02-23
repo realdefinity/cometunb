@@ -1,5 +1,5 @@
 let deck = [];
-let playerHands = [[]];  // array of hands; after split: [hand0, hand1]
+let playerHands = [[]];
 let dealerHand = [];
 let wallet = 1000;
 let loan = 0;
@@ -16,6 +16,4 @@ let consecutiveWins = 0;
 let soundMuted = false;
 let insuranceBet = 0;
 let surrenderedHands = [];
-
-// Will be populated in main.js
 let els = {};
