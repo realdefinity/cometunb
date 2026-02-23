@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,6 +11,7 @@
   -webkit-backdrop-filter: blur(12px);
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
               visibility 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -18,6 +19,7 @@
 .overlay.visible {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .death-panel {

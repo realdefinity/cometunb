@@ -1,16 +1,16 @@
 function openShop() {
-  if (els.shopOverlay) {
-    els.shopOverlay.style.display = 'flex';
-    requestAnimationFrame(() => els.shopOverlay.classList.add('visible'));
-    renderShop();
-  }
+  const overlay = document.getElementById('shop-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  overlay.classList.add('visible');
+  renderShop();
 }
 
 function closeShop() {
-  if (els.shopOverlay) {
-    els.shopOverlay.classList.remove('visible');
-    setTimeout(() => { els.shopOverlay.style.display = 'none'; }, 500);
-  }
+  const overlay = document.getElementById('shop-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('visible');
+  setTimeout(() => { overlay.style.display = 'none'; }, 500);
 }
 
 function renderShop() {
