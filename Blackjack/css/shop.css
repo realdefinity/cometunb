@@ -102,6 +102,9 @@
   gap: 14px;
   padding: 20px 24px 28px;
   overflow-y: auto;
+  min-height: 180px;
+  max-height: 55vh;
+  overscroll-behavior: contain;
 }
 
 .shop-item {
@@ -115,6 +118,8 @@
   gap: 10px;
   cursor: pointer;
   transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .shop-item:hover:not(.disabled) {

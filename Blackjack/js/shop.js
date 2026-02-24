@@ -34,9 +34,18 @@ function purchaseItem(item) {
   coins -= item.price;
   inventory[item.id] = owned + 1;
   if (item.id === 'lucky-start') perks.luckyStart = true;
+  if (item.id === 'high-roller') perks.highRoller = true;
   if (item.id === 'insurance-discount') perks.insuranceDiscountRemaining += 10;
+  if (item.id === 'insurance-pro') perks.insuranceProRemaining += 5;
   if (item.id === 'double-anywhere') perks.doubleAnywhereRemaining += 5;
   if (item.id === 'rebet-boost') perks.rebetBoostRemaining += 1;
+  if (item.id === 'split-master') perks.splitMasterRemaining += 3;
+  if (item.id === 'comeback-coin') perks.comebackCoinRemaining += 1;
+  if (item.id === 'coin-boost') coins += 15;
+  if (item.id === 'quick-cash') wallet += 200;
   updateCoinsUI();
-  renderShop();
+  if (typeof updateUI === 'function') updateUI();
+  const grid = document.getElementById('shop-grid-dynamic');
+  const coinsDisp = document.getElementById('shop-coins-display');
+  renderShop(grid, coinsDisp);
 }

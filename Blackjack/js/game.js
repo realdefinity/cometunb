@@ -60,7 +60,7 @@ function canSplit() {
   const hand = playerHands[0];
   if (hand.length !== 2) return false;
   if (wallet < currentBet) return false;
-  return sameValue(hand[0], hand[1]);
+  return sameValue(hand[0], hand[1]) || perks.splitMasterRemaining > 0;
 }
 
 function canSurrender() {
@@ -146,7 +146,9 @@ function allIn() {
 }
 
 function getStartingWallet() {
-  return perks.luckyStart ? 1500 : 1000;
+  if (perks.highRoller) return 2000;
+  if (perks.luckyStart) return 1500;
+  return 1000;
 }
 
 function restartAfterDeath() {
@@ -226,8 +228,8 @@ function deal() {
     updateAllPlayerScores(false);
     const dealerAce = dealerHand.length > 0 && dealerHand[0].v === 'A';
     if (dealerAce && !isBlackjack(playerHands[0])) {
-      let insAmt = Math.floor(currentBet / 2);
-      if (perks.insuranceDiscountRemaining > 0) insAmt = Math.floor(insAmt / 2);
+      let insAmt = perks.insuranceProRemaining > 0 ? 0 : Math.floor(currentBet / 2);
+      if (insAmt > 0 && perks.insuranceDiscountRemaining > 0) insAmt = Math.floor(insAmt / 2);
       els.insuranceAmt.textContent = insAmt;
       els.insuranceStrip.style.display = 'flex';
       return;
@@ -244,15 +246,17 @@ function deal() {
 }
 
 function takeInsurance() {
-  let insAmt = Math.floor(currentBet / 2);
-  const usedDiscount = perks.insuranceDiscountRemaining > 0;
+  const usedPro = perks.insuranceProRemaining > 0;
+  let insAmt = usedPro ? 0 : Math.floor(currentBet / 2);
+  const usedDiscount = !usedPro && perks.insuranceDiscountRemaining > 0;
   if (usedDiscount) insAmt = Math.floor(insAmt / 2);
   if (wallet < insAmt) return;
   initAudio();
   playSound('chip');
-  if (usedDiscount) perks.insuranceDiscountRemaining--;
+  if (usedPro) perks.insuranceProRemaining--;
+  else if (usedDiscount) perks.insuranceDiscountRemaining--;
   wallet -= insAmt;
-  insuranceBet = insAmt;
+  insuranceBet = usedPro ? Math.floor(currentBet / 2) : insAmt;
   els.insuranceStrip.style.display = 'none';
   if (isBlackjack(playerHands[0])) stand(true);
   else setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 120);
@@ -322,6 +326,8 @@ function split() {
   if (!canSplit()) return;
   initAudio();
   playSound('chip');
+  const usedSplitMaster = perks.splitMasterRemaining > 0 && !sameValue(playerHands[0][0], playerHands[0][1]);
+  if (usedSplitMaster) perks.splitMasterRemaining--;
   wallet -= currentBet;
   currentBets = [currentBet, currentBet];
 
@@ -595,6 +601,17 @@ function endRoundMulti(results) {
   for (const r of results) {
     if (r.result === 'BLACKJACK') coins += 4;
     else if (r.result === 'WIN') coins += 2;
+  }
+  if (perks.comebackCoinRemaining > 0) {
+    if (anyWin) { coins += 5; perks.comebackCoinRemaining--; }
+    else if (anyLoss) {
+      const firstLostBet = results.find(r => r.result === 'LOSE' || r.result === 'BUST');
+      if (firstLostBet) {
+        const refundBet = bets[firstLostBet.handIndex] != null ? bets[firstLostBet.handIndex] : currentBet / results.length;
+        wallet += refundBet;
+        perks.comebackCoinRemaining--;
+      }
+    }
   }
 
   if (checkLoanDeath()) {

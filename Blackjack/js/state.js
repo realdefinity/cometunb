@@ -18,11 +18,15 @@ let insuranceBet = 0;
 let surrenderedHands = [];
 let els = {};
 let handsWithUnpaidLoan = 0;
-let coins = 10;
+let coins = 25;
 let inventory = {};
 let perks = {
   luckyStart: false,
+  highRoller: false,
   insuranceDiscountRemaining: 0,
   doubleAnywhereRemaining: 0,
-  rebetBoostRemaining: 0
+  rebetBoostRemaining: 0,
+  splitMasterRemaining: 0,
+  insuranceProRemaining: 0,
+  comebackCoinRemaining: 0
 };
