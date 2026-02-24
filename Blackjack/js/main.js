@@ -68,12 +68,12 @@ const initGame = () => {
     panel.className = 'shop-panel';
     panel.style.cssText = 'background:var(--glass-tint-strong);border:1px solid var(--glass-border);border-radius:24px;width:100%;max-width:560px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--glass-shadow-xl);';
     panel.innerHTML = `
-      <div class="shop-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div class="shop-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
         <h2 class="shop-title" style="margin:0;font-size:1.6rem;color:var(--gold);">VIP Lounge</h2>
-        <div class="shop-coins" style="font-weight:700;padding:6px 14px;border-radius:999px;background:rgba(232,197,71,0.15);" id="shop-coins-display">${coins} ⭐</div>
+        <div class="shop-coins" style="font-weight:700;padding:6px 14px;border-radius:999px;background:rgba(232,197,71,0.15);" id="shop-coins-display" title="Your coin balance">${typeof coins === 'number' ? coins : 0} ⭐</div>
         <button type="button" class="btn-icon shop-close" style="width:40px;height:40px;cursor:pointer;font-size:1.1rem;">✕</button>
       </div>
-      <div class="shop-grid" id="shop-grid-dynamic" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:20px 24px 28px;overflow-y:auto;"></div>
+      <div class="shop-grid" id="shop-grid-dynamic" style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:20px 24px 28px;overflow-y:auto;"></div>
     `;
     backdrop.appendChild(panel);
     backdrop.addEventListener('click', (e) => {

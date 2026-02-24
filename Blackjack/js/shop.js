@@ -1,10 +1,11 @@
 function renderShop(gridEl, coinsEl) {
   const grid = gridEl || document.getElementById('shop-grid-dynamic') || document.getElementById('shop-grid');
   if (!grid) return;
-  const coinsDisplay = coinsEl || els.shopCoinsVal || document.getElementById('shop-coins-display');
-  if (coinsDisplay) coinsDisplay.textContent = coins + ' ⭐';
+  const coinsDisplay = coinsEl || (els && els.shopCoinsVal) || document.getElementById('shop-coins-display');
+  if (coinsDisplay) coinsDisplay.textContent = (typeof coins === 'number' ? coins : 0) + ' ⭐';
   grid.innerHTML = '';
-  SHOP_ITEMS.forEach((item) => {
+  const items = typeof SHOP_ITEMS !== 'undefined' && Array.isArray(SHOP_ITEMS) ? SHOP_ITEMS : [];
+  items.forEach((item) => {
     const owned = inventory[item.id] || 0;
     const canBuy = coins >= item.price && (item.max === 0 || owned < item.max);
     const el = document.createElement('div');
