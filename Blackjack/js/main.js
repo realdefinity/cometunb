@@ -59,13 +59,13 @@ const initGame = () => {
   const shopOverlay = document.getElementById('shop-overlay');
   const openShop = () => {
     if (!shopOverlay) return;
-    document.body.appendChild(shopOverlay);
-    shopOverlay.setAttribute('data-open', 'true');
+    document.documentElement.appendChild(shopOverlay);
+    shopOverlay.removeAttribute('hidden');
     if (typeof renderShop === 'function') renderShop();
   };
   const closeShop = () => {
     if (!shopOverlay) return;
-    shopOverlay.removeAttribute('data-open');
+    shopOverlay.setAttribute('hidden', '');
   };
   const btnShop = document.getElementById('btn-shop');
   const coinsBox = document.getElementById('coins-box');
@@ -81,8 +81,10 @@ const initGame = () => {
   shopOverlay && shopOverlay.addEventListener('click', (e) => {
     if (e.target === shopOverlay) closeShop();
   });
+  const shopPanel = shopOverlay && shopOverlay.querySelector('.shop-panel');
+  if (shopPanel) shopPanel.addEventListener('click', (e) => e.stopPropagation());
   const closeBtn = shopOverlay && shopOverlay.querySelector('.shop-close');
-  if (closeBtn) closeBtn.addEventListener('click', closeShop);
+  if (closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeShop(); });
 };
 
 if (document.readyState === 'loading') {
