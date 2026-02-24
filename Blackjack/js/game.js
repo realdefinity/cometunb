@@ -150,10 +150,8 @@ function getStartingWallet() {
 }
 
 function restartAfterDeath() {
-  if (els.deathOverlay) {
-    els.deathOverlay.classList.remove('visible');
-    els.deathOverlay.style.display = 'none';
-  }
+  const deathEl = document.getElementById('death-overlay');
+  if (deathEl) deathEl.style.display = 'none';
   wallet = getStartingWallet();
   loan = 0;
   handsWithUnpaidLoan = 0;
@@ -592,13 +590,12 @@ function endRoundMulti(results) {
 
   if (loan > 0) handsWithUnpaidLoan++;
 
-  let coinsEarned = 0;
+  const handCount = playerHands.reduce((n, h) => n + (h && h.length ? 1 : 0), 0) || 1;
+  coins += handCount;
   for (const r of results) {
-    if (r.result === 'BLACKJACK') coinsEarned += 5;
-    else if (r.result === 'WIN') coinsEarned += 2;
-    else coinsEarned += 1;
+    if (r.result === 'BLACKJACK') coins += 4;
+    else if (r.result === 'WIN') coins += 2;
   }
-  coins += coinsEarned || 1;
 
   if (checkLoanDeath()) {
     setTimeout(() => {
@@ -606,20 +603,15 @@ function endRoundMulti(results) {
       els.betUI.classList.add('hidden');
       els.insuranceStrip.style.display = 'none';
       hideMsg();
-      els.deathOverlay.style.display = 'flex';
-      requestAnimationFrame(() => els.deathOverlay.classList.add('visible'));
+      const d = document.getElementById('death-overlay');
+      if (d) {
+        d.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:2147483647;background:rgba(0,0,0,0.7);';
+      }
       updateUI();
     }, 2400);
     return;
   }
 
-  const handCount = playerHands.reduce((n, h) => n + (h && h.length ? 1 : 0), 0) || 1;
-  coins += handCount;
-  let anyBlackjack = false;
-  for (const r of results) {
-    if (r.result === 'BLACKJACK') { coins += 4; anyBlackjack = true; }
-    else if (r.result === 'WIN') coins += 2;
-  }
   setTimeout(() => {
     gameState = 'BETTING';
     currentBet = 0;

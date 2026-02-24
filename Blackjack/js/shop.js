@@ -1,16 +1,14 @@
-
-function renderShop() {
-  const grid = document.getElementById('shop-grid');
+function renderShop(gridEl, coinsEl) {
+  const grid = gridEl || document.getElementById('shop-grid-dynamic') || document.getElementById('shop-grid');
   if (!grid) return;
+  const coinsDisplay = coinsEl || els.shopCoinsVal || document.getElementById('shop-coins-display');
+  if (coinsDisplay) coinsDisplay.textContent = coins + ' ⭐';
   grid.innerHTML = '';
-  if (els.shopCoinsVal) els.shopCoinsVal.textContent = coins;
-
-  SHOP_ITEMS.forEach((item, idx) => {
+  SHOP_ITEMS.forEach((item) => {
     const owned = inventory[item.id] || 0;
     const canBuy = coins >= item.price && (item.max === 0 || owned < item.max);
     const el = document.createElement('div');
     el.className = 'shop-item' + (canBuy ? '' : ' disabled');
-    el.style.animationDelay = (idx * 0.05) + 's';
     el.innerHTML = `
       <span class="shop-item-icon">${item.icon}</span>
       <span class="shop-item-name">${item.name}</span>
@@ -21,7 +19,7 @@ function renderShop() {
       </div>
     `;
     if (canBuy) {
-      el.onclick = () => purchaseItem(item);
+      el.addEventListener('click', () => purchaseItem(item));
     }
     grid.appendChild(el);
   });
@@ -31,19 +29,14 @@ function purchaseItem(item) {
   const owned = inventory[item.id] || 0;
   if (coins < item.price) return;
   if (item.max > 0 && owned >= item.max) return;
-
   initAudio();
   playSound('chip');
   coins -= item.price;
   inventory[item.id] = owned + 1;
-
-  if (item.id === 'extra-life') {}
-  if (item.id === 'grace-period') {}
   if (item.id === 'lucky-start') perks.luckyStart = true;
   if (item.id === 'insurance-discount') perks.insuranceDiscountRemaining += 10;
   if (item.id === 'double-anywhere') perks.doubleAnywhereRemaining += 5;
   if (item.id === 'rebet-boost') perks.rebetBoostRemaining += 1;
-
   updateCoinsUI();
   renderShop();
 }

@@ -16,7 +16,8 @@ const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 function updateCoinsUI() {
   if (els.coinsVal) els.coinsVal.textContent = coins;
-  if (els.shopCoinsVal) els.shopCoinsVal.textContent = coins;
+  const shopCoins = document.getElementById('shop-coins-display');
+  if (shopCoins) shopCoins.textContent = coins + ' ⭐';
 }
 
 function updateLoanWarning() {
@@ -30,6 +31,7 @@ function updateLoanWarning() {
     els.loanWarning.style.display = 'block';
   } else {
     els.loanWarning.classList.remove('visible');
+    els.loanWarning.style.display = 'none';
   }
 }
 
@@ -181,7 +183,7 @@ function updateUI() {
     animateValue(els.bet, lastTotalBet, Math.floor(totalBet), 280);
     lastTotalBet = Math.floor(totalBet);
     els.btnDeal.disabled = gameState !== 'BETTING' || currentBet <= 0;
-    els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet >= lastBet);
+    els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet > 0);
     els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
     els.btnSplit.disabled = !canSplit();
     els.btnSurrender.style.display = canSurrender() ? '' : 'none';

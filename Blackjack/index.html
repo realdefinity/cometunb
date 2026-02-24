@@ -32,8 +32,8 @@
         <span class="stat-label">Coins</span>
         <span class="stat-value" id="coins-val">0</span>
       </div>
-      <button class="btn-icon" id="btn-shop" title="Shop">🛒</button>
-      <button class="btn-icon" id="btn-sound" onclick="toggleSound()" title="Sound">🔊</button>
+      <button class="btn-icon" id="btn-shop" type="button" title="Shop">🛒</button>
+      <button class="btn-icon" id="btn-sound" type="button" title="Sound">🔊</button>
       <div class="rules">
         <div>Pays <span style="color:var(--gold)">3:2</span></div>
         <small>6-Deck Shoe • Split • Double • Dealer stands 17</small>
@@ -117,23 +117,12 @@
     <div id="msg-text">BLACKJACK</div>
   </div>
 
-  <div id="death-overlay" class="overlay" style="display: none;" onclick="if(event.target===this)restartAfterDeath()">
+  <div id="death-overlay" class="death-overlay" role="alertdialog" aria-modal="true" aria-labelledby="death-title" style="display:none;">
     <div class="death-panel">
       <div class="death-icon">💀</div>
-      <h1 class="death-title">COLLECTED</h1>
+      <h1 class="death-title" id="death-title">COLLECTED</h1>
       <p class="death-msg">You didn't pay your debts in time.</p>
-      <button class="btn btn-deal death-restart" onclick="restartAfterDeath()">Try Again</button>
-    </div>
-  </div>
-
-  <div id="shop-overlay" hidden>
-    <div class="shop-panel">
-      <div class="shop-header">
-        <h2 class="shop-title">VIP Lounge</h2>
-        <div class="shop-coins"><span id="shop-coins-val">0</span> ⭐</div>
-        <button class="btn-icon shop-close">✕</button>
-      </div>
-      <div class="shop-grid" id="shop-grid"></div>
+      <button type="button" class="btn btn-deal death-restart">Try Again</button>
     </div>
   </div>
 

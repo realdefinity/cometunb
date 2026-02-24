@@ -12,8 +12,7 @@ const initGame = () => {
     wallet: document.getElementById('wallet-val'),
     coinsBox: document.getElementById('coins-box'),
     coinsVal: document.getElementById('coins-val'),
-    shopOverlay: document.getElementById('shop-overlay'),
-    shopCoinsVal: document.getElementById('shop-coins-val'),
+    shopCoinsVal: null,
     deathOverlay: document.getElementById('death-overlay'),
     loanWarning: document.getElementById('loan-warning'),
     loanWarningText: document.getElementById('loan-warning-text'),
@@ -56,35 +55,61 @@ const initGame = () => {
   if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);
 
-  const shopOverlay = document.getElementById('shop-overlay');
+  let shopBackdrop = null;
   const openShop = () => {
-    if (!shopOverlay) return;
-    document.documentElement.appendChild(shopOverlay);
-    shopOverlay.removeAttribute('hidden');
-    if (typeof renderShop === 'function') renderShop();
+    if (shopBackdrop && shopBackdrop.parentNode) return;
+    const backdrop = document.createElement('div');
+    backdrop.id = 'shop-backdrop';
+    backdrop.setAttribute('role', 'dialog');
+    backdrop.setAttribute('aria-modal', 'true');
+    backdrop.setAttribute('aria-label', 'VIP Lounge shop');
+    backdrop.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;background:rgba(0,0,0,0.7);';
+    const panel = document.createElement('div');
+    panel.className = 'shop-panel';
+    panel.style.cssText = 'background:var(--glass-tint-strong);border:1px solid var(--glass-border);border-radius:24px;width:100%;max-width:560px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--glass-shadow-xl);';
+    panel.innerHTML = `
+      <div class="shop-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+        <h2 class="shop-title" style="margin:0;font-size:1.6rem;color:var(--gold);">VIP Lounge</h2>
+        <div class="shop-coins" style="font-weight:700;padding:6px 14px;border-radius:999px;background:rgba(232,197,71,0.15);" id="shop-coins-display">${coins} ⭐</div>
+        <button type="button" class="btn-icon shop-close" style="width:40px;height:40px;cursor:pointer;font-size:1.1rem;">✕</button>
+      </div>
+      <div class="shop-grid" id="shop-grid-dynamic" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:20px 24px 28px;overflow-y:auto;"></div>
+    `;
+    backdrop.appendChild(panel);
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeShop();
+    });
+    panel.querySelector('.shop-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeShop();
+    });
+    panel.addEventListener('click', (e) => e.stopPropagation());
+    document.body.appendChild(backdrop);
+    shopBackdrop = backdrop;
+    els.shopCoinsVal = document.getElementById('shop-coins-display');
+    const grid = document.getElementById('shop-grid-dynamic');
+    const coinsDisp = document.getElementById('shop-coins-display');
+    if (typeof renderShop === 'function' && grid) renderShop(grid, coinsDisp);
+    document.addEventListener('keydown', escHandler);
   };
   const closeShop = () => {
-    if (!shopOverlay) return;
-    shopOverlay.setAttribute('hidden', '');
-  };
-  const btnShop = document.getElementById('btn-shop');
-  const coinsBox = document.getElementById('coins-box');
-  const handleShopClick = (e) => {
-    const t = e.target;
-    if ((btnShop && (t === btnShop || btnShop.contains(t))) || (coinsBox && (t === coinsBox || coinsBox.contains(t)))) {
-      e.preventDefault();
-      e.stopPropagation();
-      openShop();
+    if (shopBackdrop && shopBackdrop.parentNode) {
+      shopBackdrop.parentNode.removeChild(shopBackdrop);
+      shopBackdrop = null;
+      document.removeEventListener('keydown', escHandler);
     }
   };
-  document.body.addEventListener('click', handleShopClick, true);
-  shopOverlay && shopOverlay.addEventListener('click', (e) => {
-    if (e.target === shopOverlay) closeShop();
+  const escHandler = (e) => {
+    if (e.key === 'Escape') closeShop();
+  };
+  document.getElementById('btn-shop')?.addEventListener('click', openShop);
+  document.getElementById('coins-box')?.addEventListener('click', openShop);
+
+  document.getElementById('btn-sound')?.addEventListener('click', () => { toggleSound(); });
+  document.getElementById('death-overlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'death-overlay') restartAfterDeath();
   });
-  const shopPanel = shopOverlay && shopOverlay.querySelector('.shop-panel');
-  if (shopPanel) shopPanel.addEventListener('click', (e) => e.stopPropagation());
-  const closeBtn = shopOverlay && shopOverlay.querySelector('.shop-close');
-  if (closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeShop(); });
+  document.querySelector('.death-restart')?.addEventListener('click', restartAfterDeath);
 };
 
 if (document.readyState === 'loading') {
