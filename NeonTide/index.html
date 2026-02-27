@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neon Tide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+  <canvas id="gameCanvas" aria-label="Neon Tide game"></canvas>
+
+  <div class="aurora one"></div>
+  <div class="aurora two"></div>
+
+  <main id="ui-layer">
+    <section class="hud-row top">
+      <article class="glass stat-card">
+        <span class="label">Score</span>
+        <strong id="score">0</strong>
+      </article>
+      <article class="glass stat-card">
+        <span class="label">Combo</span>
+        <strong id="combo">x1.0</strong>
+      </article>
+      <article class="glass stat-card charge">
+        <div class="charge-labels">
+          <span class="label">Dash Charge</span>
+          <span id="dashText">Ready</span>
+        </div>
+        <div class="charge-track"><div id="dashBar"></div></div>
+      </article>
+    </section>
+
+    <section id="startPanel" class="glass hero active">
+      <h1>NEON TIDE</h1>
+      <p>Surf the liquid current. Collect <span class="accent">orbs</span>, dodge <span class="danger">shards</span>, and chain dashes for massive score multipliers.</p>
+      <ul>
+        <li><kbd>WASD</kbd> or <kbd>Arrow keys</kbd> to move</li>
+        <li><kbd>Space</kbd> to dash through tight gaps</li>
+        <li>Stay smooth: missed orbs reset your combo</li>
+      </ul>
+      <button id="startBtn">Drop In</button>
+    </section>
+
+    <section id="gameOverPanel" class="glass hero">
+      <h2>Run Complete</h2>
+      <p id="runSummary">You lasted 0s.</p>
+      <div class="results">
+        <div><span>Score</span><strong id="finalScore">0</strong></div>
+        <div><span>Best</span><strong id="bestScore">0</strong></div>
+      </div>
+      <button id="restartBtn">Ride Again</button>
+    </section>
+
+    <p class="hint">Tip: Glide near orb clusters, then dash through to preserve momentum and combo.</p>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
