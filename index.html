@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neon Tide Loader</title>
+  <style>
+    :root {
+      --bg-0: #060914;
+      --bg-1: #121936;
+      --accent: #7ef9ff;
+      --accent-2: #9c9fff;
+      --accent-3: #ff9ef4;
+      --text-sub: rgba(235, 245, 255, 0.56);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: radial-gradient(circle at 20% 10%, #1d2c67 0%, var(--bg-0) 50%), linear-gradient(160deg, #03050d, var(--bg-1));
+      color: #f4fbff;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      user-select: none;
+      perspective: 1000px;
+    }
+    #warp-canvas { position: fixed; inset: 0; z-index: 1; opacity: .9; transition: opacity 1s ease; }
+    #center-stage {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; width: 320px; height: 320px;
+    }
+    .orbit-container { position: relative; width: 150px; height: 150px; transform-style: preserve-3d; transition: transform .1s ease-out; }
+    .orbit-ring {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 0 80px rgba(126,249,255,.25), inset 0 0 22px rgba(0,0,0,.65);
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.1), rgba(255,255,255,0));
+      transition: opacity .5s;
+    }
+    .orbit-arc {
+      position: absolute; inset: -3px; border-radius: 50%; border: 2px solid transparent;
+      border-top-color: var(--accent); border-left-color: rgba(255,255,255,.2);
+      animation: spin 2.8s linear infinite; filter: drop-shadow(0 0 14px var(--accent)); transition: opacity .5s;
+    }
+    .orbit-arc.inner {
+      inset: 17px; border-top-color: transparent; border-left-color: var(--accent-2);
+      border-bottom-color: var(--accent-3); animation: spin 4s ease-in-out infinite reverse; opacity: .75;
+    }
+    .core-singularity {
+      position: absolute; top: 50%; left: 50%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%);
+      background: #f7ffff; box-shadow: 0 0 28px white, 0 0 80px rgba(126,249,255,.95), 0 0 120px rgba(255,158,244,.65);
+      z-index: 20; animation: breathe 2.7s ease-in-out infinite;
+    }
+    .status-block {
+      position: absolute; top: 68%; left: 0; right: 0; text-align: center; pointer-events: none; padding-top: 62px;
+      transition: opacity .5s;
+    }
+    .status-text { font-size: 12px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; }
+    .meta-text { font-size: 11px; color: var(--text-sub); letter-spacing: .7px; min-height: 14px; }
+    .progress-wrap {
+      position: absolute; top: calc(68% + 88px); left: 50%; transform: translateX(-50%); width: 240px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .progress-track { width: 100%; height: 7px; border-radius: 999px; background: rgba(255,255,255,.14); overflow: hidden; }
+    .progress-bar {
+      width: 0%; height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+      box-shadow: 0 0 20px rgba(126,249,255,.55);
+      transition: width .15s linear;
+    }
+    .progress-label { font-size: 10px; letter-spacing: 1px; color: var(--text-sub); }
+    #light-curtain { position: fixed; inset: 0; z-index: 100; background: #fff; opacity: 0; pointer-events: none; transition: opacity .1s linear; }
+    #light-curtain.active { opacity: 1; }
+    #update-notify {
+      position: fixed; bottom: 34px; left: 50%; transform: translate(-50%, 90px); opacity: 0;
+      background: rgba(255,255,255,.08); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px; padding: 10px 18px; display: flex; align-items: center; gap: 10px;
+      font-size: 11px; letter-spacing: .5px; transition: all .6s cubic-bezier(.34,1.56,.64,1); cursor: pointer; z-index: 60;
+    }
+    #update-notify.visible { transform: translate(-50%, 0); opacity: 1; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #8dfec4; box-shadow: 0 0 14px #8dfec4; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes breathe {
+      0%,100% { transform: translate(-50%, -50%) scale(1); opacity: .9; }
+      50% { transform: translate(-50%, -50%) scale(1.28); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="warp-canvas"></canvas>
+  <div id="light-curtain"></div>
+
+  <div id="center-stage">
+    <div class="orbit-container" id="orbit-rig">
+      <div class="orbit-ring" id="ring-outer"></div>
+      <div class="orbit-arc" id="ring-arc-1"></div>
+      <div class="orbit-arc inner" id="ring-arc-2"></div>
+      <div class="core-singularity" id="core"></div>
+    </div>
+
+    <div class="status-block" id="text-rig">
+      <div class="status-text" id="status-text">INITIALIZING</div>
+      <div class="meta-text" id="meta-text">Preparing Neon Tide...</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+      <div class="progress-label" id="progress-label">0%</div>
+    </div>
+  </div>
+
+  <div id="update-notify" onclick="location.reload()">
+    <div class="dot"></div>
+    <div>New build detected — tap to refresh</div>
+  </div>
+
+  <script>
+    (function () {
+      const CONFIG = {
+        user: 'realdefinity',
+        repo: 'cometunb',
+        branch: 'main',
+        pollInterval: 60000,
+      };
+
+      const ROOT = 'NeonTide';
+      const TARGET_LOCAL = `${ROOT}/index.html`;
+
+      const MIRRORS = [
+        (u, r, b) => `https://cdn.jsdelivr.net/gh/${u}/${r}@${b}/`,
+        (u, r, b) => `https://raw.githack.com/${u}/${r}/${b}/`,
+        (u, r, b) => `https://raw.githubusercontent.com/${u}/${r}/${b}/`,
+      ];
+
+      const STAGES = [
+        { p: 10, s: 'Memory Check', m: 'Stabilizing render field' },
+        { p: 30, s: 'Surface Uplink', m: 'Probing mirrors' },
+        { p: 55, s: 'Asset Pathing', m: 'Verifying Neon Tide entrypoint' },
+        { p: 80, s: 'Hydro Sync', m: 'Preparing smooth launch' },
+        { p: 100, s: 'Dive Ready', m: 'Entering Neon Tide' },
+      ];
+
+      const Visuals = {
+        canvas: document.getElementById('warp-canvas'),
+        ctx: null,
+        width: 0,
+        height: 0,
+        stars: [],
+        warpFactor: 0,
+        mouseX: 0,
+        mouseY: 0,
+        init() {
+          this.ctx = this.canvas.getContext('2d');
+          this.resize();
+          window.addEventListener('resize', () => this.resize());
+          window.addEventListener('mousemove', (e) => {
+            this.mouseX = (e.clientX - this.width / 2) / (this.width / 2);
+            this.mouseY = (e.clientY - this.height / 2) / (this.height / 2);
+          });
+          for (let i = 0; i < 620; i++) {
+            this.stars.push({
+              x: (Math.random() - 0.5) * this.width,
+              y: (Math.random() - 0.5) * this.height,
+              z: Math.random() * 1800,
+              size: Math.random(),
+            });
+          }
+          this.loop();
+        },
+        resize() {
+          this.width = window.innerWidth;
+          this.height = window.innerHeight;
+          this.canvas.width = this.width;
+          this.canvas.height = this.height;
+        },
+        loop() {
+          const fade = this.warpFactor > 0.08 ? 0.18 : 1;
+          this.ctx.fillStyle = `rgba(4, 8, 18, ${fade})`;
+          this.ctx.fillRect(0, 0, this.width, this.height);
+
+          const cx = this.width / 2 + this.mouseX * 24;
+          const cy = this.height / 2 + this.mouseY * 24;
+          const speed = 0.55 + this.warpFactor * 90;
+
+          this.stars.forEach((star) => {
+            if (this.warpFactor > 0.05) {
+              star.x *= 0.992;
+              star.y *= 0.992;
+            }
+            star.z -= speed;
+            if (star.z <= 1) {
+              star.z = 1800;
+              star.x = (Math.random() - 0.5) * this.width;
+              star.y = (Math.random() - 0.5) * this.height;
+            }
+
+            const scale = 500 / star.z;
+            const x = cx + star.x * scale;
+            const y = cy + star.y * scale;
+            if (x < 0 || x > this.width || y < 0 || y > this.height) return;
+
+            const alpha = 1 - star.z / 1800;
+            this.ctx.beginPath();
+            if (this.warpFactor > 0.09) {
+              const tail = scale * (26 * this.warpFactor);
+              const ang = Math.atan2(y - cy, x - cx);
+              this.ctx.moveTo(x, y);
+              this.ctx.lineTo(x - Math.cos(ang) * tail, y - Math.sin(ang) * tail);
+              this.ctx.strokeStyle = `rgba(220, 248, 255, ${alpha * 0.45})`;
+              this.ctx.lineWidth = 1 + scale;
+              this.ctx.stroke();
+            } else {
+              this.ctx.fillStyle = `rgba(240, 255, 255, ${alpha})`;
+              this.ctx.arc(x, y, scale * (0.5 + star.size), 0, Math.PI * 2);
+              this.ctx.fill();
+            }
+          });
+
+          const rig = document.getElementById('orbit-rig');
+          if (rig && this.warpFactor < 1) {
+            rig.style.transform = `rotateX(${-this.mouseY * 22}deg) rotateY(${this.mouseX * 22}deg)`;
+          } else if (rig) {
+            rig.style.transform = `rotateX(0deg) rotateY(0deg) scale(${1 + this.warpFactor})`;
+          }
+
+          requestAnimationFrame(() => this.loop());
+        },
+        setWarp(progress01) {
+          this.warpFactor = progress01 * progress01 * progress01;
+        },
+      };
+
+      const Loader = {
+        state: { progress: 0, target: 0, sha: CONFIG.branch, redirectUrl: TARGET_LOCAL },
+        els: {
+          core: document.getElementById('core'),
+          status: document.getElementById('status-text'),
+          meta: document.getElementById('meta-text'),
+          rig: document.getElementById('orbit-rig'),
+          textRig: document.getElementById('text-rig'),
+          curtain: document.getElementById('light-curtain'),
+          notify: document.getElementById('update-notify'),
+          rings: [document.getElementById('ring-outer'), document.getElementById('ring-arc-1'), document.getElementById('ring-arc-2')],
+          progressBar: document.getElementById('progress-bar'),
+          progressLabel: document.getElementById('progress-label'),
+        },
+
+        async init() {
+          Visuals.init();
+          this.updateMeta('Contacting source...');
+
+          try {
+            const commit = await this.fetchJson(`https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/commits/${CONFIG.branch}`);
+            if (commit && commit.sha) {
+              this.state.sha = commit.sha;
+              this.updateMeta(`Patch ${commit.sha.substring(0, 7)}`);
+            }
+          } catch {
+            this.updateMeta('Offline mode — loading local bundle');
+          }
+
+          for (const step of STAGES) {
+            this.updateStatus(step.s);
+            this.updateMeta(step.m);
+            if (step.p === 55) await this.resolveTarget();
+            this.updateProgress(step.p);
+            await new Promise((r) => setTimeout(r, 340));
+          }
+        },
+
+        async resolveTarget() {
+          try {
+            const localResp = await fetch(TARGET_LOCAL, { cache: 'no-store' });
+            if (localResp.ok) {
+              this.state.redirectUrl = TARGET_LOCAL;
+              this.updateMeta('Local Neon Tide found');
+              return;
+            }
+          } catch {}
+
+          for (let i = 0; i < MIRRORS.length; i++) {
+            const candidate = `${MIRRORS[i](CONFIG.user, CONFIG.repo, this.state.sha)}${TARGET_LOCAL}`;
+            try {
+              const r = await fetch(candidate, { cache: 'no-store' });
+              if (r.ok) {
+                this.state.redirectUrl = candidate;
+                this.updateMeta(`Mirror ${i + 1} locked`);
+                return;
+              }
+            } catch {}
+          }
+
+          this.state.redirectUrl = TARGET_LOCAL;
+          this.updateMeta('Fallback to local route');
+        },
+
+        updateProgress(val) {
+          this.state.target = val;
+          if (!this.looping) this.loop();
+        },
+
+        loop() {
+          this.looping = true;
+          const diff = this.state.target - this.state.progress;
+          if (Math.abs(diff) > 0.12) {
+            this.state.progress += diff * 0.07;
+            const pct = Math.max(0, Math.min(100, this.state.progress));
+            this.els.progressBar.style.width = `${pct.toFixed(1)}%`;
+            this.els.progressLabel.textContent = `${Math.round(pct)}%`;
+            Visuals.setWarp(pct / 100);
+            this.els.core.style.transform = `translate(-50%, -50%) scale(${1 + (pct / 100) * 4.2})`;
+            requestAnimationFrame(() => this.loop());
+            return;
+          }
+
+          this.state.progress = this.state.target;
+          this.els.progressBar.style.width = `${this.state.target}%`;
+          this.els.progressLabel.textContent = `${Math.round(this.state.target)}%`;
+
+          if (this.state.target >= 100) this.finish();
+          else requestAnimationFrame(() => this.loop());
+        },
+
+        finish() {
+          let w = 0;
+          this.els.rings.forEach((r) => (r.style.opacity = 0));
+          this.els.textRig.style.opacity = 0;
+
+          const ramp = setInterval(() => {
+            w += 0.024;
+            Visuals.warpFactor = 1 + w;
+            if (w > 0.1) {
+              this.els.core.style.transition = 'transform .42s ease-in, box-shadow .42s ease-in';
+              this.els.core.style.transform = 'translate(-50%, -50%) scale(105)';
+              this.els.core.style.boxShadow = '0 0 120px #fff';
+              this.els.core.style.background = '#fff';
+            }
+            if (w > 0.63) {
+              clearInterval(ramp);
+              this.els.curtain.classList.add('active');
+              setTimeout(() => {
+                window.location.href = this.state.redirectUrl;
+              }, 260);
+            }
+          }, 16);
+
+          this.startPoller();
+        },
+
+        updateStatus(txt) {
+          if (this.els.status.innerText !== txt) {
+            this.els.status.style.opacity = 0;
+            setTimeout(() => {
+              this.els.status.innerText = txt;
+              this.els.status.style.opacity = 1;
+            }, 140);
+          }
+        },
+        updateMeta(txt) { this.els.meta.innerText = txt; },
+        async fetchJson(url) { return (await fetch(url)).json(); },
+
+        startPoller() {
+          setInterval(async () => {
+            try {
+              const c = await this.fetchJson(`https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/commits/${CONFIG.branch}`);
+              if (c && c.sha !== this.state.sha) this.els.notify.classList.add('visible');
+            } catch {}
+          }, CONFIG.pollInterval);
+        },
+      };
+
+      Loader.init();
+    })();
+  </script>
+</body>
+</html>
