@@ -1,17 +1,70 @@
 let stopLiquidGlassLoop = null;
+let perfTooltipEl = null;
 
 function getPerfButtonLabel(summary) {
-  if (summary.mode === PERF_MODE_LOW) return 'LOW';
-  if (summary.mode === PERF_MODE_HIGH) return 'HIGH';
-  return summary.perfLite ? 'AUTO↓' : 'AUTO↑';
+  if (summary.mode === PERF_MODE_LOW) return '🐢';
+  if (summary.mode === PERF_MODE_HIGH) return '✨';
+  return summary.perfLite ? '🔋' : '🚀';
+}
+
+function getPerfTooltipText(summary) {
+  if (summary.mode === PERF_MODE_LOW) return 'Performance mode: Low';
+  if (summary.mode === PERF_MODE_HIGH) return 'Performance mode: High';
+  return `Performance mode: Auto (${summary.perfLite ? 'Low active' : 'High active'})`;
 }
 
 function syncPerfButton(summary = getPerformanceSummary()) {
   if (!els.btnPerf) return;
+  const tooltip = getPerfTooltipText(summary);
   els.btnPerf.textContent = getPerfButtonLabel(summary);
-  els.btnPerf.title = summary.mode === PERF_MODE_AUTO
-    ? `Performance: Auto (${summary.perfLite ? 'Low active' : 'High active'})`
-    : `Performance: ${summary.mode === PERF_MODE_LOW ? 'Low' : 'High'}`;
+  els.btnPerf.title = tooltip;
+  els.btnPerf.setAttribute('aria-label', tooltip);
+  if (perfTooltipEl) perfTooltipEl.textContent = tooltip;
+}
+
+function ensurePerfTooltip() {
+  if (perfTooltipEl) return perfTooltipEl;
+  const el = document.createElement('div');
+  el.id = 'perf-tooltip';
+  el.className = 'perf-tooltip';
+  el.setAttribute('role', 'tooltip');
+  document.body.appendChild(el);
+  perfTooltipEl = el;
+  return el;
+}
+
+function placePerfTooltip() {
+  if (!els.btnPerf || !perfTooltipEl) return;
+  const rect = els.btnPerf.getBoundingClientRect();
+  const top = Math.max(8, rect.bottom + 10);
+  let left = rect.left + rect.width / 2;
+  const maxLeft = window.innerWidth - 12;
+  const minLeft = 12;
+  left = Math.min(maxLeft, Math.max(minLeft, left));
+  perfTooltipEl.style.top = `${top}px`;
+  perfTooltipEl.style.left = `${left}px`;
+}
+
+function setPerfTooltipVisible(visible) {
+  const tip = ensurePerfTooltip();
+  if (!tip) return;
+  if (visible) {
+    tip.classList.add('visible');
+    placePerfTooltip();
+  } else {
+    tip.classList.remove('visible');
+  }
+}
+
+function wirePerfTooltip() {
+  if (!els.btnPerf) return;
+  ensurePerfTooltip();
+  els.btnPerf.addEventListener('mouseenter', () => setPerfTooltipVisible(true));
+  els.btnPerf.addEventListener('mouseleave', () => setPerfTooltipVisible(false));
+  els.btnPerf.addEventListener('focus', () => setPerfTooltipVisible(true));
+  els.btnPerf.addEventListener('blur', () => setPerfTooltipVisible(false));
+  window.addEventListener('resize', placePerfTooltip);
+  window.addEventListener('scroll', placePerfTooltip, { passive: true });
 }
 
 function createLiquidGlassLoop() {
@@ -123,6 +176,7 @@ const initGame = () => {
     btnPerf: document.getElementById('btn-perf'),
   };
 
+  wirePerfTooltip();
   window.addEventListener('blackjack:perfmodechange', handlePerfModeChanged);
 
   applyPerformanceUi(getPerformanceSummary());

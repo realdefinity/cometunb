@@ -822,6 +822,33 @@ body.perf-lite .btn::after { display: none; }
   box-shadow: var(--glass-shadow), var(--glass-glow-green);
 }
 
+
+
+.perf-tooltip {
+  position: fixed;
+  z-index: 2000;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(-6px);
+  opacity: 0;
+  transition: opacity 140ms ease, transform 140ms ease;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(14, 19, 30, 0.94);
+  color: rgba(255,255,255,0.96);
+  font-size: 0.78rem;
+  line-height: 1.3;
+  text-align: center;
+  white-space: normal;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+}
+
+.perf-tooltip.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* ——— Message overlay ——— */
 #msg-overlay {
   position: fixed;
