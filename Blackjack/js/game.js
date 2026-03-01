@@ -45,6 +45,10 @@ function sameValue(c1, c2) {
   return getVal(c1) === getVal(c2);
 }
 
+function motionProfile() {
+  return getMotionProfile();
+}
+
 function canDoubleDown(handIndex) {
   const hand = playerHands[handIndex];
   const doubled = hasDoubled[handIndex];

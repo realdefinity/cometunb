@@ -26,6 +26,52 @@ const PERF_MODE_LOW = 'low';
 const PERF_MODE_HIGH = 'high';
 const PERF_MODE_ORDER = [PERF_MODE_AUTO, PERF_MODE_LOW, PERF_MODE_HIGH];
 
+const PERF_BENCH_STORAGE_KEY = 'blackjack-perf-bench-v1';
+
+function runQuickPerformanceBenchmark() {
+  const start = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  let acc = 0;
+  for (let i = 0; i < 90000; i++) {
+    acc = (acc + Math.imul((i + 17), (i ^ 31))) | 0;
+  }
+  const end = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const elapsedMs = Math.max(0, end - start);
+  return { elapsedMs, checksum: acc };
+}
+
+function readOrRunPerfBenchmark() {
+  const now = Date.now();
+  try {
+    if (window.localStorage) {
+      const raw = window.localStorage.getItem(PERF_BENCH_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const ageMs = now - Number(parsed.ts || 0);
+        if (Number.isFinite(parsed.elapsedMs) && ageMs >= 0 && ageMs < 24 * 60 * 60 * 1000) {
+          return { elapsedMs: Number(parsed.elapsedMs), fromCache: true };
+        }
+      }
+    }
+  } catch (err) {
+    // Ignore cache parse/storage errors.
+  }
+
+  const sample = runQuickPerformanceBenchmark();
+  try {
+    if (window.localStorage) {
+      window.localStorage.setItem(PERF_BENCH_STORAGE_KEY, JSON.stringify({
+        ts: now,
+        elapsedMs: sample.elapsedMs
+      }));
+    }
+  } catch (err) {
+    // Ignore storage failures.
+  }
+
+  return { elapsedMs: sample.elapsedMs, fromCache: false };
+}
+
+
 const MOTION_PROFILES = Object.freeze({
   high: Object.freeze({
     walletValueDuration: 520,
@@ -116,7 +162,18 @@ function detectPerformanceSignals() {
     || conn.effectiveType === '3g'
   ));
   const lowPowerDevice = (cpuCores > 0 && cpuCores <= 4) || (memoryGb > 0 && memoryGb <= 4);
-  return { prefersReducedMotion, cpuCores, memoryGb, slowConnection, lowPowerDevice };
+  const benchmark = readOrRunPerfBenchmark();
+  const benchmarkSlow = benchmark.elapsedMs > 18;
+  return {
+    prefersReducedMotion,
+    cpuCores,
+    memoryGb,
+    slowConnection,
+    lowPowerDevice,
+    benchmarkMs: benchmark.elapsedMs,
+    benchmarkSlow,
+    benchmarkCached: benchmark.fromCache
+  };
 }
 
 let perfMode = readStoredPerfMode();
@@ -127,7 +184,7 @@ function shouldUsePerfLite(mode = perfMode) {
   if (perfSignals.prefersReducedMotion) return true;
   if (mode === PERF_MODE_LOW) return true;
   if (mode === PERF_MODE_HIGH) return false;
-  return perfSignals.lowPowerDevice || perfSignals.slowConnection;
+  return perfSignals.lowPowerDevice || perfSignals.slowConnection || perfSignals.benchmarkSlow;
 }
 
 function getMotionProfile() {
@@ -138,7 +195,7 @@ function getPerformanceSummary() {
   return {
     mode: perfMode,
     perfLite,
-    autoLow: perfSignals.lowPowerDevice || perfSignals.slowConnection || perfSignals.prefersReducedMotion,
+    autoLow: perfSignals.lowPowerDevice || perfSignals.slowConnection || perfSignals.prefersReducedMotion || perfSignals.benchmarkSlow,
     signals: perfSignals
   };
 }
