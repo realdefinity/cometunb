@@ -21,7 +21,11 @@ function updateCoinsUI() {
 }
 
 function updateLoanWarning() {
-  if (!els.loanWarning || !els.loanWarningText || loan <= 0) return;
+  if (loan <= 0) {
+    hideLoanWarning();
+    return;
+  }
+  if (!els.loanWarning || !els.loanWarningText) return;
   const grace = (inventory['grace-period'] || 0) * 3;
   const totalHands = LOAN_DEATH_HANDS + grace;
   const left = totalHands - handsWithUnpaidLoan;
