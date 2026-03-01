@@ -115,7 +115,13 @@
         </div>
         <div class="custom-bet-row">
           <label for="custom-bet-input">Custom</label>
-          <input id="custom-bet-input" class="custom-bet-input" type="number" min="1" step="1" placeholder="Enter amount" inputmode="numeric" />
+          <div class="custom-bet-input-wrap">
+            <input id="custom-bet-input" class="custom-bet-input" type="text" pattern="[0-9]*" placeholder="Enter amount" inputmode="numeric" />
+            <div class="custom-stepper" aria-hidden="false">
+              <button type="button" class="custom-step custom-step-up" id="custom-step-up" aria-label="Increase custom bet">▲</button>
+              <button type="button" class="custom-step custom-step-down" id="custom-step-down" aria-label="Decrease custom bet">▼</button>
+            </div>
+          </div>
           <button class="btn btn-util btn-custom-bet" id="btn-custom-bet">Place Bet</button>
         </div>
         <div class="take-loan-strip" id="take-loan-strip" style="display: none;">

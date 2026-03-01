@@ -778,7 +778,7 @@ body.perf-lite .btn::after { display: none; }
 
 .custom-bet-input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 42px 10px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.18);
   background: rgba(9, 20, 32, 0.58);
@@ -792,6 +792,50 @@ body.perf-lite .btn::after { display: none; }
   border-color: rgba(232, 197, 71, 0.62);
   box-shadow: 0 0 0 2px rgba(232, 197, 71, 0.18);
 }
+
+
+.custom-bet-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.custom-stepper {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  gap: 4px;
+}
+
+.custom-step {
+  width: 24px;
+  height: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.92);
+  border-radius: 6px;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform var(--transition-fast) var(--ease),
+              border-color var(--transition-fast) var(--ease),
+              background var(--transition-fast) var(--ease);
+}
+
+.custom-step:hover {
+  border-color: rgba(232, 197, 71, 0.55);
+  background: rgba(232, 197, 71, 0.22);
+  transform: scale(1.06);
+}
+
+.custom-step:active {
+  transform: scale(0.94);
+}
+
 
 .btn-custom-bet {
   min-width: 116px;
@@ -912,7 +956,7 @@ body.perf-lite .btn::after { display: none; }
 #msg-overlay {
   position: fixed;
   left: 50%;
-  top: 50%;
+  top: 31%;
   transform: translate(-50%, -50%);
   z-index: 150;
   pointer-events: none;
@@ -1081,6 +1125,8 @@ body.perf-lite .score-badge.visible.pop-in {
   .chip { font-size: 0.78rem; }
   .custom-bet-row { grid-template-columns: 1fr; gap: 8px; }
   .btn-custom-bet { width: 100%; }
+  #msg-overlay { top: 24%; }
+  .custom-stepper { right: 8px; }
   .hand-label { display: none; }
   .player-hands-row { gap: 18px; padding: 0 14px; }
   .card { margin-left: -30px; }
