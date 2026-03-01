@@ -1,377 +1,1367 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Neon Tide Loader</title>
-  <style>
-    :root {
-      --bg-0: #060914;
-      --bg-1: #121936;
-      --accent: #7ef9ff;
-      --accent-2: #9c9fff;
-      --accent-3: #ff9ef4;
-      --text-sub: rgba(235, 245, 255, 0.56);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
-    body {
-      background: radial-gradient(circle at 20% 10%, #1d2c67 0%, var(--bg-0) 50%), linear-gradient(160deg, #03050d, var(--bg-1));
-      color: #f4fbff;
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
-      user-select: none;
-      perspective: 1000px;
-    }
-    #warp-canvas { position: fixed; inset: 0; z-index: 1; opacity: .9; transition: opacity 1s ease; }
-    #center-stage {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; width: 320px; height: 320px;
-    }
-    .orbit-container { position: relative; width: 150px; height: 150px; transform-style: preserve-3d; transition: transform .1s ease-out; }
-    .orbit-ring {
-      position: absolute; inset: 0; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: 0 0 80px rgba(126,249,255,.25), inset 0 0 22px rgba(0,0,0,.65);
-      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.1), rgba(255,255,255,0));
-      transition: opacity .5s;
-    }
-    .orbit-arc {
-      position: absolute; inset: -3px; border-radius: 50%; border: 2px solid transparent;
-      border-top-color: var(--accent); border-left-color: rgba(255,255,255,.2);
-      animation: spin 2.8s linear infinite; filter: drop-shadow(0 0 14px var(--accent)); transition: opacity .5s;
-    }
-    .orbit-arc.inner {
-      inset: 17px; border-top-color: transparent; border-left-color: var(--accent-2);
-      border-bottom-color: var(--accent-3); animation: spin 4s ease-in-out infinite reverse; opacity: .75;
-    }
-    .core-singularity {
-      position: absolute; top: 50%; left: 50%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%);
-      background: #f7ffff; box-shadow: 0 0 28px white, 0 0 80px rgba(126,249,255,.95), 0 0 120px rgba(255,158,244,.65);
-      z-index: 20; animation: breathe 2.7s ease-in-out infinite;
-    }
-    .status-block {
-      position: absolute; top: 68%; left: 0; right: 0; text-align: center; pointer-events: none; padding-top: 62px;
-      transition: opacity .5s;
-    }
-    .status-text { font-size: 12px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; }
-    .meta-text { font-size: 11px; color: var(--text-sub); letter-spacing: .7px; min-height: 14px; }
-    .progress-wrap {
-      position: absolute; top: calc(68% + 88px); left: 50%; transform: translateX(-50%); width: 240px;
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-    }
-    .progress-track { width: 100%; height: 7px; border-radius: 999px; background: rgba(255,255,255,.14); overflow: hidden; }
-    .progress-bar {
-      width: 0%; height: 100%; border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
-      box-shadow: 0 0 20px rgba(126,249,255,.55);
-      transition: width .15s linear;
-    }
-    .progress-label { font-size: 10px; letter-spacing: 1px; color: var(--text-sub); }
-    #light-curtain { position: fixed; inset: 0; z-index: 100; background: #fff; opacity: 0; pointer-events: none; transition: opacity .1s linear; }
-    #light-curtain.active { opacity: 1; }
-    #update-notify {
-      position: fixed; bottom: 34px; left: 50%; transform: translate(-50%, 90px); opacity: 0;
-      background: rgba(255,255,255,.08); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.2);
-      border-radius: 999px; padding: 10px 18px; display: flex; align-items: center; gap: 10px;
-      font-size: 11px; letter-spacing: .5px; transition: all .6s cubic-bezier(.34,1.56,.64,1); cursor: pointer; z-index: 60;
-    }
-    #update-notify.visible { transform: translate(-50%, 0); opacity: 1; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: #8dfec4; box-shadow: 0 0 14px #8dfec4; }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes breathe {
-      0%,100% { transform: translate(-50%, -50%) scale(1); opacity: .9; }
-      50% { transform: translate(-50%, -50%) scale(1.28); opacity: 1; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #030303;
+            --card-bg: rgba(20, 20, 20, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --accent: #38bdf8;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --error: #f43f5e;
+            --cat-arcade: #d946ef;
+            --cat-sandbox: #0ea5e9;
+            --cat-puzzle: #f59e0b;
+            --cat-relax: #10b981;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        #starfield {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -3;
+        }
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, #000 120%);
+            z-index: -2;
+            pointer-events: none;
+        }
+        #main-menu {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        #main-menu.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        header {
+            text-align: center;
+            margin: 120px 0 50px;
+            width: 100%;
+            max-width: 800px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 8.5rem;
+            font-weight: 700;
+            line-height: 0.85;
+            letter-spacing: -0.06em;
+            background: linear-gradient(to right, #ffffff 20%, #94a3b8 50%, #ffffff 80%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0;
+            animation: shine 10s linear infinite;
+        }
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+        .subtitle {
+            margin-top: 20px;
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 0.6em;
+            text-transform: uppercase;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+        .subtitle::before, .subtitle::after {
+            content: ''; height: 1px; width: 40px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        }
+        .session-warning {
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.58);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 999px;
+            padding: 8px 16px;
+            backdrop-filter: blur(8px);
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .controls-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0 20px;
+            z-index: 10;
+        }
+        .search-container {
+            position: relative;
+            width: 100%;
+            border-radius: 100px;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            backdrop-filter: blur(20px);
+            isolation: isolate;
+            overflow: visible;
+        }
+        @property --ring-angle {
+            syntax: '<angle>';
+            inherits: false;
+            initial-value: 0deg;
+        }
+        .search-container::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            padding: 2px;
+            border-radius: inherit;
+            --ring-angle: 0deg;
+            background: conic-gradient(
+                from var(--ring-angle),
+                #2563eb,
+                #7c3aed,
+                #020617,
+                #2563eb
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transform: scale(0.99);
+            transition: opacity 0.45s ease, transform 0.45s ease;
+            animation: searchRingFlow 2.8s linear infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .search-container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .search-container:focus-within {
+            background: rgba(30,30,30,0.95);
+            border-color: rgba(255,255,255,0.08);
+            transform: scale(1.02);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .search-container:focus-within::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+        @keyframes searchRingFlow {
+            to { --ring-angle: 360deg; }
+        }
+        .search-icon {
+            width: 20px; height: 20px;
+            margin-left: 20px;
+            color: rgba(255,255,255,0.3);
+        }
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 14px 16px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            outline: none;
+        }
+        .search-input::placeholder { color: rgba(255,255,255,0.2); }
+        .search-container:focus-within .search-input::placeholder { color: rgba(255,255,255,0.5); }
+        .action-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.6);
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 5px;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .action-btn:hover { background: rgba(255,255,255,0.1); color: #fff; transform: scale(1.1); border-color: rgba(255,255,255,0.3); }
+        .action-btn:active { transform: scale(0.95); }
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.5);
+            padding: 10px 24px;
+            border-radius: 100px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .filter-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: white;
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-2px);
+        }
+        .filter-btn.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 30px rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 24px;
+            width: 90%;
+            max-width: 1200px;
+            padding-bottom: 120px;
+            z-index: 5;
+            perspective: 2000px;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            height: 260px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            border: 1px solid rgba(255,255,255,0.05);
+            opacity: 0;
+            animation: cardEntrance 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            backdrop-filter: blur(10px);
+        }
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .card::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: 20px;
+            padding: 1px;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(255, 255, 255, 0.7),
+                transparent 40%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: radial-gradient(
+                800px circle at var(--mouse-x) var(--mouse-y),
+                rgba(255, 255, 255, 0.06),
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .card:hover {
+            background: rgba(30,30,30,0.8);
+            z-index: 10;
+        }
+        .card:hover::after, .card:hover::before { opacity: 1; }
+        .card-content {
+            transform: translateZ(30px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .card-icon {
+            font-size: 3.5rem;
+            margin-bottom: 24px;
+            color: rgba(255,255,255,0.25);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .card:hover .card-icon {
+            color: #fff;
+            filter: drop-shadow(0 0 15px var(--glow-color));
+            transform: scale(1.15) rotate(3deg);
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: color 0.3s;
+            letter-spacing: 0.03em;
+        }
+        .card:hover h2 { color: white; }
+        .card-tag {
+            position: absolute;
+            top: 15px; right: 15px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.3);
+            transition: all 0.3s;
+            transform: translateZ(10px);
+        }
+        .card[data-cat="arcade"] { --glow-color: var(--cat-arcade); }
+        .card[data-cat="sandbox"] { --glow-color: var(--cat-sandbox); }
+        .card[data-cat="puzzle"] { --glow-color: var(--cat-puzzle); }
+        .card[data-cat="relax"] { --glow-color: var(--cat-relax); }
+        .card:hover .card-tag {
+            background: var(--glow-color);
+            color: #000;
+            border-color: var(--glow-color);
+            box-shadow: 0 0 20px var(--glow-color);
+        }
+        #loader-ui {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: 360px;
+            padding: 40px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        #loader-ui.visible {
+            display: flex;
+        }
+        #loader-ui.hidden {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.95);
+            pointer-events: none;
+        }
+        .logo-container {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            position: absolute;
+            animation: breathe 4s infinite ease-in-out;
+        }
+        .logo-inner {
+            width: 32px;
+            height: 32px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--accent-glow);
+            animation: pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
+        @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.8; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1); } }
+        #loader-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
+        }
+        .loader-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 32px;
+            text-align: center;
+            height: 20px;
+        }
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 0%;
+            background: linear-gradient(90deg, #38bdf8, #22d3ee, #38bdf8);
+            background-size: 220% 100%;
+            border-radius: 4px;
+            transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+            animation: progressShimmer 2s linear infinite;
+        }
+        @keyframes progressShimmer {
+            to { background-position: 220% 0; }
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 12px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .loader-meta {
+            margin-top: 10px;
+            width: 100%;
+            text-align: left;
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 14px;
+        }
+        #game-root {
+            position: fixed;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: 50;
+            background: var(--bg-color);
+            overflow: hidden;
+        }
+        #game-root.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: var(--bg-color);
+        }
+        .nav-reveal-zone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 190px;
+            height: 130px;
+            z-index: 59;
+        }
+        #game-root:not(.active) .nav-reveal-zone {
+            pointer-events: none;
+        }
+        .game-header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 60;
+            display: flex;
+            gap: 10px;
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0);
+            transition: opacity 0.35s ease, filter 0.35s ease, transform 0.35s ease;
+        }
+        .game-header.hidden-controls {
+            opacity: 0;
+            filter: blur(10px);
+            transform: translateY(-8px);
+            pointer-events: none;
+        }
+        .nav-btn {
+            background: rgba(20,20,20,0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.1);
+            border-color: rgba(255,255,255,0.3);
+        }
+        #error-toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: var(--error);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            display: none;
+            z-index: 200;
+            animation: slideUp 0.3s ease-out;
+        }
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px;
+            color: rgba(255,255,255,0.2);
+            font-size: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        @media (max-width: 700px) {
+            h1 { font-size: 4.5rem; }
+            header { margin-top: 70px; margin-bottom: 40px; }
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; width: 94%; }
+            .card { height: 180px; }
+            .card-icon { font-size: 2.5rem; margin-bottom: 12px; }
+            .controls-container { width: 94%; padding: 0; }
+        }
+        @keyframes slideUp { 
+            from { transform: translate(-50%, 20px); opacity: 0; } 
+            to { transform: translate(-50%, 0); opacity: 1; } 
+        }
+    </style>
 </head>
 <body>
-  <canvas id="warp-canvas"></canvas>
-  <div id="light-curtain"></div>
+    <canvas id="starfield"></canvas>
+    <div class="vignette"></div>
 
-  <div id="center-stage">
-    <div class="orbit-container" id="orbit-rig">
-      <div class="orbit-ring" id="ring-outer"></div>
-      <div class="orbit-arc" id="ring-arc-1"></div>
-      <div class="orbit-arc inner" id="ring-arc-2"></div>
-      <div class="core-singularity" id="core"></div>
+    <div id="main-menu">
+        <header>
+            <h1>COMET</h1>
+            <div class="subtitle">UNBLOCKED</div>
+            <div class="session-warning"><i class="fa-solid fa-triangle-exclamation"></i>For the smoothest experience, refresh this page after closing a game.</div>
+        </header>
+
+        <div class="controls-container">
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search library..." autocomplete="off">
+                <button class="action-btn" id="randomBtn" title="Random">
+                    <i class="fa-solid fa-shuffle"></i>
+                </button>
+                <button class="action-btn" id="clearBtn" title="Clear" style="display: none;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="arcade">Arcade</button>
+                <button class="filter-btn" data-filter="sandbox">Sandbox</button>
+                <button class="filter-btn" data-filter="puzzle">Puzzle</button>
+                <button class="filter-btn" data-filter="relax">Relax</button>
+            </div>
+        </div>
+
+        <div class="grid" id="grid"></div>
     </div>
 
-    <div class="status-block" id="text-rig">
-      <div class="status-text" id="status-text">INITIALIZING</div>
-      <div class="meta-text" id="meta-text">Preparing Neon Tide...</div>
+    <div id="loader-ui">
+        <div class="logo-container">
+            <div class="logo-circle"></div>
+            <div class="logo-inner"></div>
+        </div>
+        <div id="loader-title">Loading...</div>
+        <div class="loader-subtitle" id="loader-subtitle">Initializing Environment...</div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress-bar"></div>
+        </div>
+        <div class="status-row">
+            <span id="loader-log">WAITING</span>
+            <span id="loader-pct">0%</span>
+        </div>
+        <div class="loader-meta" id="loader-meta">Last update: checking...</div>
     </div>
 
-    <div class="progress-wrap">
-      <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-      <div class="progress-label" id="progress-label">0%</div>
+    <div id="game-root">
+        <div class="nav-reveal-zone" aria-hidden="true"></div>
+        <div class="game-header">
+            <button class="nav-btn" id="back-to-menu" title="Back to Menu">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="nav-btn" id="reload-game" title="Reload">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+        <iframe id="game-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-pointer-lock allow-orientation-lock"></iframe>
     </div>
-  </div>
 
-  <div id="update-notify" onclick="location.reload()">
-    <div class="dot"></div>
-    <div>New build detected — tap to refresh</div>
-  </div>
+    <div id="error-toast">Connection lost. Retrying...</div>
 
-  <script>
-    (function () {
-      const CONFIG = {
-        user: 'realdefinity',
-        repo: 'cometunb',
-        branch: 'main',
-        pollInterval: 60000,
-      };
+    <script>
+        (function() {
+            const canvas = document.getElementById('starfield');
+            const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+            let width, height, dpr;
+            let stars = [];
+            let lastTime = performance.now();
+            let pointerX = 0;
+            let pointerY = 0;
+            const isLowEnd = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) || /CrOS/.test(navigator.userAgent);
+            const STAR_COUNT = isLowEnd ? 90 : 220;
 
-      const ROOT = 'NeonTide';
-      const TARGET_LOCAL = `${ROOT}/index.html`;
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+                canvas.width = Math.floor(width * dpr);
+                canvas.height = Math.floor(height * dpr);
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                initStars();
+            }
 
-      const MIRRORS = [
-        (u, r, b) => `https://cdn.jsdelivr.net/gh/${u}/${r}@${b}/`,
-        (u, r, b) => `https://raw.githack.com/${u}/${r}/${b}/`,
-        (u, r, b) => `https://raw.githubusercontent.com/${u}/${r}/${b}/`,
-      ];
+            class Star {
+                constructor() { this.reset(true); }
+                reset(firstSpawn = false) {
+                    this.depth = Math.random();
+                    this.layerSpeed = 6 + this.depth * 22;
+                    this.size = 0.35 + this.depth * 1.35;
+                    this.baseAlpha = 0.18 + this.depth * 0.55;
+                    this.twinklePhase = Math.random() * Math.PI * 2;
+                    this.twinkleSpeed = 0.6 + this.depth * 1.4;
+                    this.driftX = (Math.random() - 0.5) * (0.12 + this.depth * 0.22);
+                    this.driftY = (Math.random() - 0.5) * (0.12 + this.depth * 0.22);
+                    this.x = firstSpawn ? Math.random() * width : (Math.random() < 0.5 ? -20 : width + 20);
+                    this.y = firstSpawn ? Math.random() * height : Math.random() * height;
+                }
+                update(dt, t) {
+                    this.x += this.layerSpeed * dt + this.driftX;
+                    this.y += this.driftY;
 
-      const STAGES = [
-        { p: 10, s: 'Memory Check', m: 'Stabilizing render field' },
-        { p: 30, s: 'Surface Uplink', m: 'Probing mirrors' },
-        { p: 55, s: 'Asset Pathing', m: 'Verifying Neon Tide entrypoint' },
-        { p: 80, s: 'Hydro Sync', m: 'Preparing smooth launch' },
-        { p: 100, s: 'Dive Ready', m: 'Entering Neon Tide' },
-      ];
+                    if (this.x > width + 24 || this.y < -24 || this.y > height + 24) {
+                        this.reset(false);
+                    }
 
-      const Visuals = {
-        canvas: document.getElementById('warp-canvas'),
-        ctx: null,
-        width: 0,
-        height: 0,
-        stars: [],
-        warpFactor: 0,
-        mouseX: 0,
-        mouseY: 0,
-        init() {
-          this.ctx = this.canvas.getContext('2d');
-          this.resize();
-          window.addEventListener('resize', () => this.resize());
-          window.addEventListener('mousemove', (e) => {
-            this.mouseX = (e.clientX - this.width / 2) / (this.width / 2);
-            this.mouseY = (e.clientY - this.height / 2) / (this.height / 2);
-          });
-          for (let i = 0; i < 620; i++) {
-            this.stars.push({
-              x: (Math.random() - 0.5) * this.width,
-              y: (Math.random() - 0.5) * this.height,
-              z: Math.random() * 1800,
-              size: Math.random(),
+                    const twinkle = 0.75 + Math.sin(t * this.twinkleSpeed + this.twinklePhase) * 0.25;
+                    const alpha = this.baseAlpha * twinkle;
+
+                    const parallaxX = pointerX * (0.5 + this.depth) * 0.012;
+                    const parallaxY = pointerY * (0.5 + this.depth) * 0.012;
+                    const drawX = this.x + parallaxX;
+                    const drawY = this.y + parallaxY;
+
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, alpha)})`;
+                    ctx.fill();
+                }
+            }
+
+            function initStars() {
+                stars = [];
+                for (let i = 0; i < STAR_COUNT; i++) stars.push(new Star());
+            }
+
+            function animate(now = performance.now()) {
+                const dt = Math.min((now - lastTime) / 1000, 0.033);
+                lastTime = now;
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = 'rgba(3, 3, 3, 0.18)';
+                ctx.fillRect(0, 0, width, height);
+
+                const time = now / 1000;
+                for (let i = 0; i < stars.length; i++) {
+                    stars[i].update(dt, time);
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            window.addEventListener('mousemove', (e) => {
+                pointerX = e.clientX - width / 2;
+                pointerY = e.clientY - height / 2;
+            }, { passive: true });
+
+            window.addEventListener('resize', resize);
+            resize();
+            animate();
+
+            const gamesConfig = [
+                { 
+                    title: "2048", 
+                    icon: "fa-solid fa-border-all", 
+                    cat: "puzzle",
+                    hasRepo: true,
+                    repoPath: "2048",
+                    entryFile: "index.html"
+                },
+                { 
+                    title: "Blackjack", 
+                    icon: "fa-solid fa-clover", 
+                    cat: "arcade",
+                    hasRepo: true,
+                    repoPath: "Blackjack",
+                    entryFile: "index.html"
+                },
+                { 
+                    title: "Comet Craft", 
+                    icon: "fa-brands fa-unity", 
+                    cat: "sandbox",
+                    hasRepo: true,
+                    repoPath: "CometCraft",
+                    entryFile: "index.html"
+                },
+                { 
+                    title: "Cosmic Drop", 
+                    icon: "fa-solid fa-meteor", 
+                    cat: "arcade",
+                    hasRepo: true,
+                    repoPath: "CosmicDrop",
+                    entryFile: "index.html"
+                },
+                { 
+                    title: "Money Clicker", 
+                    icon: "fa-solid fa-sack-dollar", 
+                    cat: "arcade",
+                    hasRepo: true,
+                    repoPath: "Money%20Clicker",
+                    entryFile: "index.html"
+                },
+                { 
+                    title: "Sandbox", 
+                    icon: "fa-solid fa-hourglass", 
+                    cat: "sandbox",
+                    hasRepo: true,
+                    repoPath: "Sandbox",
+                    entryFile: "index.html"
+                },
+                { 
+                    title: "Void Breaker", 
+                    icon: "fa-solid fa-diamond", 
+                    cat: "arcade",
+                    hasRepo: true,
+                    repoPath: "VoidBreaker",
+                    entryFile: "index.html"
+                },
+                { 
+                    title: "WikiFlow", 
+                    icon: "fa-brands fa-wikipedia-w", 
+                    cat: "puzzle",
+                    hasRepo: true,
+                    repoPath: "WikiFlow",
+                    entryFile: "index.html"
+                },
+                { 
+                    title: "Perfect Circle", 
+                    icon: "fa-regular fa-circle", 
+                    cat: "puzzle",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/cir"
+                },
+                { 
+                    title: "Kern Type", 
+                    icon: "fa-solid fa-font", 
+                    cat: "puzzle",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/font"
+                },
+                { 
+                    title: "Stacker", 
+                    icon: "fa-solid fa-layer-group", 
+                    cat: "arcade",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/t"
+                },
+                { 
+                    title: "Stones", 
+                    icon: "fa-regular fa-gem", 
+                    cat: "relax",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/st"
+                },
+                { 
+                    title: "Fluid", 
+                    icon: "fa-solid fa-water", 
+                    cat: "relax",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/fluid"
+                },
+                { 
+                    title: "Flux", 
+                    icon: "fa-solid fa-wave-square", 
+                    cat: "relax",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/fo"
+                },
+                { 
+                    title: "Crystal", 
+                    icon: "fa-solid fa-diamond", 
+                    cat: "puzzle",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/crystal"
+                },
+                { 
+                    title: "Pong", 
+                    icon: "fa-solid fa-table-tennis-paddle-ball", 
+                    cat: "arcade",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/po"
+                },
+                { 
+                    title: "Flappy", 
+                    icon: "fa-solid fa-dove", 
+                    cat: "arcade",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/fl"
+                },
+                { 
+                    title: "Battleship", 
+                    icon: "fa-solid fa-ship", 
+                    cat: "puzzle",
+                    hasRepo: false,
+                    siteUrl: "https://sites.google.com/view/cometunb/bs"
+                }
+            ];
+
+            const CFG = { 
+                u: 'realdefinity', 
+                r: 'cometunb', 
+                b: 'main'
+            };
+
+            const MIRRORS = [
+                `https://cdn.jsdelivr.net/gh/${CFG.u}/${CFG.r}@${CFG.b}/`,
+                `https://cdn.statically.io/gh/${CFG.u}/${CFG.r}/${CFG.b}/`,
+                `https://raw.githack.com/${CFG.u}/${CFG.r}/${CFG.b}/`,
+                `https://raw.githubusercontent.com/${CFG.u}/${CFG.r}/${CFG.b}/`
+            ];
+
+            const grid = document.getElementById('grid');
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearBtn');
+            const randomBtn = document.getElementById('randomBtn');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const mainMenu = document.getElementById('main-menu');
+            const loaderUI = document.getElementById('loader-ui');
+            const gameRoot = document.getElementById('game-root');
+            let gameFrame = document.getElementById('game-frame');
+            const gameHeader = document.querySelector('.game-header');
+            const navRevealZone = document.querySelector('.nav-reveal-zone');
+            const backBtn = document.getElementById('back-to-menu');
+            const reloadBtn = document.getElementById('reload-game');
+            const errorToast = document.getElementById('error-toast');
+            const loaderTitle = document.getElementById('loader-title');
+            const loaderSubtitle = document.getElementById('loader-subtitle');
+            const progressBar = document.getElementById('progress-bar');
+            const loaderLog = document.getElementById('loader-log');
+            const loaderPct = document.getElementById('loader-pct');
+            const loaderMeta = document.getElementById('loader-meta');
+
+            let currentFilter = 'all';
+            let currentSearch = '';
+            let currentGame = null;
+            let activeMirror = '';
+            let activeBlobUrl = '';
+            let controlsHideTimer = null;
+            let updatePollTimer = null;
+            const repoMetaCache = {};
+            let activeGameCommit = '';
+            let activeGameLastUpdated = '';
+            const UPDATE_POLL_MS = 60000;
+
+            function createFreshGameFrame() {
+                const freshFrame = document.createElement('iframe');
+                freshFrame.id = 'game-frame';
+                freshFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-pointer-lock allow-orientation-lock');
+                gameFrame.replaceWith(freshFrame);
+                gameFrame = freshFrame;
+            }
+
+            function teardownGameSession() {
+                if (activeBlobUrl) {
+                    URL.revokeObjectURL(activeBlobUrl);
+                    activeBlobUrl = '';
+                }
+                gameRoot.classList.remove('active');
+                createFreshGameFrame();
+                hideGameControlsNow();
+                clearUpdatePolling();
+                loaderMeta.innerText = 'Last update: checking...';
+            }
+
+            function showGameControls() {
+                gameHeader.classList.remove('hidden-controls');
+                if (controlsHideTimer) clearTimeout(controlsHideTimer);
+                controlsHideTimer = setTimeout(() => {
+                    if (gameRoot.classList.contains('active')) {
+                        gameHeader.classList.add('hidden-controls');
+                    }
+                }, 10000);
+            }
+
+            function hideGameControlsNow() {
+                if (controlsHideTimer) clearTimeout(controlsHideTimer);
+                controlsHideTimer = null;
+                gameHeader.classList.add('hidden-controls');
+            }
+
+            function renderGrid() {
+                grid.innerHTML = "";
+                const matches = gamesConfig.filter(game => {
+                    const s = game.title.toLowerCase().includes(currentSearch.toLowerCase());
+                    const f = currentFilter === 'all' || game.cat === currentFilter;
+                    return s && f;
+                });
+
+                if (matches.length === 0) {
+                    grid.innerHTML = `
+                        <div class="no-results">
+                            <i class="fa-solid fa-satellite-dish" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                            <span>No signals found.</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                matches.forEach((game, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.cat = game.cat;
+                    card.style.animationDelay = `${index * 0.05}s`;
+                    
+                    card.innerHTML = `
+                        <div class="card-tag">${game.cat}</div>
+                        <div class="card-content">
+                            <div class="card-icon"><i class="${game.icon}"></i></div>
+                            <h2>${game.title}</h2>
+                        </div>
+                    `;
+                    
+                    let ticking = false;
+                    card.addEventListener('mousemove', (e) => {
+                        if (!ticking) {
+                            window.requestAnimationFrame(() => {
+                                const rect = card.getBoundingClientRect();
+                                const x = e.clientX - rect.left;
+                                const y = e.clientY - rect.top;
+                                card.style.setProperty('--mouse-x', `${x}px`);
+                                card.style.setProperty('--mouse-y', `${y}px`);
+                                if (!isLowEnd && window.innerWidth > 768) {
+                                    const centerX = rect.width / 2;
+                                    const centerY = rect.height / 2;
+                                    const rotateX = ((y - centerY) / centerY) * -5;
+                                    const rotateY = ((x - centerX) / centerX) * 5;
+                                    card.style.transform = `scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                                } else {
+                                    card.style.transform = `scale(1.02)`;
+                                }
+                                ticking = false;
+                            });
+                            ticking = true;
+                        }
+                    });
+
+                    card.addEventListener('mouseleave', () => {
+                        card.style.transform = `scale(1)`;
+                    });
+
+                    card.addEventListener('click', () => loadGame(game));
+                    grid.appendChild(card);
+                });
+            }
+
+            async function loadGame(game) {
+                currentGame = game;
+                teardownGameSession();
+                mainMenu.classList.add('hidden');
+                loaderUI.classList.add('visible');
+                loaderUI.classList.remove('hidden');
+                updateProgress(0, 'INIT', 'Initializing game session...');
+
+                if (game.hasRepo) {
+                    loaderMeta.innerText = 'Last update: checking...';
+                }
+
+                if (game.hasRepo) {
+                    await loadFromGitHub(game);
+                } else {
+                    loadFromGoogleSites(game);
+                }
+            }
+
+            async function findMirror() {
+                for (const m of MIRRORS) {
+                    try {
+                        const response = await fetch(m + '2048/index.html', { method: 'HEAD', mode: 'no-cors' });
+                        return m;
+                    } catch(e) {}
+                }
+                return MIRRORS[0];
+            }
+
+            function updateProgress(percent, log, subtitle) {
+                progressBar.style.width = `${percent}%`;
+                loaderPct.innerText = `${percent}%`;
+                if (log) loaderLog.innerText = log;
+                if (subtitle) loaderSubtitle.innerText = subtitle;
+                if (percent < 20) loaderTitle.innerText = "Initializing Link";
+                else if (percent < 40) loaderTitle.innerText = "Syncing Files";
+                else if (percent < 70) loaderTitle.innerText = "Preparing Runtime";
+                else if (percent < 90) loaderTitle.innerText = "Compiling Session";
+                else loaderTitle.innerText = "Launch Ready";
+            }
+
+            function showError(message) {
+                errorToast.style.display = 'block';
+                errorToast.innerText = message;
+                setTimeout(() => {
+                    errorToast.style.display = 'none';
+                }, 3000);
+            }
+
+            function formatUpdatedAt(iso) {
+                if (!iso) return 'Unknown';
+                const d = new Date(iso);
+                if (Number.isNaN(d.getTime())) return 'Unknown';
+                return d.toLocaleString();
+            }
+
+            async function fetchRepoMeta(game) {
+                if (!game?.hasRepo) return null;
+                const path = encodeURIComponent(`${game.repoPath}/index.html`);
+                const apiUrl = `https://api.github.com/repos/${CFG.u}/${CFG.r}/commits?path=${path}&sha=${CFG.b}&per_page=1`;
+                try {
+                    const response = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github+json' } });
+                    if (!response.ok) return null;
+                    const commits = await response.json();
+                    const latest = Array.isArray(commits) ? commits[0] : null;
+                    if (!latest) return null;
+                    return {
+                        sha: latest.sha || '',
+                        updatedAt: latest.commit?.committer?.date || latest.commit?.author?.date || ''
+                    };
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function applyRepoMeta(meta) {
+                activeGameCommit = meta?.sha || '';
+                activeGameLastUpdated = meta?.updatedAt || '';
+                loaderMeta.innerText = `Last update: ${formatUpdatedAt(activeGameLastUpdated)}`;
+            }
+
+            function clearUpdatePolling() {
+                if (updatePollTimer) {
+                    clearInterval(updatePollTimer);
+                    updatePollTimer = null;
+                }
+            }
+
+            function startUpdatePolling(game) {
+                clearUpdatePolling();
+                if (!game?.hasRepo) return;
+                updatePollTimer = setInterval(async () => {
+                    if (!gameRoot.classList.contains('active') || currentGame?.repoPath !== game.repoPath) return;
+                    const meta = await fetchRepoMeta(game);
+                    if (!meta?.sha || !activeGameCommit) return;
+                    if (meta.sha !== activeGameCommit) {
+                        repoMetaCache[game.repoPath] = meta;
+                        showError('Update detected. Reloading game assets...');
+                        loadGame(game);
+                    }
+                }, UPDATE_POLL_MS);
+            }
+
+            async function loadFromGitHub(game) {
+                try {
+                    updateProgress(8, 'CHECK', 'Checking for latest update...');
+                    const latestMeta = await fetchRepoMeta(game);
+                    if (latestMeta?.sha) {
+                        repoMetaCache[game.repoPath] = latestMeta;
+                        applyRepoMeta(latestMeta);
+                    } else if (repoMetaCache[game.repoPath]) {
+                        applyRepoMeta(repoMetaCache[game.repoPath]);
+                    } else {
+                        loaderMeta.innerText = 'Last update: unavailable';
+                    }
+
+                    updateProgress(16, 'MIRROR', 'Finding fastest mirror...');
+                    activeMirror = await findMirror();
+
+                    const cacheTag = activeGameCommit || Date.now();
+                    const baseUrl = activeMirror + game.repoPath + '/';
+                    
+                    updateProgress(24, 'INDEX', 'Reading game manifest...');
+                    
+                    const assetMap = {
+                        '2048': [
+                            'css/base.css', 'css/game.css', 'css/ui.css',
+                            'js/config.js', 'js/game.js', 'js/main.js', 'js/tile.js', 'js/ui.js'
+                        ],
+                        'Blackjack': [
+                            'css/base.css', 'css/cards.css', 'css/game.css',
+                            'js/audio.js', 'js/data.js', 'js/game.js', 'js/main.js', 'js/state.js', 'js/ui.js'
+                        ],
+                        'CometCraft': [
+                            'css/base.css', 'css/components.css', 'css/layout.css',
+                            'js/data.js', 'js/game.js', 'js/main.js', 'js/state.js', 'js/ui.js'
+                        ],
+                        'CosmicDrop': [
+                            'css/base.css', 'css/game.css', 'css/ui.css',
+                            'js/audio.js', 'js/data.js', 'js/game.js', 'js/main.js', 'js/render.js'
+                        ],
+                        'Money%20Clicker': [
+                            'css/base.css', 'css/components.css', 'css/layout.css',
+                            'js/audio.js', 'js/game.js', 'js/main.js', 'js/state.js', 'js/ui.js'
+                        ],
+                        'Sandbox': [
+                            'css/style.css',
+                            'js/input.js', 'js/main.js', 'js/render.js', 'js/sim.js', 'js/state.js'
+                        ],
+                        'VoidBreaker': [
+                            'css/base.css', 'css/ui.css',
+                            'js/audio.js', 'js/data.js', 'js/game.js', 'js/main.js', 'js/ui.js'
+                        ],
+                        'WikiFlow': [
+                            'css/base.css', 'css/components.css', 'css/layout.css', 'css/themes.css',
+                            'js/game.js', 'js/main.js', 'js/state.js', 'js/ui.js'
+                        ]
+                    };
+
+                    const gameKey = game.repoPath;
+                    const assets = assetMap[gameKey] || [];
+                    
+                    updateProgress(36, 'HTML', 'Loading game shell...');
+                    
+                    let htmlContent = '';
+                    try {
+                        const htmlResponse = await fetch(baseUrl + 'index.html?t=' + cacheTag);
+                        htmlContent = await htmlResponse.text();
+                    } catch (e) {
+                        console.warn('Could not fetch HTML, using minimal structure');
+                        htmlContent = '<!DOCTYPE html><html><head><title>' + game.title + '</title></head><body><div id="game-container"></div></body></html>';
+                    }
+
+                    updateProgress(52, 'ASSETS', 'Downloading assets...');
+                    
+                    const cache = {};
+                    let completed = 0;
+                    
+                    await Promise.all(assets.map(async (assetPath) => {
+                        try {
+                            const url = baseUrl + assetPath + '?t=' + cacheTag;
+                            const response = await fetch(url);
+                            if (response.ok) {
+                                const content = await response.text();
+                                cache[assetPath] = content;
+                            }
+                            completed++;
+                            updateProgress(
+                                50 + Math.floor((completed / assets.length) * 30),
+                                'LOAD',
+                                `Loading assets (${completed}/${assets.length})...`
+                            );
+                        } catch (e) {
+                            completed++;
+                        }
+                    }));
+
+                    updateProgress(86, 'BUILD', 'Building isolated runtime...');
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlContent, 'text/html');
+                    
+                    let gameHTML = '<!DOCTYPE html>\n<html>\n<head>\n';
+                    gameHTML += '<meta charset="UTF-8">\n';
+                    gameHTML += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+                    
+                    const fontLinks = doc.querySelectorAll('link[href*="fonts.googleapis.com"], link[href*="fonts.gstatic.com"]');
+                    fontLinks.forEach(link => {
+                        gameHTML += link.outerHTML + '\n';
+                    });
+                    
+                    Object.entries(cache).forEach(([path, content]) => {
+                        if (path.endsWith('.css')) {
+                            gameHTML += `<style>${content}</style>\n`;
+                        }
+                    });
+                    
+                    gameHTML += '</head>\n<body>\n';
+                    
+                    const bodyContent = doc.body.innerHTML;
+                    gameHTML += bodyContent + '\n';
+                    
+                    Object.entries(cache).forEach(([path, content]) => {
+                        if (path.endsWith('.js')) {
+                            gameHTML += `<script>${content}<\/script>\n`;
+                        }
+                    });
+                    
+                    const inlineScripts = doc.querySelectorAll('script:not([src])');
+                    inlineScripts.forEach(script => {
+                        gameHTML += `<script>${script.innerHTML}<\/script>\n`;
+                    });
+                    
+                    gameHTML += '</body>\n</html>';
+                    
+                    updateProgress(98, 'LAUNCH', 'Launching game...');
+                    
+                    const blob = new Blob([gameHTML], { type: 'text/html' });
+                    activeBlobUrl = URL.createObjectURL(blob);
+                    gameFrame.src = activeBlobUrl;
+                    
+                    setTimeout(() => {
+                        loaderUI.classList.add('hidden');
+                        setTimeout(() => {
+                            loaderUI.classList.remove('visible');
+                            gameRoot.classList.add('active');
+                            showGameControls();
+                            startUpdatePolling(game);
+                        }, 500);
+                    }, 800);
+                    
+                } catch (e) {
+                    console.error('Failed to load game:', e);
+                    showError('Failed to load game. Falling back to embed...');
+                    setTimeout(() => {
+                        loadFromGoogleSites(currentGame);
+                    }, 2000);
+                }
+            }
+
+            function loadFromGoogleSites(game) {
+                updateProgress(60, 'REDIRECT', 'Opening in a new tab...');
+                loaderMeta.innerText = 'Last update: external source';
+                const popup = window.open(game.siteUrl, '_blank', 'noopener,noreferrer');
+                if (!popup) {
+                    showError('Popup blocked. Please allow popups to open this game.');
+                }
+                setTimeout(() => {
+                    loaderUI.classList.add('hidden');
+                    setTimeout(() => {
+                        loaderUI.classList.remove('visible');
+                        mainMenu.classList.remove('hidden');
+                    }, 500);
+                }, 500);
+            }
+
+            searchInput.addEventListener('input', (e) => {
+                currentSearch = e.target.value;
+                clearBtn.style.display = currentSearch ? 'flex' : 'none';
+                renderGrid();
             });
-          }
-          this.loop();
-        },
-        resize() {
-          this.width = window.innerWidth;
-          this.height = window.innerHeight;
-          this.canvas.width = this.width;
-          this.canvas.height = this.height;
-        },
-        loop() {
-          const fade = this.warpFactor > 0.08 ? 0.18 : 1;
-          this.ctx.fillStyle = `rgba(4, 8, 18, ${fade})`;
-          this.ctx.fillRect(0, 0, this.width, this.height);
 
-          const cx = this.width / 2 + this.mouseX * 24;
-          const cy = this.height / 2 + this.mouseY * 24;
-          const speed = 0.55 + this.warpFactor * 90;
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                currentSearch = '';
+                clearBtn.style.display = 'none';
+                renderGrid();
+                searchInput.focus();
+            });
 
-          this.stars.forEach((star) => {
-            if (this.warpFactor > 0.05) {
-              star.x *= 0.992;
-              star.y *= 0.992;
-            }
-            star.z -= speed;
-            if (star.z <= 1) {
-              star.z = 1800;
-              star.x = (Math.random() - 0.5) * this.width;
-              star.y = (Math.random() - 0.5) * this.height;
-            }
+            randomBtn.addEventListener('click', () => {
+                const randomGame = gamesConfig[Math.floor(Math.random() * gamesConfig.length)];
+                loadGame(randomGame);
+            });
 
-            const scale = 500 / star.z;
-            const x = cx + star.x * scale;
-            const y = cy + star.y * scale;
-            if (x < 0 || x > this.width || y < 0 || y > this.height) return;
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    renderGrid();
+                });
+            });
 
-            const alpha = 1 - star.z / 1800;
-            this.ctx.beginPath();
-            if (this.warpFactor > 0.09) {
-              const tail = scale * (26 * this.warpFactor);
-              const ang = Math.atan2(y - cy, x - cx);
-              this.ctx.moveTo(x, y);
-              this.ctx.lineTo(x - Math.cos(ang) * tail, y - Math.sin(ang) * tail);
-              this.ctx.strokeStyle = `rgba(220, 248, 255, ${alpha * 0.45})`;
-              this.ctx.lineWidth = 1 + scale;
-              this.ctx.stroke();
-            } else {
-              this.ctx.fillStyle = `rgba(240, 255, 255, ${alpha})`;
-              this.ctx.arc(x, y, scale * (0.5 + star.size), 0, Math.PI * 2);
-              this.ctx.fill();
-            }
-          });
+            backBtn.addEventListener('click', () => {
+                teardownGameSession();
+                mainMenu.classList.remove('hidden');
+            });
 
-          const rig = document.getElementById('orbit-rig');
-          if (rig && this.warpFactor < 1) {
-            rig.style.transform = `rotateX(${-this.mouseY * 22}deg) rotateY(${this.mouseX * 22}deg)`;
-          } else if (rig) {
-            rig.style.transform = `rotateX(0deg) rotateY(0deg) scale(${1 + this.warpFactor})`;
-          }
+            reloadBtn.addEventListener('click', () => {
+                if (currentGame) {
+                    loadGame(currentGame);
+                }
+            });
 
-          requestAnimationFrame(() => this.loop());
-        },
-        setWarp(progress01) {
-          this.warpFactor = progress01 * progress01 * progress01;
-        },
-      };
+            navRevealZone.addEventListener('mouseenter', showGameControls);
+            navRevealZone.addEventListener('mousemove', showGameControls);
 
-      const Loader = {
-        state: { progress: 0, target: 0, sha: CONFIG.branch, redirectUrl: TARGET_LOCAL },
-        els: {
-          core: document.getElementById('core'),
-          status: document.getElementById('status-text'),
-          meta: document.getElementById('meta-text'),
-          rig: document.getElementById('orbit-rig'),
-          textRig: document.getElementById('text-rig'),
-          curtain: document.getElementById('light-curtain'),
-          notify: document.getElementById('update-notify'),
-          rings: [document.getElementById('ring-outer'), document.getElementById('ring-arc-1'), document.getElementById('ring-arc-2')],
-          progressBar: document.getElementById('progress-bar'),
-          progressLabel: document.getElementById('progress-label'),
-        },
-
-        async init() {
-          Visuals.init();
-          this.updateMeta('Contacting source...');
-
-          try {
-            const commit = await this.fetchJson(`https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/commits/${CONFIG.branch}`);
-            if (commit && commit.sha) {
-              this.state.sha = commit.sha;
-              this.updateMeta(`Patch ${commit.sha.substring(0, 7)}`);
-            }
-          } catch {
-            this.updateMeta('Offline mode — loading local bundle');
-          }
-
-          for (const step of STAGES) {
-            this.updateStatus(step.s);
-            this.updateMeta(step.m);
-            if (step.p === 55) await this.resolveTarget();
-            this.updateProgress(step.p);
-            await new Promise((r) => setTimeout(r, 340));
-          }
-        },
-
-        async resolveTarget() {
-          try {
-            const localResp = await fetch(TARGET_LOCAL, { cache: 'no-store' });
-            if (localResp.ok) {
-              this.state.redirectUrl = TARGET_LOCAL;
-              this.updateMeta('Local Neon Tide found');
-              return;
-            }
-          } catch {}
-
-          for (let i = 0; i < MIRRORS.length; i++) {
-            const candidate = `${MIRRORS[i](CONFIG.user, CONFIG.repo, this.state.sha)}${TARGET_LOCAL}`;
-            try {
-              const r = await fetch(candidate, { cache: 'no-store' });
-              if (r.ok) {
-                this.state.redirectUrl = candidate;
-                this.updateMeta(`Mirror ${i + 1} locked`);
-                return;
-              }
-            } catch {}
-          }
-
-          this.state.redirectUrl = TARGET_LOCAL;
-          this.updateMeta('Fallback to local route');
-        },
-
-        updateProgress(val) {
-          this.state.target = val;
-          if (!this.looping) this.loop();
-        },
-
-        loop() {
-          this.looping = true;
-          const diff = this.state.target - this.state.progress;
-          if (Math.abs(diff) > 0.12) {
-            this.state.progress += diff * 0.07;
-            const pct = Math.max(0, Math.min(100, this.state.progress));
-            this.els.progressBar.style.width = `${pct.toFixed(1)}%`;
-            this.els.progressLabel.textContent = `${Math.round(pct)}%`;
-            Visuals.setWarp(pct / 100);
-            this.els.core.style.transform = `translate(-50%, -50%) scale(${1 + (pct / 100) * 4.2})`;
-            requestAnimationFrame(() => this.loop());
-            return;
-          }
-
-          this.state.progress = this.state.target;
-          this.els.progressBar.style.width = `${this.state.target}%`;
-          this.els.progressLabel.textContent = `${Math.round(this.state.target)}%`;
-
-          if (this.state.target >= 100) this.finish();
-          else requestAnimationFrame(() => this.loop());
-        },
-
-        finish() {
-          let w = 0;
-          this.els.rings.forEach((r) => (r.style.opacity = 0));
-          this.els.textRig.style.opacity = 0;
-
-          const ramp = setInterval(() => {
-            w += 0.024;
-            Visuals.warpFactor = 1 + w;
-            if (w > 0.1) {
-              this.els.core.style.transition = 'transform .42s ease-in, box-shadow .42s ease-in';
-              this.els.core.style.transform = 'translate(-50%, -50%) scale(105)';
-              this.els.core.style.boxShadow = '0 0 120px #fff';
-              this.els.core.style.background = '#fff';
-            }
-            if (w > 0.63) {
-              clearInterval(ramp);
-              this.els.curtain.classList.add('active');
-              setTimeout(() => {
-                window.location.href = this.state.redirectUrl;
-              }, 260);
-            }
-          }, 16);
-
-          this.startPoller();
-        },
-
-        updateStatus(txt) {
-          if (this.els.status.innerText !== txt) {
-            this.els.status.style.opacity = 0;
-            setTimeout(() => {
-              this.els.status.innerText = txt;
-              this.els.status.style.opacity = 1;
-            }, 140);
-          }
-        },
-        updateMeta(txt) { this.els.meta.innerText = txt; },
-        async fetchJson(url) { return (await fetch(url)).json(); },
-
-        startPoller() {
-          setInterval(async () => {
-            try {
-              const c = await this.fetchJson(`https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/commits/${CONFIG.branch}`);
-              if (c && c.sha !== this.state.sha) this.els.notify.classList.add('visible');
-            } catch {}
-          }, CONFIG.pollInterval);
-        },
-      };
-
-      Loader.init();
-    })();
-  </script>
+            renderGrid();
+        })();
+    </script>
 </body>
 </html>
