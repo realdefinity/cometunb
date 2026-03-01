@@ -5,12 +5,18 @@ window.ui = {
         window.CONFIG.selectedSize = n;
     },
     toggleMenu: () => {
-        const m = document.getElementById('menu');
-        m.classList.toggle('hidden');
+        document.body.classList.toggle('theme-neon');
+        document.body.classList.toggle('theme-aurora');
+        const name = document.getElementById('theme-name');
+        if (name) name.innerText = document.body.classList.contains('theme-aurora') ? 'AURORA' : 'NEON';
     },
-    updateStats: (score, best, flux) => {
+    updateStats: (score, best, flux, moves = 0, combo = 0) => {
         document.getElementById('score').innerText = score;
         document.getElementById('best').innerText = best;
+        const movesEl = document.getElementById('moves');
+        if (movesEl) movesEl.innerText = moves;
+        const comboEl = document.getElementById('combo');
+        if (comboEl) comboEl.innerText = `x${combo}`;
         
         // Energy Bar
         const pct = Math.min(100, (flux / window.CONFIG.maxFlux) * 100);

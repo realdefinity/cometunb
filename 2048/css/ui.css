@@ -216,7 +216,7 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
-.stats-row { gap: 8px; }
+.stats-row { gap: 8px; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); }
 
 .stat-card {
   min-width: 82px;
@@ -279,3 +279,18 @@
 
 .ctrl-label { font-weight: 800; letter-spacing: 0.4px; }
 .ctrl-cost { font-size: 0.68rem; color: #9ddbe0; }
+
+
+.stat-val {
+  transition: transform 180ms ease, color 240ms ease, text-shadow 240ms ease;
+}
+
+.stat-val.combo-hot {
+  color: #fde68a;
+  text-shadow: 0 0 18px rgba(253,230,138,0.45);
+  transform: scale(1.05);
+}
+
+@media (max-width: 560px) {
+  .stats-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}

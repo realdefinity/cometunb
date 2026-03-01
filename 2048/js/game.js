@@ -9,6 +9,7 @@ class Game {
         this.animating = false;
         this.destroyMode = false;
         this.combo = 0;
+        this.moves = 0;
     }
 
     init(size) {
@@ -50,9 +51,10 @@ class Game {
         this.flux = 50;
         this.history = [];
         this.combo = 0;
+        this.moves = 0;
         
         document.getElementById('tile-layer').innerHTML = '';
-        window.ui.updateStats(0, this.best, this.flux);
+        window.ui.updateStats(0, this.best, this.flux, this.moves, this.combo);
         
         this.addTile();
         this.addTile();
@@ -149,9 +151,12 @@ class Game {
             
             if(points > 0) {
                 this.score += points;
-                this.addFlux(Math.floor(Math.sqrt(points)));
+                this.combo += 1;
+                this.addFlux(Math.floor(Math.sqrt(points)) + Math.min(4, this.combo));
                 if(points >= 128) window.ui.shakeBoard();
                 window.ui.spawnFloatText(`+${points}`, 'center');
+            } else {
+                this.combo = 0;
             }
 
             if(this.score > this.best) {
@@ -159,7 +164,8 @@ class Game {
                 localStorage.setItem('flux_2048_best', this.best);
             }
 
-            window.ui.updateStats(this.score, this.best, this.flux);
+            this.moves += 1;
+            window.ui.updateStats(this.score, this.best, this.flux, this.moves, this.combo);
             this.animating = false;
             this.checkGameOver();
         }
@@ -191,7 +197,7 @@ class Game {
                 }
             });
         });
-        window.ui.updateStats(this.score, this.best, this.flux);
+        window.ui.updateStats(this.score, this.best, this.flux, this.moves, this.combo);
     }
 
     triggerDestroy() {
@@ -227,7 +233,7 @@ class Game {
         this.tiles = this.tiles.filter(t => t !== tile);
         window.ui.shakeBoard();
         this.disableDestroyMode();
-        window.ui.updateStats(this.score, this.best, this.flux);
+        window.ui.updateStats(this.score, this.best, this.flux, this.moves, this.combo);
     }
 
     saveState() {
