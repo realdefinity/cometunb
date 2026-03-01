@@ -1,0 +1,26 @@
+:root {
+    --font: 'Outfit', sans-serif;
+    --glass: rgba(20, 20, 30, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --accent: #60a5fa;
+    --accent-2: #c4b5fd;
+    --danger: #ef4444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: #050505;
+    font-family: var(--font);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    color: white;
+    touch-action: none;
+}
