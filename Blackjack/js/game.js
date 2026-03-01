@@ -1,8 +1,17 @@
 function cryptoRandInt(max) {
   if (max <= 0) return 0;
+  const cryptoApi = window.crypto || window.msCrypto;
+  if (!cryptoApi || typeof cryptoApi.getRandomValues !== 'function') {
+    return Math.floor(Math.random() * max);
+  }
   const arr = new Uint32Array(1);
-  (window.crypto || window.msCrypto).getRandomValues(arr);
-  return arr[0] % max;
+  const limit = Math.floor(0x100000000 / max) * max;
+  let value = 0;
+  do {
+    cryptoApi.getRandomValues(arr);
+    value = arr[0];
+  } while (value >= limit);
+  return value % max;
 }
 
 function createDeck() {
