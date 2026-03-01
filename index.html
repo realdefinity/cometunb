@@ -80,6 +80,43 @@
     #update-notify.visible { transform: translate(-50%, 0); opacity: 1; }
     .dot { width: 7px; height: 7px; border-radius: 50%; background: #8dfec4; box-shadow: 0 0 14px #8dfec4; }
 
+
+    #game-dock {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      z-index: 120;
+      background: rgba(7, 12, 28, 0.58);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 14px;
+      backdrop-filter: blur(12px);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 180px;
+      box-shadow: 0 14px 34px rgba(0,0,0,.35);
+    }
+    #game-dock h3 {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-sub);
+      margin-bottom: 2px;
+    }
+    .game-link {
+      text-decoration: none;
+      color: #e6f2ff;
+      font-size: 12px;
+      letter-spacing: .4px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      padding: 7px 10px;
+      transition: all .2s ease;
+      background: rgba(255,255,255,.04);
+    }
+    .game-link:hover { border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.12); }
+    .game-link.active { border-color: rgba(126,249,255,.8); box-shadow: 0 0 0 1px rgba(126,249,255,.35) inset; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes breathe {
       0%,100% { transform: translate(-50%, -50%) scale(1); opacity: .9; }
@@ -91,6 +128,15 @@
   <canvas id="warp-canvas"></canvas>
   <div id="light-curtain"></div>
 
+  <nav id="game-dock" aria-label="Game selector">
+    <h3>Select Game</h3>
+    <a class="game-link" data-game="NeonTide" href="#neontide">Neon Tide</a>
+    <a class="game-link" data-game="PerfectCircle" href="#perfectcircle">Perfect Circle</a>
+    <a class="game-link" data-game="2048" href="#2048">2048</a>
+    <a class="game-link" data-game="Blackjack" href="#blackjack">Blackjack</a>
+    <a class="game-link" data-game="CometCraft" href="#cometcraft">Comet Craft</a>
+  </nav>
+
   <div id="center-stage">
     <div class="orbit-container" id="orbit-rig">
       <div class="orbit-ring" id="ring-outer"></div>
@@ -101,7 +147,7 @@
 
     <div class="status-block" id="text-rig">
       <div class="status-text" id="status-text">INITIALIZING</div>
-      <div class="meta-text" id="meta-text">Preparing Neon Tide...</div>
+      <div class="meta-text" id="meta-text">Preparing selected game...</div>
     </div>
 
     <div class="progress-wrap">
@@ -124,7 +170,17 @@
         pollInterval: 60000,
       };
 
-      const ROOT = 'NeonTide';
+      const GAMES = {
+        neontide: { root: 'NeonTide', label: 'Neon Tide' },
+        perfectcircle: { root: 'PerfectCircle', label: 'Perfect Circle' },
+        '2048': { root: '2048', label: '2048' },
+        blackjack: { root: 'Blackjack', label: 'Blackjack' },
+        cometcraft: { root: 'CometCraft', label: 'Comet Craft' },
+      };
+
+      const routeKey = (location.hash || '#neontide').replace('#', '').toLowerCase();
+      const selectedGame = GAMES[routeKey] || GAMES.neontide;
+      const ROOT = selectedGame.root;
       const TARGET_LOCAL = `${ROOT}/index.html`;
 
       const MIRRORS = [
@@ -136,9 +192,9 @@
       const STAGES = [
         { p: 10, s: 'Memory Check', m: 'Stabilizing render field' },
         { p: 30, s: 'Surface Uplink', m: 'Probing mirrors' },
-        { p: 55, s: 'Asset Pathing', m: 'Verifying Neon Tide entrypoint' },
+        { p: 55, s: 'Asset Pathing', m: 'Verifying selected game entrypoint' },
         { p: 80, s: 'Hydro Sync', m: 'Preparing smooth launch' },
-        { p: 100, s: 'Dive Ready', m: 'Entering Neon Tide' },
+        { p: 100, s: 'Dive Ready', m: 'Entering selected game' },
       ];
 
       const Visuals = {
@@ -248,6 +304,9 @@
 
         async init() {
           Visuals.init();
+          this.highlightSelectedGame();
+          this.updateStatus(`${selectedGame.label.toUpperCase()} LOADER`);
+          this.updateMeta(`Preparing ${selectedGame.label}...`);
           this.updateMeta('Contacting source...');
 
           try {
@@ -274,7 +333,7 @@
             const localResp = await fetch(TARGET_LOCAL, { cache: 'no-store' });
             if (localResp.ok) {
               this.state.redirectUrl = TARGET_LOCAL;
-              this.updateMeta('Local Neon Tide found');
+              this.updateMeta(`Local ${selectedGame.label} found`);
               return;
             }
           } catch {}
@@ -322,6 +381,14 @@
           else requestAnimationFrame(() => this.loop());
         },
 
+
+        highlightSelectedGame() {
+          const links = document.querySelectorAll('.game-link');
+          links.forEach((link) => {
+            const key = (link.getAttribute('href') || '').replace('#', '').toLowerCase();
+            link.classList.toggle('active', key === routeKey);
+          });
+        },
         finish() {
           let w = 0;
           this.els.rings.forEach((r) => (r.style.opacity = 0));
