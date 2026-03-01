@@ -339,7 +339,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   margin-top: 2px;
   position: relative;
   z-index: 90;
-  min-height: 116px;
+  min-height: 130px;
   contain: layout style;
 }
 
@@ -513,27 +513,30 @@ body.perf-lite .btn::after { display: none; }
 
 /* ——— Betting overlay ——— */
 #betting-overlay {
-  border-radius: 18px;
+  border-radius: 20px;
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  width: min(980px, calc(100% - 24px));
+  bottom: max(6px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding: 20px 18px 24px;
+  padding: 14px 14px 14px;
   z-index: 100;
-  background: linear-gradient(to top, rgba(6, 26, 20, 0.9) 0%, rgba(6, 26, 20, 0.32) 56%, transparent 100%);
-  backdrop-filter: blur(calc(var(--glass-blur) * 0.4)) saturate(calc(var(--glass-saturate) * 0.8));
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.4)) saturate(calc(var(--glass-saturate) * 0.8));
-  transition: opacity 0.45s var(--ease),
-              transform 0.5s var(--ease-spring);
+  border: 1px solid rgba(255,255,255,0.1);
+  background: linear-gradient(to top, rgba(6, 26, 20, 0.76) 0%, rgba(6, 26, 20, 0.22) 62%, rgba(6,26,20,0.04) 100%);
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.36)) saturate(calc(var(--glass-saturate) * 0.78));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.36)) saturate(calc(var(--glass-saturate) * 0.78));
+  box-shadow: 0 10px 36px rgba(0,0,0,0.24);
+  transition: opacity 0.38s var(--ease),
+              transform 0.42s var(--ease-spring);
   contain: layout paint;
 }
 #betting-overlay.hidden {
   opacity: 0;
-  transform: translateY(40px) scale(0.97);
+  transform: translateX(-50%) translateY(36px) scale(0.98);
   pointer-events: none;
 }
 
@@ -737,10 +740,10 @@ body.perf-lite .btn::after { display: none; }
   pointer-events: none;
 }
 .chip:hover {
-  transform: translateY(-6px) scale(1.06);
+  transform: translateY(-4px) scale(1.035);
   box-shadow:
-    0 12px 0 rgba(0,0,0,0.3),
-    0 16px 30px rgba(0,0,0,0.3),
+    0 8px 0 rgba(0,0,0,0.28),
+    0 12px 24px rgba(0,0,0,0.24),
     inset 0 1px 1px rgba(255,255,255,0.3);
 }
 .chip:active {
@@ -1132,6 +1135,7 @@ body.perf-lite .score-badge.visible.pop-in {
   .btn-custom-bet { width: 100%; }
   #msg-overlay { top: 16%; }
   .custom-stepper { right: 8px; }
+  #betting-overlay { width: calc(100% - 14px); padding: 10px 10px 12px; bottom: 4px; }
   .hand-label { display: none; }
   .player-hands-row { gap: 18px; padding: 0 14px; }
   .card { margin-left: -30px; }

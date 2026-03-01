@@ -125,6 +125,8 @@ function animateValue(obj, start, end, duration) {
     valueAnimationFrames.delete(obj);
   }
 
+  obj.textContent = '$' + end;
+
   if (duration <= 0 || perfSignals.prefersReducedMotion || start === end) {
     obj.textContent = '$' + end;
     obj.classList.remove('bump');
