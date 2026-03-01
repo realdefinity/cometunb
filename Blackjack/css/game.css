@@ -5,7 +5,7 @@
   display: grid;
   grid-template-rows: auto 1fr 1fr auto;
   position: relative;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: var(--safe-bottom);
   contain: layout style;
 }
 
@@ -21,10 +21,10 @@
 .deck-shoe {
   position: absolute;
   top: 14%;
-  right: 24px;
-  width: 130px;
-  height: 185px;
-  border-radius: 20px;
+  right: var(--space-4);
+  width: clamp(96px, calc(130px * var(--ui-scale)), 146px);
+  height: clamp(136px, calc(185px * var(--ui-scale)), 208px);
+  border-radius: clamp(14px, calc(20px * var(--ui-scale)), 24px);
   transform: rotate(-6deg) translateZ(0);
   z-index: 5;
   background: var(--glass-tint);
@@ -57,7 +57,7 @@
   position: absolute;
   inset: 12px;
   background: repeating-linear-gradient(45deg, #a00 0 11px, #c33 11px 22px);
-  border-radius: 12px;
+  border-radius: clamp(10px, calc(12px * var(--ui-scale)), 16px);
   border: 2px solid rgba(255,255,255,0.8);
   box-shadow: inset 0 0 0 2px rgba(0,0,0,0.12);
 }
@@ -66,10 +66,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px 6px;
+  padding: calc(var(--space-3) + var(--safe-top)) var(--space-4) var(--space-2);
   z-index: 30;
   pointer-events: none;
-  gap: 10px;
+  gap: var(--control-gap);
 }
 
 .stat-box {
@@ -77,8 +77,8 @@
   flex-direction: column;
   gap: 2px;
   pointer-events: auto;
-  padding: 10px 18px;
-  border-radius: 14px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: clamp(10px, calc(14px * var(--ui-scale)), 18px);
   background: var(--glass-tint);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -133,10 +133,10 @@
 
 .stats-row {
   display: flex;
-  gap: 12px;
+  gap: var(--space-2);
   pointer-events: auto;
-  padding: 8px 14px;
-  border-radius: 12px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: clamp(10px, calc(12px * var(--ui-scale)), 16px);
   background: var(--glass-tint);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -209,16 +209,16 @@
   right: auto;
   top: auto;
   transform: none;
-  margin-top: 12px;
+  margin-top: var(--space-2);
 }
 
 .player-hands-row {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 36px;
+  gap: clamp(14px, calc(36px * var(--ui-scale)), 44px);
   width: 100%;
-  padding: 0 36px;
+  padding: 0 var(--space-5);
   z-index: 2;
   min-height: var(--card-h);
 }
@@ -249,8 +249,8 @@
   text-transform: uppercase;
   letter-spacing: 1.8px;
   color: rgba(255,255,255,0.42);
-  margin-bottom: 8px;
-  min-height: 18px;
+  margin-bottom: var(--space-2);
+  min-height: clamp(14px, calc(18px * var(--ui-scale)), 24px);
   transition: color var(--anim-fast) var(--ease);
 }
 
@@ -266,7 +266,7 @@
   right: auto;
   top: auto;
   transform: none;
-  margin-top: 10px;
+  margin-top: var(--space-2);
 }
 
 .cards-wrapper {
@@ -274,11 +274,11 @@
   justify-content: center;
   align-items: center;
   height: var(--card-h);
-  padding: 0 6px;
+  padding: 0 var(--space-1);
 }
 
 .score-badge {
-  padding: 8px 18px;
+  padding: var(--space-2) var(--space-3);
   border-radius: 999px;
   background: var(--glass-tint-strong);
   border: 1px solid var(--glass-border);
@@ -287,7 +287,7 @@
   box-shadow: var(--glass-shadow);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, calc(0.95rem * var(--ui-scale)), 1.08rem);
   opacity: 0;
   transition: opacity 0.45s var(--ease), transform 0.6s var(--ease-spring);
   z-index: 5;
@@ -322,7 +322,7 @@
 .controls-zone {
   position: relative;
   z-index: 90;
-  min-height: 116px;
+  min-height: var(--layout-controls-zone);
   contain: layout style;
 }
 
@@ -330,15 +330,15 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 24px;
+  bottom: var(--control-bottom);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   flex-wrap: wrap;
   z-index: 92;
   opacity: 0;
-  transform: translateY(20px) scale(0.96);
+  transform: translateY(calc(var(--space-4) * 0.9)) scale(0.96);
   pointer-events: none;
   transition: opacity 0.48s var(--ease), transform 0.56s var(--ease-spring);
 }
@@ -367,8 +367,8 @@
 
 .btn {
   position: relative;
-  padding: 11px 24px;
-  border-radius: 14px;
+  padding: clamp(9px, calc(11px * var(--ui-scale)), 15px) clamp(18px, calc(24px * var(--ui-scale)), 30px);
+  border-radius: clamp(10px, calc(14px * var(--ui-scale)), 18px);
   border: 1px solid var(--glass-border);
   font-family: inherit;
   font-weight: 700;
@@ -462,12 +462,12 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--safe-bottom);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding: 20px 18px 24px;
+  padding: var(--space-4) var(--space-3) calc(var(--space-4) + var(--safe-bottom));
   z-index: 100;
   background: linear-gradient(to top, rgba(6, 26, 20, 0.88) 0%, rgba(6, 26, 20, 0.3) 58%, transparent 100%);
   backdrop-filter: blur(calc(var(--glass-blur) * 0.35)) saturate(calc(var(--glass-saturate) * 0.8));
@@ -483,7 +483,7 @@
 }
 
 .bet-info {
-  padding: 10px 24px;
+  padding: var(--space-2) var(--space-4);
   border-radius: 999px;
   background: var(--glass-tint-strong);
   border: 1px solid var(--glass-border);
@@ -492,10 +492,10 @@
   box-shadow: var(--glass-shadow);
   color: var(--gold);
   font-weight: 800;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3);
   font-size: 1rem;
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   transition: border-color var(--anim-fast) var(--ease), box-shadow var(--anim-fast) var(--ease), transform var(--anim-fast) var(--ease);
   transform: translateZ(0);
@@ -519,7 +519,7 @@
   transform: translateZ(0) scale(1.015);
 }
 
-.take-loan-strip { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 10px; }
+.take-loan-strip { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
 .take-loan-msg { font-size: 0.82rem; color: rgba(255,255,255,0.72); text-align: center; }
 .loan-buttons { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .stat-loan .stat-value { color: #ff9f80; }
@@ -561,15 +561,15 @@
 .insurance-strip {
   position: absolute;
   left: 50%;
-  bottom: 132px;
+  bottom: var(--insurance-offset);
   transform: translateX(-50%);
   z-index: 95;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 14px 22px;
-  border-radius: 16px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: clamp(12px, calc(16px * var(--ui-scale)), 20px);
   background: var(--glass-tint-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -596,16 +596,16 @@
 }
 
 .insurance-msg { font-size: 0.85rem; color: rgba(255,255,255,0.82); margin: 0; position: relative; z-index: 2; }
-.insurance-btns { display: flex; gap: 6px; position: relative; z-index: 2; }
+.insurance-btns { display: flex; gap: var(--space-1); position: relative; z-index: 2; }
 
 .peek-msg {
   position: absolute;
   left: 50%;
-  top: 38%;
+  top: calc(var(--layout-hud-zone) + var(--space-5));
   transform: translate(-50%, -50%);
   z-index: 85;
-  padding: 10px 20px;
-  border-radius: 12px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: clamp(10px, calc(12px * var(--ui-scale)), 16px);
   background: var(--glass-tint-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -619,18 +619,18 @@
 
 .btn-surrender { min-width: 80px; }
 
-.chips-rack { display: flex; gap: 12px; margin-bottom: 14px; }
+.chips-rack { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); }
 
 .chip {
   width: var(--chip-size);
   height: var(--chip-size);
   border-radius: 50%;
   box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 16px rgba(0,0,0,0.22);
-  border: 3px dashed rgba(255,255,255,0.6);
+  border: clamp(2px, calc(3px * var(--ui-scale)), 4px) dashed rgba(255,255,255,0.6);
   display: grid;
   place-items: center;
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: clamp(0.76rem, calc(0.9rem * var(--ui-scale)), 1rem);
   color: #fff;
   cursor: pointer;
   transition: transform 0.38s var(--ease-spring), box-shadow 0.35s var(--ease);
@@ -654,7 +654,7 @@
 
 .bet-controls {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   flex-wrap: wrap;
   justify-content: center;
@@ -681,7 +681,7 @@
   background: linear-gradient(150deg, rgba(232, 197, 71, 0.2) 0%, rgba(200, 165, 50, 0.1) 100%);
   color: #fff;
   font-size: 0.92rem;
-  padding: 11px 40px;
+  padding: clamp(9px, calc(11px * var(--ui-scale)), 15px) clamp(26px, calc(40px * var(--ui-scale)), 48px);
   border-color: rgba(232, 197, 71, 0.32);
   box-shadow: var(--glass-shadow), var(--glass-glow-gold);
 }
@@ -699,12 +699,12 @@
   pointer-events: none;
   text-align: center;
   width: 100%;
-  padding: 0 20px;
+  padding: 0 var(--space-4);
 }
 
 #msg-text {
   display: inline-block;
-  padding: 24px 48px;
+  padding: var(--space-5) calc(var(--space-5) * 2);
   border-radius: 22px;
   background: var(--glass-tint-strong);
   border: 1px solid var(--glass-border);
@@ -799,7 +799,7 @@
 }
 
 @media (max-width: 640px) {
-  :root { --card-w: 88px; --card-h: 124px; --chip-size: 52px; }
+  :root { --card-w-base: 112px; --card-h-base: 156px; --chip-size-base: 56px; }
   #hud { padding: 8px 12px 4px; flex-wrap: wrap; gap: 4px; }
   .stat-box { padding: 6px 12px; border-radius: 10px; }
   .stat-value { font-size: 1.15rem; }
@@ -809,7 +809,7 @@
   .hand-label { display: none; }
   .player-hands-row { gap: 18px; padding: 0 14px; }
   .card { margin-left: -30px; }
-  #gameplay-controls { gap: 6px; bottom: 18px; }
+  #gameplay-controls { gap: var(--space-1); bottom: var(--control-bottom); }
   .btn { padding: 9px 16px; font-size: 0.75rem; min-width: 70px; border-radius: 12px; }
   .bet-controls { gap: 5px; }
   .btn-deal { padding: 9px 32px; }
