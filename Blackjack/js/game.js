@@ -698,7 +698,7 @@ function endRoundMulti(results) {
     return;
   }
 
-  scheduleAction(2600, () => {
+  scheduleAction(1400, () => {
     gameState = 'BETTING';
     currentBet = 0;
     currentBets = [0];
