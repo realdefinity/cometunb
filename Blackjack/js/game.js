@@ -255,6 +255,7 @@ function takeInsurance() {
   playSound('chip');
   if (usedPro) perks.insuranceProRemaining--;
   else if (usedDiscount) perks.insuranceDiscountRemaining--;
+  saveProgress();
   wallet -= insAmt;
   insuranceBet = usedPro ? Math.floor(currentBet / 2) : insAmt;
   els.insuranceStrip.style.display = 'none';
@@ -327,7 +328,10 @@ function split() {
   initAudio();
   playSound('chip');
   const usedSplitMaster = perks.splitMasterRemaining > 0 && !sameValue(playerHands[0][0], playerHands[0][1]);
-  if (usedSplitMaster) perks.splitMasterRemaining--;
+  if (usedSplitMaster) {
+    perks.splitMasterRemaining--;
+    saveProgress();
+  }
   wallet -= currentBet;
   currentBets = [currentBet, currentBet];
 
@@ -467,7 +471,10 @@ function doubleDown() {
   if (!canDoubleDown(activeHandIndex)) return;
   initAudio();
   playSound('chip');
-  if (playerHands[activeHandIndex].length > 2 && perks.doubleAnywhereRemaining > 0) perks.doubleAnywhereRemaining--;
+  if (playerHands[activeHandIndex].length > 2 && perks.doubleAnywhereRemaining > 0) {
+    perks.doubleAnywhereRemaining--;
+    saveProgress();
+  }
   const addBet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
   wallet -= addBet;
   if (currentBets[activeHandIndex] != null) currentBets[activeHandIndex] *= 2;
@@ -613,6 +620,8 @@ function endRoundMulti(results) {
       }
     }
   }
+
+  saveProgress();
 
   if (checkLoanDeath()) {
     setTimeout(() => {
