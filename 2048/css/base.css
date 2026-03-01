@@ -53,3 +53,14 @@ body {
     #app { gap: 10px; padding: 10px; }
     .brand h1 { font-size: 2rem; }
 }
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 42% 28% at 50% 14%, rgba(0,243,255,0.07), transparent 72%),
+    radial-gradient(ellipse 35% 30% at 85% 85%, rgba(124,58,237,0.09), transparent 76%);
+}

@@ -85,10 +85,10 @@
         <p style="color: #94a3b8; margin-bottom: 40px; letter-spacing: 1px;">SELECT GRID SIZE</p>
         
         <div class="menu-grid">
-            <button class="size-opt" onclick="window.ui.selectSize(3)">3 x 3</button>
-            <button class="size-opt selected" onclick="window.ui.selectSize(4)">4 x 4</button>
-            <button class="size-opt" onclick="window.ui.selectSize(5)">5 x 5</button>
-            <button class="size-opt" onclick="window.ui.selectSize(6)">6 x 6</button>
+            <button class="size-opt" onclick="window.ui.selectSize(3, this)">3 x 3</button>
+            <button class="size-opt selected" onclick="window.ui.selectSize(4, this)">4 x 4</button>
+            <button class="size-opt" onclick="window.ui.selectSize(5, this)">5 x 5</button>
+            <button class="size-opt" onclick="window.ui.selectSize(6, this)">6 x 6</button>
         </div>
         
         <button class="play-btn" onclick="window.game.start()">PLAY</button>

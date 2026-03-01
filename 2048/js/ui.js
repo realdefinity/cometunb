@@ -1,7 +1,7 @@
 window.ui = {
-    selectSize: (n) => {
+    selectSize: (n, targetEl) => {
         document.querySelectorAll('.size-opt').forEach(b => b.classList.remove('selected'));
-        event.target.classList.add('selected');
+        if (targetEl) targetEl.classList.add('selected');
         window.CONFIG.selectedSize = n;
     },
     toggleMenu: () => {
