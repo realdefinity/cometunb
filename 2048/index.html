@@ -31,6 +31,14 @@
                     <div class="flux-bar-fill" id="flux-bar"></div>
                 </div>
                 <div class="flux-val" id="flux-val">0</div>
+                <div class="stat-card" style="flex:1">
+                    <span class="stat-label">Moves</span>
+                    <span class="stat-val" id="moves">0</span>
+                </div>
+                <div class="stat-card" style="flex:1">
+                    <span class="stat-label">Combo</span>
+                    <span class="stat-val" id="combo">x0</span>
+                </div>
             </div>
         </div>
 
@@ -73,8 +81,8 @@
             </button>
             <button class="ctrl-btn" onclick="window.ui.toggleMenu()">
                 <span class="ctrl-icon">☰</span>
-                <span class="ctrl-label">Menu</span>
-                <span class="ctrl-cost">OPT</span>
+                <span class="ctrl-label">Theme</span>
+                <span class="ctrl-cost" id="theme-name">NEON</span>
             </button>
         </div>
     </div>
