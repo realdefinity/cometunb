@@ -84,7 +84,7 @@ function handlePerfModeChanged(event) {
 }
 
 const initGame = () => {
-  applyPerfMode();
+  applyPerformanceMode(perfMode, false);
 
   els = {
     wallet: document.getElementById('wallet-val'),
@@ -128,7 +128,6 @@ const initGame = () => {
   applyPerformanceUi(getPerformanceSummary());
   if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);
-  updatePerfToggleUI();
 };
 
 if (document.readyState === 'loading') {
