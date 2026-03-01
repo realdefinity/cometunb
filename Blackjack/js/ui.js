@@ -1,46 +1,13 @@
 function getPlayerCardsContainer(i) { return i === 0 ? els.pCards0 : els.pCards1; }
 function getPlayerScoreEl(i) { return i === 0 ? els.pScore0 : els.pScore1; }
 
-const _prefersReducedMotion = typeof window.matchMedia === 'function'
-  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const _cpuCores = Number(navigator.hardwareConcurrency || 0);
-const _memoryGb = Number(navigator.deviceMemory || 0);
-const _conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-const _slowConn = _conn && (_conn.effectiveType === 'slow-2g' || _conn.effectiveType === '2g' || _conn.effectiveType === '3g');
-const _lowHardware = (_cpuCores > 0 && _cpuCores <= 4) || (_memoryGb > 0 && _memoryGb <= 4);
-
-let perfLite = _prefersReducedMotion || _lowHardware || !!_slowConn;
-let perfLiteManual = null;
-
 function isPerfLite() {
-  return perfLiteManual !== null ? perfLiteManual : perfLite;
-}
-
-function applyPerfMode() {
-  document.body.classList.toggle('perf-lite', isPerfLite());
-}
-
-function togglePerfMode() {
-  if (perfLiteManual === null) {
-    perfLiteManual = !perfLite;
-  } else {
-    perfLiteManual = !perfLiteManual;
-  }
-  applyPerfMode();
-  updatePerfToggleUI();
-}
-
-function updatePerfToggleUI() {
-  const btn = document.getElementById('btn-perf');
-  if (!btn) return;
-  const isLite = isPerfLite();
-  btn.textContent = isLite ? '🐢' : '✨';
-  btn.title = isLite ? 'Low performance mode (click for high)' : 'High performance mode (click for low)';
-  btn.classList.toggle('active', isLite);
+  return perfLite;
 }
 
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
+let msgHideTimer = null;
 
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const EASE_SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
@@ -151,109 +118,111 @@ function setControlsEnabled(enabled) {
 
 function animateValue(obj, start, end, duration) {
   if (!obj) return;
-  if (duration <= 0) {
-    obj.textContent = '$' + end;
-    return;
-  }
+
   const existingFrame = valueAnimationFrames.get(obj);
   if (existingFrame) {
     window.cancelAnimationFrame(existingFrame);
     valueAnimationFrames.delete(obj);
   }
 
-  if (prefersReducedMotion || isPerfLite()) {
+  obj.textContent = '$' + end;
+
+  if (duration <= 0 || perfSignals.prefersReducedMotion || start === end) {
     obj.textContent = '$' + end;
     obj.classList.remove('bump');
     return;
   }
 
-  if (start === end) {
+  if (isPerfLite()) {
     obj.textContent = '$' + end;
-    obj.classList.remove('bump');
+    obj.classList.add('bump');
+    window.setTimeout(() => obj.classList.remove('bump'), 140);
     return;
   }
 
-  const lite = isPerfLite();
-  const dur = lite ? Math.round(duration * 0.6) : duration;
-  let startTimestamp = null;
-  const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
   obj.classList.add('bump');
+  const startAt = performance.now();
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
-  const step = (timestamp) => {
-    if (startTimestamp === null) startTimestamp = timestamp;
-    const raw = Math.min((timestamp - startTimestamp) / dur, 1);
-    const progress = easeOutQuart(raw);
-    const val = Math.floor(progress * (end - start) + start);
+  const tick = (ts) => {
+    const p = Math.min(1, (ts - startAt) / Math.max(120, duration));
+    const eased = easeOut(p);
+    const val = Math.round(start + (end - start) * eased);
     obj.textContent = '$' + val;
 
-    if (raw < 1) {
-      const frameId = window.requestAnimationFrame(step);
-      valueAnimationFrames.set(obj, frameId);
+    if (p < 1) {
+      valueAnimationFrames.set(obj, window.requestAnimationFrame(tick));
       return;
     }
 
+    obj.textContent = '$' + end;
     obj.classList.remove('bump');
     valueAnimationFrames.delete(obj);
   };
 
-  const frameId = window.requestAnimationFrame(step);
-  valueAnimationFrames.set(obj, frameId);
+  valueAnimationFrames.set(obj, window.requestAnimationFrame(tick));
 }
 
 let lastWallet = 1000;
 let lastTotalBet = 0;
-let updateUIRafId = null;
 
 function updateUI() {
-  if (updateUIRafId != null) return;
-  updateUIRafId = requestAnimationFrame(() => {
-    const profile = motion();
-    updateUIRafId = null;
-    const lite = isPerfLite();
+  const lite = isPerfLite();
 
-    animateValue(els.wallet, lastWallet, Math.floor(wallet), lite ? 300 : 480);
-    lastWallet = Math.floor(wallet);
+  animateValue(els.wallet, lastWallet, Math.floor(wallet), lite ? 300 : 480);
+  lastWallet = Math.floor(wallet);
 
-    const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-    animateValue(els.bet, lastTotalBet, Math.floor(totalBet), lite ? 180 : 280);
-    lastTotalBet = Math.floor(totalBet);
+  const totalBet = currentBets.reduce((a, b) => a + b, 0) || currentBet;
+  animateValue(els.bet, lastTotalBet, Math.floor(totalBet), lite ? 180 : 280);
+  lastTotalBet = Math.floor(totalBet);
 
-    els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
-    els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet >= lastBet);
-    els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
-    els.btnSplit.disabled = !canSplit();
-    els.btnSurrender.style.display = canSurrender() ? '' : 'none';
+  els.btnDeal.disabled = !(gameState === 'BETTING' && currentBet > 0);
+  els.btnRebet.disabled = !(gameState === 'BETTING' && lastBet > 0 && wallet >= lastBet);
+  els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
+  els.btnSplit.disabled = !canSplit();
+  els.btnSurrender.style.display = canSurrender() ? '' : 'none';
 
-    if (loan > 0) {
-      els.loanBox.style.display = '';
-      els.loanVal.textContent = '$' + Math.floor(loan);
-    } else {
-      els.loanBox.style.display = 'none';
-    }
+  if (loan > 0) {
+    els.loanBox.style.display = '';
+    els.loanVal.textContent = '$' + Math.floor(loan);
+  } else {
+    els.loanBox.style.display = 'none';
+  }
 
-    const totalBetNow = currentBets.reduce((a, b) => a + b, 0) || currentBet;
-    const showTakeLoan = gameState === 'BETTING' && wallet <= 0 && totalBetNow <= 0;
-    els.takeLoanStrip.style.display = showTakeLoan ? 'flex' : 'none';
+  const totalBetNow = currentBets.reduce((a, b) => a + b, 0) || currentBet;
+  const showTakeLoan = gameState === 'BETTING' && wallet <= 0 && totalBetNow <= 0;
+  els.takeLoanStrip.style.display = showTakeLoan ? 'flex' : 'none';
 
-    const showPayback = gameState === 'BETTING' && loan > 0 && wallet > 0;
-    els.btnPayback.style.display = showPayback ? '' : 'none';
-    els.btnPayall.style.display = showPayback ? '' : 'none';
-    els.btnPayback.textContent = 'Pay $' + Math.min(100, Math.floor(wallet), Math.floor(loan));
+  const showPayback = gameState === 'BETTING' && loan > 0 && wallet > 0;
+  els.btnPayback.style.display = showPayback ? '' : 'none';
+  els.btnPayall.style.display = showPayback ? '' : 'none';
+  els.btnPayback.textContent = 'Pay $' + Math.min(100, Math.floor(wallet), Math.floor(loan));
 
-    const canPlay = gameState === 'PLAYING';
-    setControlsEnabled(canPlay);
-    updateStatsUI();
-    updatePerfToggleUI();
-  });
+  const canPlay = gameState === 'PLAYING';
+  setControlsEnabled(canPlay);
+  updateStatsUI();
 }
 
-function showMsg(text, color = 'white') {
+function showMsg(text, color = 'white', durationMs = 1100) {
+  if (msgHideTimer) {
+    window.clearTimeout(msgHideTimer);
+    msgHideTimer = null;
+  }
   els.msgText.textContent = text;
   els.msgText.style.color = color;
   els.msgText.classList.add('visible');
+  if (durationMs > 0) {
+    msgHideTimer = window.setTimeout(() => {
+      hideMsg();
+    }, durationMs);
+  }
 }
 
 function hideMsg() {
+  if (msgHideTimer) {
+    window.clearTimeout(msgHideTimer);
+    msgHideTimer = null;
+  }
   els.msgText.classList.remove('visible');
 }
 

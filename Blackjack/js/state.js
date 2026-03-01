@@ -16,6 +16,9 @@ let consecutiveWins = 0;
 let soundMuted = false;
 let insuranceBet = 0;
 let surrenderedHands = [];
+let loanAtRoundStart = 0;
+const LOAN_ROUND_INTEREST = 0.12;
+const LOAN_ROUND_FEE_MIN = 20;
 
 // Will be populated in main.js
 let els = {};
@@ -26,32 +29,78 @@ const PERF_MODE_LOW = 'low';
 const PERF_MODE_HIGH = 'high';
 const PERF_MODE_ORDER = [PERF_MODE_AUTO, PERF_MODE_LOW, PERF_MODE_HIGH];
 
+const PERF_BENCH_STORAGE_KEY = 'blackjack-perf-bench-v1';
+
+function runQuickPerformanceBenchmark() {
+  const start = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  let acc = 0;
+  for (let i = 0; i < 90000; i++) {
+    acc = (acc + Math.imul((i + 17), (i ^ 31))) | 0;
+  }
+  const end = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const elapsedMs = Math.max(0, end - start);
+  return { elapsedMs, checksum: acc };
+}
+
+function readOrRunPerfBenchmark() {
+  const now = Date.now();
+  try {
+    if (window.localStorage) {
+      const raw = window.localStorage.getItem(PERF_BENCH_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const ageMs = now - Number(parsed.ts || 0);
+        if (Number.isFinite(parsed.elapsedMs) && ageMs >= 0 && ageMs < 24 * 60 * 60 * 1000) {
+          return { elapsedMs: Number(parsed.elapsedMs), fromCache: true };
+        }
+      }
+    }
+  } catch (err) {
+    // Ignore cache parse/storage errors.
+  }
+
+  const sample = runQuickPerformanceBenchmark();
+  try {
+    if (window.localStorage) {
+      window.localStorage.setItem(PERF_BENCH_STORAGE_KEY, JSON.stringify({
+        ts: now,
+        elapsedMs: sample.elapsedMs
+      }));
+    }
+  } catch (err) {
+    // Ignore storage failures.
+  }
+
+  return { elapsedMs: sample.elapsedMs, fromCache: false };
+}
+
+
 const MOTION_PROFILES = Object.freeze({
   high: Object.freeze({
-    walletValueDuration: 520,
-    betValueDuration: 320,
-    clearDuration: 360,
+    walletValueDuration: 420,
+    betValueDuration: 240,
+    clearDuration: 300,
     clearStagger: 18,
     winnerPulseDuration: 1120,
     chipArc: 52,
-    chipDuration: 560,
+    chipDuration: 420,
     confettiCount: 52,
     confettiMinDist: 100,
     confettiRandDist: 320,
     confettiBaseDuration: 680,
     confettiRandDuration: 560,
-    dealDuration: 620,
-    flipDuration: 520,
-    dealGap: 190,
+    dealDuration: 500,
+    flipDuration: 430,
+    dealGap: 165,
     revealRatio: 0.3,
-    actionResolveDelay: 340,
-    dealerStepDelay: 460,
-    dealerStepFastDelay: 240,
-    revealPause: 320,
-    postDealPause: 340,
+    actionResolveDelay: 260,
+    dealerStepDelay: 340,
+    dealerStepFastDelay: 190,
+    revealPause: 230,
+    postDealPause: 250,
     controlsInDelay: 120,
-    handSwitchDelay: 420,
-    roundResetDelay: 2500
+    handSwitchDelay: 320,
+    roundResetDelay: 2000
   }),
   low: Object.freeze({
     walletValueDuration: 320,
@@ -116,7 +165,18 @@ function detectPerformanceSignals() {
     || conn.effectiveType === '3g'
   ));
   const lowPowerDevice = (cpuCores > 0 && cpuCores <= 4) || (memoryGb > 0 && memoryGb <= 4);
-  return { prefersReducedMotion, cpuCores, memoryGb, slowConnection, lowPowerDevice };
+  const benchmark = readOrRunPerfBenchmark();
+  const benchmarkSlow = benchmark.elapsedMs > 18;
+  return {
+    prefersReducedMotion,
+    cpuCores,
+    memoryGb,
+    slowConnection,
+    lowPowerDevice,
+    benchmarkMs: benchmark.elapsedMs,
+    benchmarkSlow,
+    benchmarkCached: benchmark.fromCache
+  };
 }
 
 let perfMode = readStoredPerfMode();
@@ -127,7 +187,7 @@ function shouldUsePerfLite(mode = perfMode) {
   if (perfSignals.prefersReducedMotion) return true;
   if (mode === PERF_MODE_LOW) return true;
   if (mode === PERF_MODE_HIGH) return false;
-  return perfSignals.lowPowerDevice || perfSignals.slowConnection;
+  return perfSignals.lowPowerDevice || perfSignals.slowConnection || perfSignals.benchmarkSlow;
 }
 
 function getMotionProfile() {
@@ -138,7 +198,7 @@ function getPerformanceSummary() {
   return {
     mode: perfMode,
     perfLite,
-    autoLow: perfSignals.lowPowerDevice || perfSignals.slowConnection || perfSignals.prefersReducedMotion,
+    autoLow: perfSignals.lowPowerDevice || perfSignals.slowConnection || perfSignals.prefersReducedMotion || perfSignals.benchmarkSlow,
     signals: perfSignals
   };
 }

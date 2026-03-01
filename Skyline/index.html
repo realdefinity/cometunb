@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Skyline</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="gameCanvas"></canvas>
+    <div class="flash" id="flash"></div>
+
+    <div class="ui-layer">
+        <div class="hud">
+            <div class="score-pill active" id="scoreEl">
+                <div class="label">Height</div>
+                <div class="val" id="scoreVal">0</div>
+            </div>
+            <div class="score-pill">
+                <div class="label">Best</div>
+                <div class="val best" id="highScoreVal">0</div>
+            </div>
+        </div>
+
+        <div class="card active" id="startMenu">
+            <h1>SKYLINE</h1>
+            <p>Tap to stack.<br>Build higher every run.</p>
+            <button class="btn" id="startBtn">Play</button>
+        </div>
+
+        <div class="card" id="gameOverMenu">
+            <h1 class="danger-title">Collapse</h1>
+            <p>
+                Height: <strong id="finalScore">0</strong><br>
+                Best: <strong class="best-inline" id="finalBest">0</strong>
+            </p>
+            <button class="btn" id="restartBtn">Retry</button>
+        </div>
+    </div>
+
+    <div id="popups"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

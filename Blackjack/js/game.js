@@ -1,8 +1,17 @@
 function cryptoRandInt(max) {
   if (max <= 0) return 0;
+  const cryptoApi = window.crypto || window.msCrypto;
+  if (!cryptoApi || typeof cryptoApi.getRandomValues !== 'function') {
+    return Math.floor(Math.random() * max);
+  }
   const arr = new Uint32Array(1);
-  (window.crypto || window.msCrypto).getRandomValues(arr);
-  return arr[0] % max;
+  const limit = Math.floor(0x100000000 / max) * max;
+  let value = 0;
+  do {
+    cryptoApi.getRandomValues(arr);
+    value = arr[0];
+  } while (value >= limit);
+  return value % max;
 }
 
 function createDeck() {
@@ -43,6 +52,10 @@ function isBlackjack(hand) {
 
 function sameValue(c1, c2) {
   return getVal(c1) === getVal(c2);
+}
+
+function motionProfile() {
+  return getMotionProfile();
 }
 
 function canDoubleDown(handIndex) {
@@ -99,18 +112,33 @@ function payBack(amount) {
 function placeBet(amt, e) {
   initAudio();
   if (gameState !== 'BETTING') return;
-  if (wallet < amt) return;
+  if (wallet < amt) {
+    showMsg('Not enough money', '#ff8c8c', 900);
+    return;
+  }
   playSound('chip');
   if (e) animateChip(e.clientX, e.clientY);
   wallet -= amt;
   currentBet += amt;
+  currentBets = [currentBet];
   updateUI();
+}
+
+function placeCustomBet(rawValue) {
+  if (gameState !== 'BETTING') return;
+  const amt = Math.floor(Number(rawValue));
+  if (!Number.isFinite(amt) || amt <= 0) {
+    showMsg('Enter a valid bet', '#ffcf7b', 900);
+    return;
+  }
+  placeBet(amt);
 }
 
 function clearBet() {
   if (gameState !== 'BETTING') return;
   wallet += currentBet;
   currentBet = 0;
+  currentBets = [0];
   updateUI();
 }
 
@@ -122,6 +150,7 @@ function rebet() {
   const amt = Math.min(lastBet, wallet);
   wallet -= amt;
   currentBet = amt;
+  currentBets = [currentBet];
   updateUI();
 }
 
@@ -132,6 +161,7 @@ function allIn() {
   playSound('chip');
   currentBet += wallet;
   wallet = 0;
+  currentBets = [currentBet];
   updateUI();
 }
 
@@ -142,6 +172,13 @@ function deal() {
   const gap = profile.dealGap;
 
   const lite = isPerfLite();
+  if (loan > 0) {
+    const financeFee = Math.max(LOAN_ROUND_FEE_MIN, Math.ceil(loan * LOAN_ROUND_INTEREST));
+    loan += financeFee;
+    showMsg(`Debt grows +$${financeFee}`, '#ff9f80', 1200);
+  }
+
+  loanAtRoundStart = loan;
   lastBet = currentBet;
   gameState = 'PLAYING';
   playerHands = [[]];
@@ -221,7 +258,7 @@ function surrender() {
   if (playerHands.length === 1) {
     gameState = 'END';
     els.gameControls.classList.remove('active');
-    showMsg('Surrendered', 'rgba(255,255,255,0.8)');
+    showMsg('Surrendered', 'rgba(255,255,255,0.8)', 900);
     updateUI();
     setTimeout(() => {
       gameState = 'BETTING';
@@ -247,6 +284,7 @@ function bet2x() {
   playSound('chip');
   wallet -= currentBet;
   currentBet *= 2;
+  currentBets = [currentBet];
   updateUI();
 }
 
@@ -571,11 +609,16 @@ function endRoundMulti(results) {
   }
   wallet += totalPayout;
 
+  if (loan > 0 && loanAtRoundStart > 0) {
+    const unpaidPenalty = Math.ceil(Math.max(12, loan * 0.04));
+    loan += unpaidPenalty;
+  }
+
   const displayMsg = results.length === 1 ? (results[0].msg || results[0].result) : (anyWin ? 'Round over' : anyLoss ? 'Round over' : 'Push');
   let msgColor = 'white';
   if (anyWin && !anyLoss) msgColor = 'var(--gold)';
   else if (anyLoss && !anyWin) msgColor = 'var(--danger)';
-  showMsg(displayMsg, msgColor);
+  showMsg(displayMsg, msgColor, Math.min(1400, Math.round(profile.roundResetDelay * 0.55)));
   updateStatsUI();
   updateUI();
 
