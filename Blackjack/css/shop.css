@@ -190,12 +190,12 @@
 
 .loan-warning {
   position: fixed;
-  bottom: 160px;
+  bottom: var(--warning-offset);
   left: 50%;
   transform: translateX(-50%);
   z-index: 120;
-  padding: 10px 20px;
-  border-radius: 12px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: clamp(10px, calc(12px * var(--ui-scale)), 16px);
   background: rgba(255, 90, 90, 0.25);
   border: 1px solid rgba(255, 90, 90, 0.5);
   font-size: 0.85rem;
