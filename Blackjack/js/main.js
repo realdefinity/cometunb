@@ -111,6 +111,10 @@ const initGame = () => {
     if (e.target.id === 'death-overlay') restartAfterDeath();
   });
   document.querySelector('.death-restart')?.addEventListener('click', restartAfterDeath);
+
+  if (typeof window.initResponsiveLayout === 'function') {
+    window.initResponsiveLayout();
+  }
 };
 
 if (document.readyState === 'loading') {
