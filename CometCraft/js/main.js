@@ -1,18 +1,26 @@
-// Initialize Game
 (function() {
-    console.log("Comet Craft: Initializing...");
-    
-    // Ensure state is loaded
+    console.log('Comet Craft: Initializing...');
+
     if (!window.state || !window.recipes) {
-        console.error("Critical Error: Game State or Recipes missing.");
+        console.error('Critical Error: Game State or Recipes missing.');
         return;
     }
 
-    // Initial Render
     window.renderInventory();
     window.updateCounter();
 
-    // Signal Loader to fade out
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            window.closeModal();
+        }
+
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+            e.preventDefault();
+            const search = document.getElementById('search');
+            search?.focus();
+        }
+    });
+
     if (document.body) {
         document.body.classList.add('loaded');
     }
