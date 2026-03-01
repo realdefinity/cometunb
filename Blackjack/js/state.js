@@ -16,6 +16,9 @@ let consecutiveWins = 0;
 let soundMuted = false;
 let insuranceBet = 0;
 let surrenderedHands = [];
+let loanAtRoundStart = 0;
+const LOAN_ROUND_INTEREST = 0.12;
+const LOAN_ROUND_FEE_MIN = 20;
 
 // Will be populated in main.js
 let els = {};
