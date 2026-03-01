@@ -1,33 +1,35 @@
 .score-pill {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.42);
     backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border);
-    padding: 10px 30px;
-    border-radius: 50px;
+    padding: 10px 24px;
+    border-radius: 999px;
     text-align: center;
     transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    min-width: 140px;
+    min-width: 130px;
 }
 
 .score-pill.active {
     border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.22);
 }
 
-.score-pill.bump { transform: scale(1.15); }
+.score-pill.bump {
+    transform: scale(1.1);
+}
 
 .label {
     font-size: 0.65rem;
     letter-spacing: 2px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.58);
     text-transform: uppercase;
     font-weight: 700;
     margin-bottom: 2px;
 }
 
 .val {
-    font-size: 2.5rem;
+    font-size: 2.3rem;
     font-weight: 900;
     line-height: 1;
     color: white;
@@ -39,20 +41,19 @@
 }
 
 .card {
-    background: rgba(15, 15, 20, 0.85);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 50px 40px;
-    border-radius: 30px;
+    background: rgba(15, 15, 20, 0.86);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 44px 34px;
+    border-radius: 26px;
     text-align: center;
-    width: 90%;
-    max-width: 380px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1);
-    transform: scale(0.9) translateY(20px);
+    width: min(92vw, 390px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transform: scale(0.94) translateY(20px);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .card.active {
@@ -68,7 +69,7 @@ h1 {
     background: linear-gradient(135deg, #fff 0%, #bfdbfe 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 30px rgba(191, 219, 254, 0.25);
+    text-shadow: 0 0 30px rgba(191, 219, 254, 0.22);
     letter-spacing: -1px;
 }
 
@@ -81,36 +82,40 @@ h1 {
 p {
     color: #94a3b8;
     font-size: 1rem;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
     line-height: 1.5;
 }
 
-.best-inline { color: #facc15; }
+.best-inline {
+    color: #facc15;
+}
 
 .btn {
     background: white;
     color: black;
     border: none;
     width: 100%;
-    padding: 18px;
-    border-radius: 15px;
+    padding: 16px;
+    border-radius: 14px;
     font-family: var(--font);
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 5px 20px rgba(255,255,255,0.15);
+    box-shadow: 0 5px 20px rgba(255, 255, 255, 0.15);
 }
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(255,255,255,0.3);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.3);
     background: #f0f9ff;
 }
 
-.btn:active { transform: scale(0.98); }
+.btn:active {
+    transform: scale(0.98);
+}
 
 .float-txt {
     position: absolute;
@@ -125,9 +130,20 @@ p {
 }
 
 @keyframes floatUp {
-    0% { opacity: 0; transform: translate(-50%, 20px) scale(0.5); }
-    20% { opacity: 1; transform: translate(-50%, 0) scale(1.2); }
-    100% { opacity: 0; transform: translate(-50%, -100px) scale(1); }
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 20px) scale(0.5);
+    }
+
+    20% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -100px) scale(1);
+    }
 }
 
 .flash {
@@ -142,6 +158,20 @@ p {
 }
 
 @media (max-width: 680px) {
-    .score-pill { min-width: 120px; padding: 8px 16px; }
-    .val { font-size: 2rem; }
+    .score-pill {
+        min-width: 112px;
+        padding: 8px 14px;
+    }
+
+    .val {
+        font-size: 1.9rem;
+    }
+
+    .card {
+        padding: 32px 24px;
+    }
+
+    h1 {
+        font-size: 2.4rem;
+    }
 }

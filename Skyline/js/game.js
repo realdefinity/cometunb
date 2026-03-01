@@ -93,9 +93,14 @@ window.game = {
         const prev = st.blocks[st.blocks.length - 1];
         st.hue = (st.hue + 8) % 360;
 
-        const startX = (st.direction === 1)
-            ? -window.CONFIG.spawnDist
-            : st.width + window.CONFIG.spawnDist - prev.w;
+        let startX;
+        if (st.score === 0) {
+            startX = prev.x;
+        } else {
+            startX = (st.direction === 1)
+                ? -window.CONFIG.spawnDist
+                : st.width + window.CONFIG.spawnDist - prev.w;
+        }
 
         st.current = {
             x: startX,
@@ -120,6 +125,11 @@ window.game = {
         const prev = st.blocks[st.blocks.length - 1];
         const diff = st.current.x - prev.x;
         const absDiff = Math.abs(diff);
+
+        // Ignore accidental taps before the moving block reaches play space.
+        if (st.score > 0 && (st.current.x + st.current.w < 0 || st.current.x > st.width)) {
+            return;
+        }
 
         if (absDiff <= window.CONFIG.tolerance) {
             st.current.x = prev.x;

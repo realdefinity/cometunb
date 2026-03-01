@@ -23,15 +23,16 @@
     justify-content: center;
     align-items: center;
     z-index: 10;
+    padding: 16px;
 }
 
 .hud {
     position: absolute;
-    top: 40px;
+    top: 28px;
     width: 100%;
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 14px;
     pointer-events: none;
     z-index: 20;
 }
@@ -45,5 +46,8 @@
 }
 
 @media (max-width: 680px) {
-    .hud { top: 20px; gap: 10px; }
+    .hud {
+        top: 14px;
+        gap: 8px;
+    }
 }
