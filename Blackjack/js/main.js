@@ -70,13 +70,32 @@ function wireChipBets() {
 function wireCustomBet() {
   const input = document.getElementById('custom-bet-input');
   const button = document.getElementById('btn-custom-bet');
+  const stepUp = document.getElementById('custom-step-up');
+  const stepDown = document.getElementById('custom-step-down');
   if (!input || !button) return;
+
+  const sanitize = () => {
+    input.value = input.value.replace(/[^0-9]/g, '').slice(0, 9);
+  };
+
+  const adjust = (delta) => {
+    sanitize();
+    const current = Math.max(0, Math.floor(Number(input.value || 0)));
+    const next = Math.max(0, current + delta);
+    input.value = next > 0 ? String(next) : '';
+  };
 
   const submit = () => placeCustomBet(input.value);
   button.addEventListener('click', submit);
+  input.addEventListener('input', sanitize);
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') submit();
+    if (event.key === 'ArrowUp') { event.preventDefault(); adjust(5); }
+    if (event.key === 'ArrowDown') { event.preventDefault(); adjust(-5); }
   });
+
+  if (stepUp) stepUp.addEventListener('click', () => adjust(5));
+  if (stepDown) stepDown.addEventListener('click', () => adjust(-5));
 }
 
 function wirePerfTooltip() {
