@@ -112,13 +112,28 @@ function payBack(amount) {
 function placeBet(amt, e) {
   initAudio();
   if (gameState !== 'BETTING') return;
-  if (wallet < amt) return;
+  if (wallet < amt) {
+    showMsg('Not enough money', '#ff8c8c');
+    setTimeout(hideMsg, 820);
+    return;
+  }
   playSound('chip');
   if (e) animateChip(e.clientX, e.clientY);
   wallet -= amt;
   currentBet += amt;
   currentBets = [currentBet];
   updateUI();
+}
+
+function placeCustomBet(rawValue) {
+  if (gameState !== 'BETTING') return;
+  const amt = Math.floor(Number(rawValue));
+  if (!Number.isFinite(amt) || amt <= 0) {
+    showMsg('Enter a valid bet', '#ffcf7b');
+    setTimeout(hideMsg, 820);
+    return;
+  }
+  placeBet(amt);
 }
 
 function clearBet() {

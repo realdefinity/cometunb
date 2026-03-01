@@ -104,10 +104,19 @@
           <span id="bet-val" style="color:rgba(255,255,255,0.95);">$0</span>
         </div>
         <div class="chips-rack">
+          <div class="chip chip-5" data-bet="5">5</div>
           <div class="chip chip-10" data-bet="10">10</div>
+          <div class="chip chip-25" data-bet="25">25</div>
           <div class="chip chip-50" data-bet="50">50</div>
           <div class="chip chip-100" data-bet="100">100</div>
+          <div class="chip chip-200" data-bet="200">200</div>
           <div class="chip chip-500" data-bet="500">500</div>
+          <div class="chip chip-1000" data-bet="1000">1K</div>
+        </div>
+        <div class="custom-bet-row">
+          <label for="custom-bet-input">Custom</label>
+          <input id="custom-bet-input" class="custom-bet-input" type="number" min="1" step="1" placeholder="Enter amount" inputmode="numeric" />
+          <button class="btn btn-util btn-custom-bet" id="btn-custom-bet">Place Bet</button>
         </div>
         <div class="take-loan-strip" id="take-loan-strip" style="display: none;">
           <p class="take-loan-msg">No cash and no bet on the table. Borrow to keep playing (10% fee).</p>
