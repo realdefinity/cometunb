@@ -14,6 +14,7 @@ window.state = {
     selectionStart: { x: 0, y: 0 },
     
     dragItem: null,
+    dragMeta: null,
     lastMouse: { x: 0, y: 0 },
     mergeTarget: null
 };
