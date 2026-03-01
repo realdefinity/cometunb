@@ -50,6 +50,7 @@ const initGame = () => {
     btnSound: document.getElementById('btn-sound'),
   };
 
+  loadProgress();
   updateUI();
   updateCoinsUI();
   if (els.betUI) els.betUI.classList.remove('hidden');

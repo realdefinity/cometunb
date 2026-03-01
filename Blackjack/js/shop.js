@@ -44,6 +44,7 @@ function purchaseItem(item) {
   if (item.id === 'comeback-coin') perks.comebackCoinRemaining += 1;
   if (item.id === 'coin-boost') coins += 15;
   if (item.id === 'quick-cash') wallet += 200;
+  saveProgress();
   updateCoinsUI();
   if (typeof updateUI === 'function') updateUI();
   const grid = document.getElementById('shop-grid-dynamic');
