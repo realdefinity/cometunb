@@ -56,6 +56,17 @@ function setPerfTooltipVisible(visible) {
   }
 }
 
+function wireChipBets() {
+  const chips = document.querySelectorAll('.chip[data-bet]');
+  chips.forEach((chip) => {
+    chip.addEventListener('click', (event) => {
+      const amount = Number(chip.dataset.bet || 0);
+      if (!Number.isFinite(amount) || amount <= 0) return;
+      placeBet(amount, event);
+    });
+  });
+}
+
 function wirePerfTooltip() {
   if (!els.btnPerf) return;
   ensurePerfTooltip();
@@ -176,6 +187,7 @@ const initGame = () => {
     btnPerf: document.getElementById('btn-perf'),
   };
 
+  wireChipBets();
   wirePerfTooltip();
   window.addEventListener('blackjack:perfmodechange', handlePerfModeChanged);
 
