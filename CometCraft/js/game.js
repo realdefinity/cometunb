@@ -85,8 +85,22 @@ function startDrag(e, el) {
         addToSelection(el);
     }
 
+    const cursor = toCanvasPoint(e.clientX, e.clientY);
+    const leaderX = parseFloat(el.style.left);
+    const leaderY = parseFloat(el.style.top);
+
     window.state.dragItem = el;
     window.state.lastMouse = { x: e.clientX, y: e.clientY };
+    window.state.dragMeta = {
+        pointerOffsetX: cursor.x - leaderX,
+        pointerOffsetY: cursor.y - leaderY,
+        leaderStartX: leaderX,
+        leaderStartY: leaderY,
+        itemStarts: new Map(window.state.selection.map(item => [item, {
+            x: parseFloat(item.style.left),
+            y: parseFloat(item.style.top)
+        }]))
+    };
 
     window.state.selection.forEach(item => item.classList.add('dragging'));
 
@@ -95,25 +109,30 @@ function startDrag(e, el) {
 }
 
 function onDrag(e) {
-    if (!window.state.dragItem) return;
+    if (!window.state.dragItem || !window.state.dragMeta) return;
 
-    const dx = e.clientX - window.state.lastMouse.x;
-    const dy = e.clientY - window.state.lastMouse.y;
-    window.state.lastMouse = { x: e.clientX, y: e.clientY };
-
+    const cursor = toCanvasPoint(e.clientX, e.clientY);
     const bounds = getDragBounds();
 
-    window.state.selection.forEach(item => {
-        const currentLeft = parseFloat(item.style.left);
-        const currentTop = parseFloat(item.style.top);
+    const targetLeaderX = clamp(cursor.x - window.state.dragMeta.pointerOffsetX, bounds.minX, bounds.maxX);
+    const targetLeaderY = clamp(cursor.y - window.state.dragMeta.pointerOffsetY, bounds.minY, bounds.maxY);
 
-        const nx = clamp(currentLeft + dx, bounds.minX, bounds.maxX);
-        const ny = clamp(currentTop + dy, bounds.minY, bounds.maxY);
+    const dx = targetLeaderX - window.state.dragMeta.leaderStartX;
+    const dy = targetLeaderY - window.state.dragMeta.leaderStartY;
+    const velocityX = e.clientX - window.state.lastMouse.x;
+    window.state.lastMouse = { x: e.clientX, y: e.clientY };
+
+    window.state.selection.forEach(item => {
+        const start = window.state.dragMeta.itemStarts.get(item);
+        if (!start) return;
+
+        const nx = clamp(start.x + dx, bounds.minX, bounds.maxX);
+        const ny = clamp(start.y + dy, bounds.minY, bounds.maxY);
 
         item.style.left = `${nx}px`;
         item.style.top = `${ny}px`;
 
-        const rotY = Math.max(-16, Math.min(16, dx * DRAG_ROTATION_FACTOR));
+        const rotY = Math.max(-16, Math.min(16, velocityX * DRAG_ROTATION_FACTOR));
         item.style.transform = `translate(-50%, -50%) perspective(800px) rotateY(${rotY}deg) scale(1.05)`;
     });
 
@@ -140,6 +159,7 @@ function endDrag() {
         trash.classList.remove('active');
         clearHints();
         window.state.dragItem = null;
+        window.state.dragMeta = null;
         window.state.mergeTarget = null;
         return;
     }
@@ -151,6 +171,7 @@ function endDrag() {
 
     clearHints();
     window.state.dragItem = null;
+    window.state.dragMeta = null;
     window.state.mergeTarget = null;
 }
 
