@@ -139,6 +139,9 @@ class Game {
             mergedTiles.forEach(m => {
                 m.mount();
                 m.dom.classList.add('tile-merged');
+                const clearMergeClass = () => m.dom && m.dom.classList.remove('tile-merged');
+                m.dom.addEventListener('animationend', clearMergeClass, { once: true });
+                window.setTimeout(clearMergeClass, 760);
                 this.tiles.push(m);
             });
 
