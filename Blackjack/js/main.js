@@ -67,6 +67,18 @@ function wireChipBets() {
   });
 }
 
+function wireCustomBet() {
+  const input = document.getElementById('custom-bet-input');
+  const button = document.getElementById('btn-custom-bet');
+  if (!input || !button) return;
+
+  const submit = () => placeCustomBet(input.value);
+  button.addEventListener('click', submit);
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') submit();
+  });
+}
+
 function wirePerfTooltip() {
   if (!els.btnPerf) return;
   ensurePerfTooltip();
@@ -79,48 +91,15 @@ function wirePerfTooltip() {
 }
 
 function createLiquidGlassLoop() {
-  const state = { x: 50, y: 36, tx: 50, ty: 36, rafId: null };
   const root = document.body;
-  if (!root || perfLite) return () => {};
+  if (!root) return () => {};
 
-  const setVars = (x, y) => {
-    root.style.setProperty('--glass-cx', `${x.toFixed(2)}%`);
-    root.style.setProperty('--glass-cy', `${y.toFixed(2)}%`);
-    root.style.setProperty('--glass-shift-x', `${((x - 50) * 0.24).toFixed(2)}%`);
-    root.style.setProperty('--glass-shift-y', `${((y - 50) * 0.24).toFixed(2)}%`);
-  };
-
-  setVars(state.x, state.y);
-
-  const onPointerMove = (event) => {
-    state.tx = (event.clientX / Math.max(1, window.innerWidth)) * 100;
-    state.ty = (event.clientY / Math.max(1, window.innerHeight)) * 100;
-  };
-
-  const onPointerReset = () => {
-    state.tx = 50;
-    state.ty = 36;
-  };
-
-  const step = (ts) => {
-    const driftX = Math.sin(ts * 0.00026) * 2.6;
-    const driftY = Math.cos(ts * 0.00022) * 1.9;
-    state.x += ((state.tx + driftX) - state.x) * 0.11;
-    state.y += ((state.ty + driftY) - state.y) * 0.11;
-    setVars(state.x, state.y);
-    state.rafId = window.requestAnimationFrame(step);
-  };
-
-  state.rafId = window.requestAnimationFrame(step);
-  window.addEventListener('pointermove', onPointerMove, { passive: true });
-  window.addEventListener('pointerleave', onPointerReset);
-  window.addEventListener('blur', onPointerReset);
+  root.style.setProperty('--glass-cx', '50%');
+  root.style.setProperty('--glass-cy', '36%');
+  root.style.setProperty('--glass-shift-x', '0%');
+  root.style.setProperty('--glass-shift-y', '0%');
 
   return () => {
-    if (state.rafId != null) window.cancelAnimationFrame(state.rafId);
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerleave', onPointerReset);
-    window.removeEventListener('blur', onPointerReset);
     root.style.setProperty('--glass-cx', '50%');
     root.style.setProperty('--glass-cy', '36%');
     root.style.setProperty('--glass-shift-x', '0%');
@@ -188,6 +167,7 @@ const initGame = () => {
   };
 
   wireChipBets();
+  wireCustomBet();
   wirePerfTooltip();
   window.addEventListener('blackjack:perfmodechange', handlePerfModeChanged);
 

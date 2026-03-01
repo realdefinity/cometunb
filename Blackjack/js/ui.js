@@ -120,23 +120,44 @@ function animateValue(obj, start, end, duration) {
 
   const existingFrame = valueAnimationFrames.get(obj);
   if (existingFrame) {
-    window.clearTimeout(existingFrame);
+    window.cancelAnimationFrame(existingFrame);
     valueAnimationFrames.delete(obj);
   }
 
-  obj.textContent = '$' + end;
-
-  if (duration <= 0 || perfSignals.prefersReducedMotion || isPerfLite() || start === end) {
+  if (duration <= 0 || perfSignals.prefersReducedMotion || start === end) {
+    obj.textContent = '$' + end;
     obj.classList.remove('bump');
     return;
   }
 
+  if (isPerfLite()) {
+    obj.textContent = '$' + end;
+    obj.classList.add('bump');
+    window.setTimeout(() => obj.classList.remove('bump'), 140);
+    return;
+  }
+
   obj.classList.add('bump');
-  const timer = window.setTimeout(() => {
+  const startAt = performance.now();
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+  const tick = (ts) => {
+    const p = Math.min(1, (ts - startAt) / Math.max(120, duration));
+    const eased = easeOut(p);
+    const val = Math.round(start + (end - start) * eased);
+    obj.textContent = '$' + val;
+
+    if (p < 1) {
+      valueAnimationFrames.set(obj, window.requestAnimationFrame(tick));
+      return;
+    }
+
+    obj.textContent = '$' + end;
     obj.classList.remove('bump');
     valueAnimationFrames.delete(obj);
-  }, Math.max(120, Math.round(duration * 0.75)));
-  valueAnimationFrames.set(obj, timer);
+  };
+
+  valueAnimationFrames.set(obj, window.requestAnimationFrame(tick));
 }
 
 let lastWallet = 1000;
