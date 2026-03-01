@@ -168,7 +168,7 @@ class Game {
     triggerUndo() {
         if(this.animating || this.destroyMode) return;
         if(this.flux < window.CONFIG.costs.undo) {
-            window.ui.spawnFloatText("Need Flux!", "btn-undo");
+            window.ui.spawnFloatText("Not enough Energy", "btn-undo");
             return;
         }
         if(this.history.length === 0) return;
@@ -200,20 +200,24 @@ class Game {
             return;
         }
         if(this.flux < window.CONFIG.costs.destroy) {
-            window.ui.spawnFloatText("Need Flux!", "btn-destroy");
+            window.ui.spawnFloatText("Not enough Energy", "btn-destroy");
             return;
         }
         
         this.destroyMode = true;
         document.getElementById('btn-destroy').classList.add('btn-mode-active');
-        document.getElementById('game-board').style.cursor = 'crosshair';
+        const board = document.getElementById('game-board');
+        board.style.cursor = 'crosshair';
+        board.classList.add('destroy-mode');
         window.ui.spawnFloatText("Select Tile", "center");
     }
 
     disableDestroyMode() {
         this.destroyMode = false;
         document.getElementById('btn-destroy').classList.remove('btn-mode-active');
-        document.getElementById('game-board').style.cursor = 'default';
+        const board = document.getElementById('game-board');
+        board.style.cursor = 'default';
+        board.classList.remove('destroy-mode');
     }
 
     executeDestroy(tile) {

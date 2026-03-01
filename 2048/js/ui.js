@@ -12,7 +12,7 @@ window.ui = {
         document.getElementById('score').innerText = score;
         document.getElementById('best').innerText = best;
         
-        // Flux Bar
+        // Energy Bar
         const pct = Math.min(100, (flux / window.CONFIG.maxFlux) * 100);
         document.getElementById('flux-bar').style.width = `${pct}%`;
         document.getElementById('flux-val').innerText = Math.floor(flux);
