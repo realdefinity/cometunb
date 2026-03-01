@@ -1,21 +1,93 @@
+let stopLiquidGlassLoop = null;
+
+function getPerfButtonLabel(summary) {
+  if (summary.mode === PERF_MODE_LOW) return 'LOW';
+  if (summary.mode === PERF_MODE_HIGH) return 'HIGH';
+  return summary.perfLite ? 'AUTO↓' : 'AUTO↑';
+}
+
+function syncPerfButton(summary = getPerformanceSummary()) {
+  if (!els.btnPerf) return;
+  els.btnPerf.textContent = getPerfButtonLabel(summary);
+  els.btnPerf.title = summary.mode === PERF_MODE_AUTO
+    ? `Performance: Auto (${summary.perfLite ? 'Low active' : 'High active'})`
+    : `Performance: ${summary.mode === PERF_MODE_LOW ? 'Low' : 'High'}`;
+}
+
+function createLiquidGlassLoop() {
+  const state = { x: 50, y: 36, tx: 50, ty: 36, rafId: null };
+  const root = document.body;
+  if (!root || perfLite) return () => {};
+
+  const setVars = (x, y) => {
+    root.style.setProperty('--glass-cx', `${x.toFixed(2)}%`);
+    root.style.setProperty('--glass-cy', `${y.toFixed(2)}%`);
+    root.style.setProperty('--glass-shift-x', `${((x - 50) * 0.24).toFixed(2)}%`);
+    root.style.setProperty('--glass-shift-y', `${((y - 50) * 0.24).toFixed(2)}%`);
+  };
+
+  setVars(state.x, state.y);
+
+  const onPointerMove = (event) => {
+    state.tx = (event.clientX / Math.max(1, window.innerWidth)) * 100;
+    state.ty = (event.clientY / Math.max(1, window.innerHeight)) * 100;
+  };
+
+  const onPointerReset = () => {
+    state.tx = 50;
+    state.ty = 36;
+  };
+
+  const step = (ts) => {
+    const driftX = Math.sin(ts * 0.00026) * 2.6;
+    const driftY = Math.cos(ts * 0.00022) * 1.9;
+    state.x += ((state.tx + driftX) - state.x) * 0.11;
+    state.y += ((state.ty + driftY) - state.y) * 0.11;
+    setVars(state.x, state.y);
+    state.rafId = window.requestAnimationFrame(step);
+  };
+
+  state.rafId = window.requestAnimationFrame(step);
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerleave', onPointerReset);
+  window.addEventListener('blur', onPointerReset);
+
+  return () => {
+    if (state.rafId != null) window.cancelAnimationFrame(state.rafId);
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerleave', onPointerReset);
+    window.removeEventListener('blur', onPointerReset);
+    root.style.setProperty('--glass-cx', '50%');
+    root.style.setProperty('--glass-cy', '36%');
+    root.style.setProperty('--glass-shift-x', '0%');
+    root.style.setProperty('--glass-shift-y', '0%');
+  };
+}
+
+function refreshLiquidGlassLoop() {
+  if (typeof stopLiquidGlassLoop === 'function') stopLiquidGlassLoop();
+  stopLiquidGlassLoop = perfLite ? null : createLiquidGlassLoop();
+}
+
+function applyPerformanceUi(summary = getPerformanceSummary()) {
+  syncPerfButton(summary);
+  refreshLiquidGlassLoop();
+  updateUI();
+}
+
+function togglePerformanceMode() {
+  cyclePerformanceMode();
+}
+
+function handlePerfModeChanged(event) {
+  applyPerformanceUi(event.detail || getPerformanceSummary());
+}
+
 const initGame = () => {
-  const prefersReducedMotion = typeof window.matchMedia === 'function'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const cpuCores = Number(navigator.hardwareConcurrency || 0);
-  const memoryGb = Number(navigator.deviceMemory || 0);
-  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  const slowConnection = conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g');
-  const lowPowerDevice = (cpuCores > 0 && cpuCores <= 4) || (memoryGb > 0 && memoryGb <= 4);
-  document.body.classList.toggle('perf-lite', prefersReducedMotion || lowPowerDevice || slowConnection);
+  applyPerfMode();
 
   els = {
     wallet: document.getElementById('wallet-val'),
-    coinsBox: document.getElementById('coins-box'),
-    coinsVal: document.getElementById('coins-val'),
-    shopCoinsVal: null,
-    deathOverlay: document.getElementById('death-overlay'),
-    loanWarning: document.getElementById('loan-warning'),
-    loanWarningText: document.getElementById('loan-warning-text'),
     bet: document.getElementById('bet-val'),
     playerHandsRow: document.getElementById('player-hands-row'),
     pCards0: document.getElementById('player-cards-0'),
@@ -48,79 +120,15 @@ const initGame = () => {
     streakNum: document.getElementById('streak-num'),
     peekMsg: document.getElementById('peek-msg'),
     btnSound: document.getElementById('btn-sound'),
+    btnPerf: document.getElementById('btn-perf'),
   };
 
-  loadProgress();
-  updateUI();
-  updateCoinsUI();
+  window.addEventListener('blackjack:perfmodechange', handlePerfModeChanged);
+
+  applyPerformanceUi(getPerformanceSummary());
   if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);
-
-  let shopBackdrop = null;
-  const openShop = () => {
-    if (gameState === 'DEAD') return;
-    if (shopBackdrop && shopBackdrop.parentNode) return;
-    const backdrop = document.createElement('div');
-    backdrop.id = 'shop-backdrop';
-    backdrop.className = 'shop-backdrop';
-    backdrop.setAttribute('role', 'dialog');
-    backdrop.setAttribute('aria-modal', 'true');
-    backdrop.setAttribute('aria-label', 'VIP Lounge shop');
-    const panel = document.createElement('div');
-    panel.className = 'shop-panel';
-    panel.innerHTML = `
-      <div class="shop-header">
-        <h2 class="shop-title">VIP Lounge</h2>
-        <div class="shop-coins" id="shop-coins-display" title="Your coin balance">${typeof coins === 'number' ? coins : 0} ⭐</div>
-        <button type="button" class="btn-icon shop-close" aria-label="Close shop">✕</button>
-      </div>
-      <div class="shop-grid" id="shop-grid-dynamic"></div>
-    `;
-    backdrop.appendChild(panel);
-    backdrop.addEventListener('click', (e) => {
-      if (e.target === backdrop) closeShop();
-    });
-    panel.querySelector('.shop-close')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeShop();
-    });
-    panel.addEventListener('click', (e) => e.stopPropagation());
-    document.body.appendChild(backdrop);
-    shopBackdrop = backdrop;
-    els.shopCoinsVal = document.getElementById('shop-coins-display');
-    const grid = document.getElementById('shop-grid-dynamic');
-    const coinsDisp = document.getElementById('shop-coins-display');
-    if (typeof renderShop === 'function' && grid) renderShop(grid, coinsDisp);
-    document.addEventListener('keydown', escHandler);
-  };
-  const closeShop = () => {
-    if (shopBackdrop && shopBackdrop.parentNode) {
-      shopBackdrop.parentNode.removeChild(shopBackdrop);
-      shopBackdrop = null;
-      document.removeEventListener('keydown', escHandler);
-    }
-  };
-  const escHandler = (e) => {
-    if (e.key === 'Escape') closeShop();
-  };
-  window.openShopModal = openShop;
-  window.closeShopModal = closeShop;
-  document.getElementById('btn-shop')?.addEventListener('click', openShop);
-  document.getElementById('coins-box')?.addEventListener('click', openShop);
-  document.addEventListener('click', (e) => {
-    const trigger = e.target && e.target.closest ? e.target.closest('#btn-shop, #coins-box') : null;
-    if (trigger) openShop();
-  });
-
-  document.getElementById('btn-sound')?.addEventListener('click', () => { toggleSound(); });
-  document.getElementById('death-overlay')?.addEventListener('click', (e) => {
-    if (e.target.id === 'death-overlay') restartAfterDeath();
-  });
-  document.querySelector('.death-restart')?.addEventListener('click', restartAfterDeath);
-
-  if (typeof window.initResponsiveLayout === 'function') {
-    window.initResponsiveLayout();
-  }
+  updatePerfToggleUI();
 };
 
 if (document.readyState === 'loading') {
