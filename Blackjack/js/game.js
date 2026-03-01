@@ -104,6 +104,7 @@ function placeBet(amt, e) {
   if (e) animateChip(e.clientX, e.clientY);
   wallet -= amt;
   currentBet += amt;
+  currentBets = [currentBet];
   updateUI();
 }
 
@@ -111,6 +112,7 @@ function clearBet() {
   if (gameState !== 'BETTING') return;
   wallet += currentBet;
   currentBet = 0;
+  currentBets = [0];
   updateUI();
 }
 
@@ -122,6 +124,7 @@ function rebet() {
   const amt = Math.min(lastBet, wallet);
   wallet -= amt;
   currentBet = amt;
+  currentBets = [currentBet];
   updateUI();
 }
 
@@ -132,6 +135,7 @@ function allIn() {
   playSound('chip');
   currentBet += wallet;
   wallet = 0;
+  currentBets = [currentBet];
   updateUI();
 }
 
@@ -247,6 +251,7 @@ function bet2x() {
   playSound('chip');
   wallet -= currentBet;
   currentBet *= 2;
+  currentBets = [currentBet];
   updateUI();
 }
 
