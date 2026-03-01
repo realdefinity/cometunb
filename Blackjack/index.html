@@ -7,10 +7,10 @@
   <script>
     (() => {
       try {
-        const saved = localStorage.getItem('bj_perf_mode');
-        const mode = (saved === 'lite' || saved === 'full') ? saved : 'auto';
-        if (mode === 'lite') { document.documentElement.classList.add('perf-lite'); return; }
-        if (mode === 'full') return;
+        const saved = localStorage.getItem('blackjack-perf-mode');
+        const mode = (saved === 'low' || saved === 'high' || saved === 'auto') ? saved : 'auto';
+        if (mode === 'low') { document.documentElement.classList.add('perf-lite'); return; }
+        if (mode === 'high') return;
         const prefersReducedMotion = typeof window.matchMedia === 'function'
           && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const cpuCores = Number(navigator.hardwareConcurrency || 0);
@@ -50,7 +50,6 @@
       </div>
       <button class="btn-icon btn-perf" id="btn-perf" onclick="togglePerformanceMode()" title="Performance mode">AUTO↑</button>
       <button class="btn-icon" id="btn-sound" onclick="toggleSound()" title="Sound">🔊</button>
-      <button class="perf-toggle" id="btn-perf" onclick="togglePerfMode()" title="Performance mode">✨</button>
       <div class="rules">
         <div>Pays <span style="color:var(--gold)">3:2</span></div>
         <small>6-Deck Shoe • Split • Double • Dealer stands 17</small>
@@ -105,10 +104,19 @@
           <span id="bet-val" style="color:rgba(255,255,255,0.95);">$0</span>
         </div>
         <div class="chips-rack">
-          <div class="chip chip-10" onclick="placeBet(10, event)">10</div>
-          <div class="chip chip-50" onclick="placeBet(50, event)">50</div>
-          <div class="chip chip-100" onclick="placeBet(100, event)">100</div>
-          <div class="chip chip-500" onclick="placeBet(500, event)">500</div>
+          <div class="chip chip-5" data-bet="5">5</div>
+          <div class="chip chip-10" data-bet="10">10</div>
+          <div class="chip chip-25" data-bet="25">25</div>
+          <div class="chip chip-50" data-bet="50">50</div>
+          <div class="chip chip-100" data-bet="100">100</div>
+          <div class="chip chip-200" data-bet="200">200</div>
+          <div class="chip chip-500" data-bet="500">500</div>
+          <div class="chip chip-1000" data-bet="1000">1K</div>
+        </div>
+        <div class="custom-bet-row">
+          <label for="custom-bet-input">Custom</label>
+          <input id="custom-bet-input" class="custom-bet-input" type="number" min="1" step="1" placeholder="Enter amount" inputmode="numeric" />
+          <button class="btn btn-util btn-custom-bet" id="btn-custom-bet">Place Bet</button>
         </div>
         <div class="take-loan-strip" id="take-loan-strip" style="display: none;">
           <p class="take-loan-msg">No cash and no bet on the table. Borrow to keep playing (10% fee).</p>

@@ -66,11 +66,11 @@
   0% {
     opacity: 0;
     transform: translate3d(60vw, -60vh, 0) rotate(120deg) scale(0.35);
-    filter: blur(4px);
+    filter: blur(2px);
   }
   18% {
-    opacity: 0.6;
-    filter: blur(2px);
+    opacity: 0.72;
+    filter: blur(1.2px);
   }
   40% {
     opacity: 1;
@@ -110,26 +110,6 @@ body.perf-lite .card.dealt {
     opacity: 1;
     transform: translate3d(0, 0, 0) rotate(var(--rot)) scale(1);
   }
-}
-
-@keyframes cardDealInLite {
-  0% {
-    opacity: 0;
-    transform: translate3d(34vw, -34vh, 0) rotate(68deg) scale(0.76);
-  }
-  65% {
-    opacity: 1;
-    transform: translate3d(-1px, 1px, 0) rotate(calc(var(--rot) + 0.5deg)) scale(1.01);
-  }
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) rotate(var(--rot)) scale(1);
-  }
-}
-
-@keyframes cardDealInLite {
-  from { opacity: 0; transform: translate3d(28vw, -36vh, 0) rotate(55deg) scale(0.92); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0) rotate(var(--rot)) scale(1); }
 }
 
 :root.perf-lite .card.dealt,

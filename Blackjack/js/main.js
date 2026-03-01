@@ -1,62 +1,105 @@
 let stopLiquidGlassLoop = null;
+let perfTooltipEl = null;
 
 function getPerfButtonLabel(summary) {
-  if (summary.mode === PERF_MODE_LOW) return 'LOW';
-  if (summary.mode === PERF_MODE_HIGH) return 'HIGH';
-  return summary.perfLite ? 'AUTO↓' : 'AUTO↑';
+  if (summary.mode === PERF_MODE_LOW) return '🐢';
+  if (summary.mode === PERF_MODE_HIGH) return '✨';
+  return summary.perfLite ? '🔋' : '🚀';
+}
+
+function getPerfTooltipText(summary) {
+  if (summary.mode === PERF_MODE_LOW) return 'Performance mode: Low';
+  if (summary.mode === PERF_MODE_HIGH) return 'Performance mode: High';
+  return `Performance mode: Auto (${summary.perfLite ? 'Low active' : 'High active'})`;
 }
 
 function syncPerfButton(summary = getPerformanceSummary()) {
   if (!els.btnPerf) return;
+  const tooltip = getPerfTooltipText(summary);
   els.btnPerf.textContent = getPerfButtonLabel(summary);
-  els.btnPerf.title = summary.mode === PERF_MODE_AUTO
-    ? `Performance: Auto (${summary.perfLite ? 'Low active' : 'High active'})`
-    : `Performance: ${summary.mode === PERF_MODE_LOW ? 'Low' : 'High'}`;
+  els.btnPerf.title = tooltip;
+  els.btnPerf.setAttribute('aria-label', tooltip);
+  if (perfTooltipEl) perfTooltipEl.textContent = tooltip;
+}
+
+function ensurePerfTooltip() {
+  if (perfTooltipEl) return perfTooltipEl;
+  const el = document.createElement('div');
+  el.id = 'perf-tooltip';
+  el.className = 'perf-tooltip';
+  el.setAttribute('role', 'tooltip');
+  document.body.appendChild(el);
+  perfTooltipEl = el;
+  return el;
+}
+
+function placePerfTooltip() {
+  if (!els.btnPerf || !perfTooltipEl) return;
+  const rect = els.btnPerf.getBoundingClientRect();
+  const top = Math.max(8, rect.bottom + 10);
+  let left = rect.left + rect.width / 2;
+  const maxLeft = window.innerWidth - 12;
+  const minLeft = 12;
+  left = Math.min(maxLeft, Math.max(minLeft, left));
+  perfTooltipEl.style.top = `${top}px`;
+  perfTooltipEl.style.left = `${left}px`;
+}
+
+function setPerfTooltipVisible(visible) {
+  const tip = ensurePerfTooltip();
+  if (!tip) return;
+  if (visible) {
+    tip.classList.add('visible');
+    placePerfTooltip();
+  } else {
+    tip.classList.remove('visible');
+  }
+}
+
+function wireChipBets() {
+  const chips = document.querySelectorAll('.chip[data-bet]');
+  chips.forEach((chip) => {
+    chip.addEventListener('click', (event) => {
+      const amount = Number(chip.dataset.bet || 0);
+      if (!Number.isFinite(amount) || amount <= 0) return;
+      placeBet(amount, event);
+    });
+  });
+}
+
+function wireCustomBet() {
+  const input = document.getElementById('custom-bet-input');
+  const button = document.getElementById('btn-custom-bet');
+  if (!input || !button) return;
+
+  const submit = () => placeCustomBet(input.value);
+  button.addEventListener('click', submit);
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') submit();
+  });
+}
+
+function wirePerfTooltip() {
+  if (!els.btnPerf) return;
+  ensurePerfTooltip();
+  els.btnPerf.addEventListener('mouseenter', () => setPerfTooltipVisible(true));
+  els.btnPerf.addEventListener('mouseleave', () => setPerfTooltipVisible(false));
+  els.btnPerf.addEventListener('focus', () => setPerfTooltipVisible(true));
+  els.btnPerf.addEventListener('blur', () => setPerfTooltipVisible(false));
+  window.addEventListener('resize', placePerfTooltip);
+  window.addEventListener('scroll', placePerfTooltip, { passive: true });
 }
 
 function createLiquidGlassLoop() {
-  const state = { x: 50, y: 36, tx: 50, ty: 36, rafId: null };
   const root = document.body;
-  if (!root || perfLite) return () => {};
+  if (!root) return () => {};
 
-  const setVars = (x, y) => {
-    root.style.setProperty('--glass-cx', `${x.toFixed(2)}%`);
-    root.style.setProperty('--glass-cy', `${y.toFixed(2)}%`);
-    root.style.setProperty('--glass-shift-x', `${((x - 50) * 0.24).toFixed(2)}%`);
-    root.style.setProperty('--glass-shift-y', `${((y - 50) * 0.24).toFixed(2)}%`);
-  };
-
-  setVars(state.x, state.y);
-
-  const onPointerMove = (event) => {
-    state.tx = (event.clientX / Math.max(1, window.innerWidth)) * 100;
-    state.ty = (event.clientY / Math.max(1, window.innerHeight)) * 100;
-  };
-
-  const onPointerReset = () => {
-    state.tx = 50;
-    state.ty = 36;
-  };
-
-  const step = (ts) => {
-    const driftX = Math.sin(ts * 0.00026) * 2.6;
-    const driftY = Math.cos(ts * 0.00022) * 1.9;
-    state.x += ((state.tx + driftX) - state.x) * 0.11;
-    state.y += ((state.ty + driftY) - state.y) * 0.11;
-    setVars(state.x, state.y);
-    state.rafId = window.requestAnimationFrame(step);
-  };
-
-  state.rafId = window.requestAnimationFrame(step);
-  window.addEventListener('pointermove', onPointerMove, { passive: true });
-  window.addEventListener('pointerleave', onPointerReset);
-  window.addEventListener('blur', onPointerReset);
+  root.style.setProperty('--glass-cx', '50%');
+  root.style.setProperty('--glass-cy', '36%');
+  root.style.setProperty('--glass-shift-x', '0%');
+  root.style.setProperty('--glass-shift-y', '0%');
 
   return () => {
-    if (state.rafId != null) window.cancelAnimationFrame(state.rafId);
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerleave', onPointerReset);
-    window.removeEventListener('blur', onPointerReset);
     root.style.setProperty('--glass-cx', '50%');
     root.style.setProperty('--glass-cy', '36%');
     root.style.setProperty('--glass-shift-x', '0%');
@@ -84,7 +127,7 @@ function handlePerfModeChanged(event) {
 }
 
 const initGame = () => {
-  applyPerfMode();
+  applyPerformanceMode(perfMode, false);
 
   els = {
     wallet: document.getElementById('wallet-val'),
@@ -123,12 +166,14 @@ const initGame = () => {
     btnPerf: document.getElementById('btn-perf'),
   };
 
+  wireChipBets();
+  wireCustomBet();
+  wirePerfTooltip();
   window.addEventListener('blackjack:perfmodechange', handlePerfModeChanged);
 
   applyPerformanceUi(getPerformanceSummary());
   if (els.betUI) els.betUI.classList.remove('hidden');
   dimHands(true);
-  updatePerfToggleUI();
 };
 
 if (document.readyState === 'loading') {
