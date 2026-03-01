@@ -256,3 +256,26 @@
   .stat-card { min-width: 74px; padding: 7px 10px; }
   .stat-val { font-size: 1.16rem; }
 }
+
+
+.brand h1 { letter-spacing: -1px; }
+.brand .tag {
+  color: #a5f3fc;
+  text-shadow: 0 0 14px rgba(0,243,255,0.42);
+}
+
+#app {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.float-text {
+  font-size: 1rem;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(2, 14, 22, 0.58);
+  border: 1px solid rgba(255,255,255,0.16);
+}
+
+.ctrl-label { font-weight: 800; letter-spacing: 0.4px; }
+.ctrl-cost { font-size: 0.68rem; color: #9ddbe0; }
