@@ -1,3 +1,54 @@
+
+function nextRoundToken() {
+  roundToken += 1;
+  return roundToken;
+}
+
+function isRoundActive(roundId) {
+  return roundId === roundToken;
+}
+
+function scheduleAction(delay, fn, roundId = roundToken) {
+  return window.setTimeout(() => {
+    if (!isRoundActive(roundId)) return;
+    fn();
+  }, delay);
+}
+
+function waitForAnimation(animation, roundId) {
+  if (!animation || !animation.finished) return Promise.resolve(isRoundActive(roundId));
+  return animation.finished
+    .then(() => isRoundActive(roundId))
+    .catch(() => isRoundActive(roundId));
+}
+
+function waitForCardDeal(cardEl, roundId) {
+  if (!cardEl) return Promise.resolve(isRoundActive(roundId));
+  const anim = cardEl.getAnimations().find((a) => {
+    const name = a.animationName || (a.effect && a.effect.getKeyframes && a.effect.getKeyframes()[0] && a.effect.getKeyframes()[0].offset != null ? 'keyframes' : '');
+    return name !== '';
+  }) || cardEl.getAnimations()[0];
+  return waitForAnimation(anim, roundId);
+}
+
+function revealFaceDownCard(cardEl, roundId = roundToken) {
+  if (!cardEl || !isRoundActive(roundId)) return Promise.resolve(false);
+  cardEl.classList.remove('face-down');
+  const inner = cardEl.querySelector('.inner');
+  if (!inner) return Promise.resolve(isRoundActive(roundId));
+  const flipAnimation = inner.getAnimations()[0];
+  return waitForAnimation(flipAnimation, roundId);
+}
+
+async function dealCardTo(handArr, container, faceUp, roundId = roundToken) {
+  if (!isRoundActive(roundId)) return null;
+  const cardEl = spawnCard(handArr, container, faceUp);
+  await waitForCardDeal(cardEl, roundId);
+  if (!isRoundActive(roundId)) return null;
+  if (faceUp) await revealFaceDownCard(cardEl, roundId);
+  return cardEl;
+}
+
 function cryptoRandInt(max) {
   if (max <= 0) return 0;
   const arr = new Uint32Array(1);
@@ -189,10 +240,11 @@ function checkLoanDeath() {
   return false;
 }
 
-function deal() {
+async function deal() {
   initAudio();
   if (gameState !== 'BETTING' || currentBet <= 0) return;
 
+  const roundId = nextRoundToken();
   lastBet = currentBet;
   gameState = 'PLAYING';
   playerHands = [[]];
@@ -218,31 +270,29 @@ function deal() {
   els.dScore.classList.remove('visible');
   els.betUI.classList.add('hidden');
 
-  spawnCard(playerHands[0], els.pCards0, true, 0);
-  spawnCard(dealerHand, els.dCards, true, 220);
-  spawnCard(playerHands[0], els.pCards0, true, 440);
-  spawnCard(dealerHand, els.dCards, false, 660);
+  await dealCardTo(playerHands[0], els.pCards0, true, roundId);
+  await dealCardTo(dealerHand, els.dCards, true, roundId);
+  await dealCardTo(playerHands[0], els.pCards0, true, roundId);
+  await dealCardTo(dealerHand, els.dCards, false, roundId);
+  if (!isRoundActive(roundId)) return;
 
-  const scoreUpdateDelay = 900;
-  setTimeout(() => {
-    updateAllPlayerScores(false);
-    const dealerAce = dealerHand.length > 0 && dealerHand[0].v === 'A';
-    if (dealerAce && !isBlackjack(playerHands[0])) {
-      let insAmt = perks.insuranceProRemaining > 0 ? 0 : Math.floor(currentBet / 2);
-      if (insAmt > 0 && perks.insuranceDiscountRemaining > 0) insAmt = Math.floor(insAmt / 2);
-      els.insuranceAmt.textContent = insAmt;
-      els.insuranceStrip.style.display = 'flex';
-      return;
-    }
-    if (dealerAce && isBlackjack(playerHands[0])) {
-      stand(true);
-    } else {
-      setTimeout(() => {
-        els.gameControls.classList.add('active');
-        updateUI();
-      }, 120);
-    }
-  }, scoreUpdateDelay);
+  updateAllPlayerScores(false);
+  const dealerAce = dealerHand.length > 0 && dealerHand[0].v === 'A';
+  if (dealerAce && !isBlackjack(playerHands[0])) {
+    let insAmt = perks.insuranceProRemaining > 0 ? 0 : Math.floor(currentBet / 2);
+    if (insAmt > 0 && perks.insuranceDiscountRemaining > 0) insAmt = Math.floor(insAmt / 2);
+    els.insuranceAmt.textContent = insAmt;
+    els.insuranceStrip.style.display = 'flex';
+    return;
+  }
+  if (dealerAce && isBlackjack(playerHands[0])) {
+    stand(true);
+    return;
+  }
+  scheduleAction(120, () => {
+    els.gameControls.classList.add('active');
+    updateUI();
+  }, roundId);
 }
 
 function takeInsurance() {
@@ -260,17 +310,18 @@ function takeInsurance() {
   insuranceBet = usedPro ? Math.floor(currentBet / 2) : insAmt;
   els.insuranceStrip.style.display = 'none';
   if (isBlackjack(playerHands[0])) stand(true);
-  else setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 120);
+  else scheduleAction(120, () => { els.gameControls.classList.add('active'); updateUI(); });
 }
 
 function declineInsurance() {
   els.insuranceStrip.style.display = 'none';
   if (isBlackjack(playerHands[0])) stand(true);
-  else setTimeout(() => { els.gameControls.classList.add('active'); updateUI(); }, 120);
+  else scheduleAction(120, () => { els.gameControls.classList.add('active'); updateUI(); });
 }
 
 function surrender() {
   if (!canSurrender()) return;
+  const roundId = roundToken;
   const bet = currentBets[activeHandIndex] != null ? currentBets[activeHandIndex] : currentBet;
   wallet += Math.floor(bet / 2);
   surrenderedHands[activeHandIndex] = true;
@@ -279,7 +330,7 @@ function surrender() {
     els.gameControls.classList.remove('active');
     showMsg('Surrendered', 'rgba(255,255,255,0.8)');
     updateUI();
-    setTimeout(() => {
+    scheduleAction(2000, () => {
       gameState = 'BETTING';
       currentBet = 0;
       currentBets = [0];
@@ -290,7 +341,7 @@ function surrender() {
       els.betUI.classList.remove('hidden');
       dimHands(true);
       updateUI();
-    }, 2000);
+    }, roundId);
     return;
   }
   stand(false);
@@ -323,7 +374,7 @@ function updateAllPlayerScores(showDealer) {
   }
 }
 
-function split() {
+async function split() {
   if (!canSplit()) return;
   initAudio();
   playSound('chip');
@@ -349,66 +400,71 @@ function split() {
   els.pScore0.classList.remove('visible');
   els.pScore1.classList.remove('visible');
 
-  const buildHandDOM = (hand, container, delayStart) => {
-    hand.forEach((cardData, idx) => {
-      const d = delayStart + idx * 220;
-      setTimeout(() => {
-        playSound('card');
-        const el = makeCardDOM(cardData, true);
-        el.style.setProperty('--deal-duration', (perfLite ? 400 : 560) + 'ms');
-        el.style.setProperty('--flip-duration', (perfLite ? 360 : 520) + 'ms');
-        container.appendChild(el);
-        requestAnimationFrame(() => el.classList.add('dealt'));
-      }, d);
-    });
-  };
+  const roundId = roundToken;
+  for (const cardData of hand0) {
+    if (!isRoundActive(roundId)) return;
+    const el = makeCardDOM(cardData, true);
+    playSound('card');
+    el.style.setProperty('--deal-duration', (perfLite ? 400 : 560) + 'ms');
+    el.style.setProperty('--flip-duration', (perfLite ? 360 : 520) + 'ms');
+    els.pCards0.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('dealt'));
+    await waitForCardDeal(el, roundId);
+  }
+  for (const cardData of hand1) {
+    if (!isRoundActive(roundId)) return;
+    const el = makeCardDOM(cardData, true);
+    playSound('card');
+    el.style.setProperty('--deal-duration', (perfLite ? 400 : 560) + 'ms');
+    el.style.setProperty('--flip-duration', (perfLite ? 360 : 520) + 'ms');
+    els.pCards1.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('dealt'));
+    await waitForCardDeal(el, roundId);
+  }
 
-  buildHandDOM(hand0, els.pCards0, 0);
-  buildHandDOM(hand1, els.pCards1, 440);
-
-  setTimeout(() => {
-    activeHandIndex = 0;
-    els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
-      slot.classList.toggle('active', i === 0);
-      slot.classList.toggle('inactive', i !== 0);
-    });
-    updateAllPlayerScores(false);
-    updateUI();
-  }, 720);
+  if (!isRoundActive(roundId)) return;
+  activeHandIndex = 0;
+  els.playerHandsRow.querySelectorAll('.hand-slot').forEach((slot, i) => {
+    slot.classList.toggle('active', i === 0);
+    slot.classList.toggle('inactive', i !== 0);
+  });
+  updateAllPlayerScores(false);
+  updateUI();
 }
 
-function hit() {
+async function hit() {
   if (gameState !== 'PLAYING') return;
+  const roundId = roundToken;
   els.btnDouble.disabled = true;
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
-  spawnCard(hand, container, true, 0);
-  const scoreDelay = perfLite ? 420 : 520;
-  setTimeout(() => {
-    updateAllPlayerScores(false);
-    const score = getScore(hand);
-    if (score > 21) {
-      markBusted(container);
-      playSound('bust');
-      advanceToNextHandOrDealer();
-    }
-    updateUI();
-  }, scoreDelay);
+  await dealCardTo(hand, container, true, roundId);
+  if (!isRoundActive(roundId)) return;
+  updateAllPlayerScores(false);
+  const score = getScore(hand);
+  if (score > 21) {
+    markBusted(container);
+    playSound('bust');
+    advanceToNextHandOrDealer();
+  }
+  updateUI();
 }
 
 function stand(revealInstant = false) {
   if (gameState !== 'PLAYING') return;
-
+  const roundId = roundToken;
   const holeCardEl = els.dCards.children[1];
-  const doReveal = () => {
+  const doReveal = async () => {
+    if (!isRoundActive(roundId)) return;
     if (playerHands.length === 1) {
-      if (holeCardEl) holeCardEl.classList.remove('face-down');
+      if (holeCardEl) await revealFaceDownCard(holeCardEl, roundId);
+      if (!isRoundActive(roundId)) return;
       gameState = 'DEALER_TURN';
       els.gameControls.classList.remove('active');
-      setTimeout(() => {
+      scheduleAction(revealInstant ? 160 : 320, () => {
         updateAllPlayerScores(true);
-        setTimeout(() => dealerAI(revealInstant), revealInstant ? 160 : 380);
-      }, revealInstant ? 160 : 320);
+        scheduleAction(revealInstant ? 160 : 380, () => dealerAI(revealInstant, roundId), roundId);
+      }, roundId);
       return;
     }
     activeHandIndex++;
@@ -420,29 +476,30 @@ function stand(revealInstant = false) {
       updateUI();
       return;
     }
-    if (holeCardEl) holeCardEl.classList.remove('face-down');
+    if (holeCardEl) await revealFaceDownCard(holeCardEl, roundId);
+    if (!isRoundActive(roundId)) return;
     gameState = 'DEALER_TURN';
     els.gameControls.classList.remove('active');
-    setTimeout(() => {
+    scheduleAction(320, () => {
       updateAllPlayerScores(true);
-      setTimeout(() => dealerAI(false), 380);
-    }, 320);
+      scheduleAction(380, () => dealerAI(false, roundId), roundId);
+    }, roundId);
   };
 
   const goingToDealer = playerHands.length === 1 || activeHandIndex + 1 >= playerHands.length;
   const showPeek = !revealInstant && goingToDealer && holeCardEl && dealerUpcardIsAceOr10();
   if (showPeek) {
     els.peekMsg.style.display = 'block';
-    setTimeout(() => {
+    scheduleAction(720, () => {
       els.peekMsg.style.display = 'none';
       doReveal();
-    }, 720);
+    }, roundId);
   } else {
     doReveal();
   }
 }
 
-function advanceToNextHandOrDealer() {
+async function advanceToNextHandOrDealer() {
   if (playerHands.length === 1) {
     endRoundMulti([{ result: 'BUST', handIndex: 0 }]);
     return;
@@ -456,19 +513,22 @@ function advanceToNextHandOrDealer() {
     els.btnDouble.disabled = !canDoubleDown(activeHandIndex);
     updateUI();
   } else {
+    const roundId = roundToken;
     gameState = 'DEALER_TURN';
     els.gameControls.classList.remove('active');
     const holeCardEl = els.dCards.children[1];
-    if (holeCardEl) holeCardEl.classList.remove('face-down');
-    setTimeout(() => {
+    if (holeCardEl) await revealFaceDownCard(holeCardEl, roundId);
+    if (!isRoundActive(roundId)) return;
+    scheduleAction(120, () => {
       updateAllPlayerScores(true);
-      dealerAI(false);
-    }, 360);
+      dealerAI(false, roundId);
+    }, roundId);
   }
 }
 
-function doubleDown() {
+async function doubleDown() {
   if (!canDoubleDown(activeHandIndex)) return;
+  const roundId = roundToken;
   initAudio();
   playSound('chip');
   if (playerHands[activeHandIndex].length > 2 && perks.doubleAnywhereRemaining > 0) {
@@ -483,29 +543,27 @@ function doubleDown() {
 
   const hand = playerHands[activeHandIndex];
   const container = getPlayerCardsContainer(activeHandIndex);
-  spawnCard(hand, container, true, 0);
-  const scoreDelay = perfLite ? 420 : 520;
-  setTimeout(() => {
-    updateAllPlayerScores(false);
-    const score = getScore(hand);
-    if (score > 21) {
-      markBusted(container);
-      playSound('bust');
-      advanceToNextHandOrDealer();
-      return;
-    }
-    stand(false);
-  }, scoreDelay);
+  await dealCardTo(hand, container, true, roundId);
+  if (!isRoundActive(roundId)) return;
+  updateAllPlayerScores(false);
+  const score = getScore(hand);
+  if (score > 21) {
+    markBusted(container);
+    playSound('bust');
+    advanceToNextHandOrDealer();
+    return;
+  }
+  stand(false);
 }
 
-function dealerAI(isFast) {
+async function dealerAI(isFast, roundId = roundToken) {
+  if (!isRoundActive(roundId)) return;
   const d = getScore(dealerHand);
   if (d < 17) {
-    spawnCard(dealerHand, els.dCards, true, 0);
-    setTimeout(() => {
-      updateAllPlayerScores(true);
-      dealerAI(isFast);
-    }, isFast ? 280 : 520);
+    await dealCardTo(dealerHand, els.dCards, true, roundId);
+    if (!isRoundActive(roundId)) return;
+    updateAllPlayerScores(true);
+    scheduleAction(isFast ? 180 : 280, () => dealerAI(isFast, roundId), roundId);
   } else {
     if (playerHands.length === 1) {
       const res = determineSingleResult();
@@ -624,7 +682,7 @@ function endRoundMulti(results) {
   saveProgress();
 
   if (checkLoanDeath()) {
-    setTimeout(() => {
+    scheduleAction(2400, () => {
       gameState = 'DEAD';
       els.betUI.classList.add('hidden');
       els.insuranceStrip.style.display = 'none';
@@ -634,11 +692,11 @@ function endRoundMulti(results) {
         d.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:2147483647;background:rgba(0,0,0,0.7);';
       }
       updateUI();
-    }, 2400);
+    }, roundToken);
     return;
   }
 
-  setTimeout(() => {
+  scheduleAction(2600, () => {
     gameState = 'BETTING';
     currentBet = 0;
     currentBets = [0];
@@ -652,5 +710,5 @@ function endRoundMulti(results) {
     dimHands(true);
     updateUI();
     updateCoinsUI();
-  }, 2600);
+  }, roundToken);
 }
