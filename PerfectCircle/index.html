@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Perfect Circle Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <div class="stats-card">
+        <div class="label">High Score</div>
+        <div class="value"><span id="best-score-val">0.0</span>%</div>
+    </div>
+
+    <div class="center-ui">
+        <div id="score" class="score-display">0.0%</div>
+        <div id="rank" class="rank-badge"></div>
+        <div id="feedback" class="message"></div>
+    </div>
+
+    <div id="instruction" class="guide-container">
+        <div class="guide-dot"></div>
+        <div class="guide-text">Hold &amp; Draw a Circle</div>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script src="js/state.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
