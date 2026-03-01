@@ -92,10 +92,10 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
 
 /* ——— HUD ——— */
 #hud {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px 6px;
+  padding: 12px 20px 4px;
   z-index: 30;
   pointer-events: none;
   gap: 10px;
@@ -201,6 +201,8 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   pointer-events: none;
   font-family: 'Playfair Display', serif;
   color: rgba(255,255,255,0.42);
+  justify-self: end;
+  max-width: 320px;
 }
 .rules small { font-family: 'Outfit', sans-serif; color: rgba(255,255,255,0.32); }
 
@@ -208,8 +210,10 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
 .hand-container {
   position: relative;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 8px;
   perspective: 1100px;
   z-index: 10;
   contain: layout style;
@@ -277,13 +281,15 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
   align-items: center;
   height: var(--card-h);
   padding: 0 6px;
+  position: relative;
+  z-index: 2;
 }
 
 .score-badge {
   position: relative;
-  right: -72px;
-  top: 50%;
-  transform: translateY(-50%) translateX(14px) translateZ(0) scale(0.88);
+  right: auto;
+  top: auto;
+  transform: translateY(0) translateX(0) translateZ(0) scale(0.92);
   padding: 8px 18px;
   border-radius: 999px;
   background: var(--glass-surface-strong);
@@ -311,10 +317,10 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
 }
 .score-badge.visible {
   opacity: 1;
-  transform: translateY(-50%) translateX(0) translateZ(0) scale(1);
+  transform: translateY(0) translateX(0) translateZ(0) scale(1);
 }
 
-.dealer-area .score-badge { right: 14%; }
+.dealer-area .score-badge { right: auto; }
 
 .dimmed {
   opacity: 0.32;
@@ -325,6 +331,7 @@ body.perf-lite :where(.deck-shoe, .stat-box, .stats-row, .score-badge, .btn, .bt
 
 /* ——— Controls zone ——— */
 .controls-zone {
+  margin-top: 2px;
   position: relative;
   z-index: 90;
   min-height: 116px;
@@ -501,6 +508,7 @@ body.perf-lite .btn::after { display: none; }
 
 /* ——— Betting overlay ——— */
 #betting-overlay {
+  border-radius: 18px;
   position: absolute;
   left: 0;
   right: 0;
@@ -1012,7 +1020,8 @@ body.perf-lite .score-badge.visible.pop-in {
 
 @media (max-width: 640px) {
   :root { --card-w: 88px; --card-h: 124px; --chip-size: 52px; }
-  #hud { padding: 8px 12px 4px; flex-wrap: wrap; gap: 4px; }
+  #hud { grid-template-columns: 1fr 1fr; padding: 8px 12px 4px; gap: 6px; }
+  .rules { grid-column: 1 / -1; justify-self: start; text-align: left; }
   .stat-box { padding: 6px 12px; border-radius: 10px; }
   .stat-value { font-size: 1.15rem; }
   .btn-perf { min-width: 56px; padding: 0 7px; font-size: 0.55rem; }
@@ -1022,7 +1031,7 @@ body.perf-lite .score-badge.visible.pop-in {
   .hand-label { display: none; }
   .player-hands-row { gap: 18px; padding: 0 14px; }
   .card { margin-left: -30px; }
-  .dealer-area .score-badge { right: 6%; }
+  .dealer-area .score-badge { right: auto; }
   #gameplay-controls { gap: 6px; bottom: 18px; }
   .btn { padding: 9px 16px; font-size: 0.75rem; min-width: 70px; border-radius: 12px; }
   .bet-controls { gap: 5px; }
