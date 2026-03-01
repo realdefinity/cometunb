@@ -1,11 +1,11 @@
 #table {
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
-  grid-template-rows: auto 1fr 1fr auto;
+  grid-template-rows: auto minmax(160px, 1fr) minmax(160px, 1fr) auto;
   position: relative;
-  padding-bottom: var(--safe-bottom);
+  padding-bottom: calc(var(--safe-bottom) + var(--space-2));
   contain: layout style;
 }
 
@@ -816,27 +816,47 @@
 }
 
 
-@media (max-height: 760px) {
+@media (max-height: 860px) {
+  :root {
+    --ui-scale: clamp(0.72, var(--ui-scale), 0.9);
+    --layout-controls-zone: clamp(132px, calc(145px * var(--ui-scale)), 188px);
+  }
+
   body {
     overflow-y: auto;
     overflow-x: hidden;
   }
 
   #table {
-    min-height: 100dvh;
-    height: auto;
+    min-height: max(100dvh, 760px);
   }
 
-  .controls-zone {
-    min-height: clamp(140px, calc(160px * var(--ui-scale)), 220px);
-  }
-
-  #betting-overlay {
-    bottom: max(var(--safe-bottom), var(--space-2));
-    padding-bottom: var(--space-2);
+  #betting-overlay,
+  #gameplay-controls {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    transform: none;
+    margin-top: var(--space-2);
   }
 
   #gameplay-controls {
-    bottom: max(var(--safe-bottom), var(--space-2));
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+
+  #gameplay-controls.active {
+    opacity: 1;
+    max-height: 160px;
+  }
+
+  .insurance-strip {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    margin-top: var(--space-1);
   }
 }

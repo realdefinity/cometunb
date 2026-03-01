@@ -58,6 +58,7 @@ const initGame = () => {
 
   let shopBackdrop = null;
   const openShop = () => {
+    if (gameState === 'DEAD') return;
     if (shopBackdrop && shopBackdrop.parentNode) return;
     const backdrop = document.createElement('div');
     backdrop.id = 'shop-backdrop';
@@ -102,12 +103,14 @@ const initGame = () => {
   const escHandler = (e) => {
     if (e.key === 'Escape') closeShop();
   };
-  const shopBtn = document.getElementById('btn-shop');
-  const coinsBox = document.getElementById('coins-box');
-  shopBtn?.addEventListener('click', openShop);
-  coinsBox?.addEventListener('click', openShop);
-  if (shopBtn) shopBtn.onclick = openShop;
-  if (coinsBox) coinsBox.onclick = openShop;
+  window.openShopModal = openShop;
+  window.closeShopModal = closeShop;
+  document.getElementById('btn-shop')?.addEventListener('click', openShop);
+  document.getElementById('coins-box')?.addEventListener('click', openShop);
+  document.addEventListener('click', (e) => {
+    const trigger = e.target && e.target.closest ? e.target.closest('#btn-shop, #coins-box') : null;
+    if (trigger) openShop();
+  });
 
   document.getElementById('btn-sound')?.addEventListener('click', () => { toggleSound(); });
   document.getElementById('death-overlay')?.addEventListener('click', (e) => {
