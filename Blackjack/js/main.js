@@ -58,29 +58,29 @@ const initGame = () => {
 
   let shopBackdrop = null;
   const openShop = () => {
+    if (gameState === 'DEAD') return;
     if (shopBackdrop && shopBackdrop.parentNode) return;
     const backdrop = document.createElement('div');
     backdrop.id = 'shop-backdrop';
+    backdrop.className = 'shop-backdrop';
     backdrop.setAttribute('role', 'dialog');
     backdrop.setAttribute('aria-modal', 'true');
     backdrop.setAttribute('aria-label', 'VIP Lounge shop');
-    backdrop.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;background:rgba(0,0,0,0.7);';
     const panel = document.createElement('div');
     panel.className = 'shop-panel';
-    panel.style.cssText = 'background:var(--glass-tint-strong);border:1px solid var(--glass-border);border-radius:24px;width:100%;max-width:560px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--glass-shadow-xl);';
     panel.innerHTML = `
-      <div class="shop-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
-        <h2 class="shop-title" style="margin:0;font-size:1.6rem;color:var(--gold);">VIP Lounge</h2>
-        <div class="shop-coins" style="font-weight:700;padding:6px 14px;border-radius:999px;background:rgba(232,197,71,0.15);" id="shop-coins-display" title="Your coin balance">${typeof coins === 'number' ? coins : 0} ⭐</div>
-        <button type="button" class="btn-icon shop-close" style="width:40px;height:40px;cursor:pointer;font-size:1.1rem;">✕</button>
+      <div class="shop-header">
+        <h2 class="shop-title">VIP Lounge</h2>
+        <div class="shop-coins" id="shop-coins-display" title="Your coin balance">${typeof coins === 'number' ? coins : 0} ⭐</div>
+        <button type="button" class="btn-icon shop-close" aria-label="Close shop">✕</button>
       </div>
-      <div class="shop-grid" id="shop-grid-dynamic" style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:20px 24px 28px;overflow-y:auto;"></div>
+      <div class="shop-grid" id="shop-grid-dynamic"></div>
     `;
     backdrop.appendChild(panel);
     backdrop.addEventListener('click', (e) => {
       if (e.target === backdrop) closeShop();
     });
-    panel.querySelector('.shop-close').addEventListener('click', (e) => {
+    panel.querySelector('.shop-close')?.addEventListener('click', (e) => {
       e.stopPropagation();
       closeShop();
     });
@@ -103,8 +103,14 @@ const initGame = () => {
   const escHandler = (e) => {
     if (e.key === 'Escape') closeShop();
   };
+  window.openShopModal = openShop;
+  window.closeShopModal = closeShop;
   document.getElementById('btn-shop')?.addEventListener('click', openShop);
   document.getElementById('coins-box')?.addEventListener('click', openShop);
+  document.addEventListener('click', (e) => {
+    const trigger = e.target && e.target.closest ? e.target.closest('#btn-shop, #coins-box') : null;
+    if (trigger) openShop();
+  });
 
   document.getElementById('btn-sound')?.addEventListener('click', () => { toggleSound(); });
   document.getElementById('death-overlay')?.addEventListener('click', (e) => {
