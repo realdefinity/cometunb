@@ -609,6 +609,8 @@ function getMultiResults() {
 
 function endRoundMulti(results) {
   gameState = 'END';
+  els.gameControls.classList.remove('active');
+  if (els.peekMsg) els.peekMsg.style.display = 'none';
 
   if (isBlackjack(dealerHand) && insuranceBet > 0) {
     wallet += insuranceBet * 2;
@@ -696,7 +698,7 @@ function endRoundMulti(results) {
     return;
   }
 
-  scheduleAction(2600, () => {
+  scheduleAction(1400, () => {
     gameState = 'BETTING';
     currentBet = 0;
     currentBets = [0];
@@ -705,6 +707,7 @@ function endRoundMulti(results) {
     surrenderedHands = [];
     insuranceBet = 0;
     activeHandIndex = 0;
+    els.gameControls.classList.remove('active');
     els.betUI.classList.remove('hidden');
     els.insuranceStrip.style.display = 'none';
     dimHands(true);

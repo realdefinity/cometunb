@@ -814,3 +814,29 @@
   .bet-controls { gap: 5px; }
   .btn-deal { padding: 9px 32px; }
 }
+
+
+@media (max-height: 760px) {
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  #table {
+    min-height: 100dvh;
+    height: auto;
+  }
+
+  .controls-zone {
+    min-height: clamp(140px, calc(160px * var(--ui-scale)), 220px);
+  }
+
+  #betting-overlay {
+    bottom: max(var(--safe-bottom), var(--space-2));
+    padding-bottom: var(--space-2);
+  }
+
+  #gameplay-controls {
+    bottom: max(var(--safe-bottom), var(--space-2));
+  }
+}
