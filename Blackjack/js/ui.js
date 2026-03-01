@@ -7,6 +7,7 @@ function isPerfLite() {
 
 const valueAnimationFrames = new WeakMap();
 const winnerPulseTimers = new WeakMap();
+let msgHideTimer = null;
 
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const EASE_SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
@@ -200,13 +201,26 @@ function updateUI() {
   updateStatsUI();
 }
 
-function showMsg(text, color = 'white') {
+function showMsg(text, color = 'white', durationMs = 1100) {
+  if (msgHideTimer) {
+    window.clearTimeout(msgHideTimer);
+    msgHideTimer = null;
+  }
   els.msgText.textContent = text;
   els.msgText.style.color = color;
   els.msgText.classList.add('visible');
+  if (durationMs > 0) {
+    msgHideTimer = window.setTimeout(() => {
+      hideMsg();
+    }, durationMs);
+  }
 }
 
 function hideMsg() {
+  if (msgHideTimer) {
+    window.clearTimeout(msgHideTimer);
+    msgHideTimer = null;
+  }
   els.msgText.classList.remove('visible');
 }
 
