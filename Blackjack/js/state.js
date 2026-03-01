@@ -30,3 +30,5 @@ let perks = {
   insuranceProRemaining: 0,
   comebackCoinRemaining: 0
 };
+
+let roundToken = 0;

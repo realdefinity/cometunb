@@ -301,21 +301,20 @@ function triggerConfetti() {
   document.body.appendChild(fragment);
 }
 
-function spawnCard(handArr, container, faceUp, delay) {
+function spawnCard(handArr, container, faceUp) {
   const cardData = deck.pop();
   handArr.push(cardData);
-  setTimeout(() => {
-    playSound('card');
-    const cardEl = makeCardDOM(cardData, faceUp);
-    const dealDuration = perfLite ? 380 : 560;
-    const flipDuration = perfLite ? 340 : 520;
-    cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
-    cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
-    if (faceUp) cardEl.classList.add('face-down');
-    container.appendChild(cardEl);
-    requestAnimationFrame(() => cardEl.classList.add('dealt'));
-    if (faceUp) {
-      setTimeout(() => cardEl.classList.remove('face-down'), Math.max(60, Math.round(dealDuration * 0.28)));
-    }
-  }, delay);
+  playSound('card');
+  const cardEl = makeCardDOM(cardData, faceUp);
+  const dealDuration = perfLite ? 380 : 560;
+  const flipDuration = perfLite ? 340 : 520;
+  cardEl.style.setProperty('--deal-duration', `${dealDuration}ms`);
+  cardEl.style.setProperty('--flip-duration', `${flipDuration}ms`);
+  if (faceUp) cardEl.classList.add('face-down');
+  container.appendChild(cardEl);
+  requestAnimationFrame(() => cardEl.classList.add('dealt'));
+  if (faceUp) {
+    setTimeout(() => cardEl.classList.remove('face-down'), Math.max(60, Math.round(dealDuration * 0.28)));
+  }
+  return cardEl;
 }
